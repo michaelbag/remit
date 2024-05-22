@@ -1,0 +1,9 @@
+{% extends "hello/base.html" %}
+{% block content %}
+<table border="1">
+    {% for t in equipment_list %}
+    <tr><td>{{ t.name }}</td><td>{{ t.guid }}</td><td>{{ t.is_group }}</td></tr>
+    {% endfor %}
+</table>
+<div><p>Get <a href="{% url 'e-list' %}">equipment</a>. </p></div>
+{% endblock content %}

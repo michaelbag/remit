@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteBase /
+RewriteRule ^(remit/django\.cgi/.*)$ - [L]
+RewriteRule ^(.*)$ remit/django.cgi/$1 [L]
