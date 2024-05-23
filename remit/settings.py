@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'config',
     'apps.equipment',
     'apps.org',
-    'apps.res'
+    'apps.res',
+    'apps.qr'
     # 'api',
 ]
 
@@ -132,7 +133,7 @@ STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = 'https://img.p7e.ru/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
-STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'static/'),)
+# STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'static/'),)
 # 
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",

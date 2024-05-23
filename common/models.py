@@ -32,8 +32,6 @@ class Catalog(GUIDModel):
     code = models.CharField(max_length=9, blank=True)
     name = models.CharField(max_length=32, blank=True)
     delete_mark = models.BooleanField(default=False)
-    # is_group = models.BooleanField(default=False)
-    # parent = models.ForeignKey('self', null=True, related_name='elements', on_delete=models.CASCADE)
 
     class Meta:
         abstract = True
