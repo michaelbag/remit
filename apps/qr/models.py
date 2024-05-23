@@ -1,4 +1,5 @@
-import uuid
+# import uuid
+from django.utils.translation import gettext_lazy as _
 
 from django.db import models
 import common.models
@@ -7,12 +8,13 @@ import common.models
 class QRType(common.models.Catalog):
     url_root = models.URLField()
     archive = models.BooleanField(default=False)
+    fixed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.url_root
 
     class Meta:
-        verbose_name = 'QR Type'
+        verbose_name = _('QR Type')
 
 
 class QRCode(common.models.Catalog):
@@ -22,9 +24,10 @@ class QRCode(common.models.Catalog):
     title = models.CharField(max_length=150, blank=True)
     archive = models.BooleanField(default=False)
     qr_type = models.ForeignKey(QRType, on_delete=models.CASCADE)
+    fixed = models.BooleanField(default=False)
 
     def __str__(self):
         return '%s [%s]' % (self.title, self.guid.__str__()) if self.title else self.guid.__str__()
 
     class Meta:
-        verbose_name = 'QR Code'
+        verbose_name = _('QR Code')

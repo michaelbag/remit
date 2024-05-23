@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+import apps.qr.models
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
 from apps.res import models as res_models
@@ -207,3 +209,31 @@ class ResourceSerializer(serializers.ModelSerializer):
             'resource_category'
         ]
 
+
+class QRTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = apps.qr.models.QRType
+        fields = [
+            'guid',
+            'code',
+            'name',
+            'delete_mark',
+            'archive',
+            'url_root',
+            'fixed'
+        ]
+
+
+class QRCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = apps.qr.models.QRCode
+        fields = [
+            'guid',
+            'code',
+            'name',
+            'delete_mark',
+            'created_at',
+            'title',
+            'archive',
+            'qr_type'
+        ]

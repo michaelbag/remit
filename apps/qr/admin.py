@@ -21,6 +21,8 @@ class QRCodeAdmin(admin.ModelAdmin):
         'name',
         'title',
         'qr_type',
-        'archive'
+        'archive',
+        'created_at',
+        'fixed'
     ]
 

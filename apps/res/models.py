@@ -13,14 +13,14 @@ from common import models as com_models
 
 
 class ResourceCategory(models.TextChoices):
-    ACCOUNTS = "acc", _("Учетная запись")
-    REMOTE = "remote", _("Сетевой")
-    LOCAL = "local", _("Локальный")
-    TECHNICAL = "technical", _("Технологический")
-    NETWORK = "network", _("Подсеть")
-    SYSTEM = "system", _("Информационная система")
-    ROUTING = "routing", _("Маршрутизация")
-    MANAGEMENT = "management", _("Управление и мониторинг")
+    ACCOUNTS = "accounts", _("Accounts")
+    REMOTE = "remote", _("Remote resource")
+    LOCAL = "local", _("Local")
+    TECHNICAL = "technical", _("Technical")
+    NETWORK = "network", _("Sub network")
+    SYSTEM = "system", _("Information system")
+    ROUTING = "routing", _("Routing")
+    MANAGEMENT = "management", _("Management and monitoring")
 
 
 class ResourceType(com_models.Catalog):

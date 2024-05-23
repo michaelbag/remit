@@ -16,6 +16,8 @@ route.register('interface', views.InterfaceViewSet)
 route.register('organization', views.OrganizationViewSet)
 route.register('employee', views.EmployeeViewSet)
 route.register('resource', views.ResourceViewSet)
+route.register('qr_type', views.QRTypeViewSet)
+route.register('qr_code', views.QRCodeViewSet)
 
 urlpatterns = [
     path('', include(route.urls)),

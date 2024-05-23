@@ -2,6 +2,8 @@
 from rest_framework import generics
 # from rest_framework.views import APIView
 from rest_framework import viewsets, permissions
+
+import apps.qr.models
 # from django.shortcuts import render
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
@@ -115,4 +117,19 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 class ResourceViewSet(viewsets.ModelViewSet):
     queryset = res_models.Resource.objects.all()
     serializer_class = serializers.ResourceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+# === QR Codes
+# --- QR code type
+class QRTypeViewSet(viewsets.ModelViewSet):
+    queryset = apps.qr.models.QRType.objects.all()
+    serializer_class = serializers.QRTypeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+# --- QR Code
+class QRCodeViewSet(viewsets.ModelViewSet):
+    queryset = apps.qr.models.QRCode.objects.all()
+    serializer_class = serializers.QRCodeSerializer
     permission_classes = [permissions.IsAuthenticated]
