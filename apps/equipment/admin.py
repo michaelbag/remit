@@ -4,7 +4,20 @@ from . import models
 # Register your models here.
 
 admin.site.register(models.EquipmentType)
-admin.site.register(models.Equipment)
+
+
+@admin.register(models.Equipment)
+class EquipmentAdmin(admin.ModelAdmin):
+    list_display = [
+        '__str__',
+        'is_group',
+        'guid',
+        'title',
+        'delete_mark',
+        'has_interfaces'
+    ]
+
+
 admin.site.register(models.InterfaceType)
 
 
@@ -13,9 +26,11 @@ class InterfaceAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
         'mac',
+        'name',
         'equipment',
         'virtual',
         'ipv4_address',
+        'connected_to',
         'interface_type',
         'archive',
         'delete_mark'

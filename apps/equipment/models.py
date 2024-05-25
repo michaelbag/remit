@@ -164,7 +164,7 @@ class Interface(models.Model):
     name = models.CharField(max_length=64, blank=True)
     code = models.CharField(max_length=9, blank=True)
     delete_mark = models.BooleanField(default=False)
-    mac = MACAddressField(blank=True)
+    mac = MACAddressField(blank=True, null=True)
     equipment = models.ForeignKey(Equipment,
                                   on_delete=models.CASCADE,
                                   related_name='interfaces',

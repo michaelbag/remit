@@ -115,7 +115,8 @@ class InterfaceSerializer(serializers.ModelSerializer):
             'ipv4_gateway',
             'ipv4_network_mask',
             'dns',
-            'interface_type'
+            'interface_type',
+            'connected_to'
         ]
 
 
