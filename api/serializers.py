@@ -31,6 +31,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
             'hostname',
             'description',
             'model',
+            'employee',
             # Links
             'interfaces',
         ]

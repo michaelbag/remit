@@ -14,7 +14,8 @@ class EquipmentAdmin(admin.ModelAdmin):
         'guid',
         'title',
         'delete_mark',
-        'has_interfaces'
+        'has_interfaces',
+        'employee'
     ]
 
 

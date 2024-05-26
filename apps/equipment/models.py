@@ -2,6 +2,8 @@ import uuid
 from datetime import date
 from django.db import models
 from macaddress.fields import MACAddressField
+
+import apps.org.models
 from common.models import Catalog, RecursiveCatalog, RecursiveCatalogByElements
 from apps.org import models as org_models
 from apps.res.models import Resource
@@ -102,6 +104,10 @@ class Equipment(models.Model):
                               blank=True,
                               limit_choices_to={"delete_mark": False},
                               related_name="equipments")
+    employee = models.ForeignKey(apps.org.models.Employee,
+                                 null=True,
+                                 on_delete=models.SET_NULL,
+                                 blank=True)
 
     def __str__(self):
         return f'{"[]" if self.is_group else "-"} {self.name}'
