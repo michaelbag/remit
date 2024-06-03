@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+
 import apps.qr.models
 
 
@@ -13,16 +15,31 @@ class QRTypeAdmin(admin.ModelAdmin):
     ]
 
 
+class QRCodeAdminForm(forms.ModelForm):
+    class Meta:
+        model = apps.qr.models.QRCode
+        fields = [
+            'code',
+            'name',
+            'title',
+            'qr_type',
+            'archive',
+            'delete_mark',
+            'fixed'
+        ]
+
+
 @admin.register(apps.qr.models.QRCode)
 class QRCodeAdmin(admin.ModelAdmin):
     list_display = [
-        'guid',
+        '__str__',
         'code',
         'name',
         'title',
         'qr_type',
-        'archive',
         'created_at',
+        'archive',
+        'delete_mark',
         'fixed'
     ]
-
+    form = QRCodeAdminForm

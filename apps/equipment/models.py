@@ -4,6 +4,7 @@ from django.db import models
 from macaddress.fields import MACAddressField
 
 import apps.org.models
+import common.models
 from common.models import Catalog, RecursiveCatalog, RecursiveCatalogByElements
 from apps.org import models as org_models
 from apps.res.models import Resource
@@ -24,25 +25,25 @@ class Supplier(models.Model):
         ordering = ["name", "code"]
 
 
-class EquipmentType(models.Model):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
-    code = models.CharField(max_length=9, blank=True)
-    name = models.CharField(max_length=50, blank=True)
+class EquipmentType(common.models.Catalog):
+    # guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
+    # code = models.CharField(max_length=9, blank=True)
+    # name = models.CharField(max_length=50, blank=True)
     virtual = models.BooleanField(default=False)
     has_interfaces = models.BooleanField(default=False)
-    delete_mark = models.BooleanField(default=False)
+    # delete_mark = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = 'Equipment type'
-        ordering = ["name", "code"]
+        # ordering = ["name", "code"]
 
 
-class EquipmentModel(models.Model):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
-    code = models.CharField(max_length=9, blank=True)
+class EquipmentModel(common.models.Catalog):
+    # guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
+    # code = models.CharField(max_length=9, blank=True)
     name = models.CharField(max_length=50, blank=True)
     title = models.CharField(max_length=150, blank=True, help_text='Full title for printing')
     model_number = models.CharField(max_length=50, blank=True)
@@ -58,7 +59,6 @@ class EquipmentModel(models.Model):
                                        related_name="models",
                                        on_delete=models.SET_NULL,
                                        null=True)
-    delete_mark = models.BooleanField(default=False)
     comment = models.TextField(blank=True)
 
     def __str__(self):
@@ -69,9 +69,7 @@ class EquipmentModel(models.Model):
         ordering = ["name", "code"]
 
 
-class Equipment(models.Model):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
-    code = models.CharField(max_length=9, blank=True)
+class Equipment(common.models.Catalog):
     name = models.CharField(max_length=50, blank=True)
     type = models.ForeignKey(EquipmentType,
                              related_name='equipments',
@@ -79,7 +77,6 @@ class Equipment(models.Model):
                              null=True,
                              on_delete=models.SET_NULL)
     title = models.CharField(max_length=150, blank=True, help_text='Full title for printing')
-    delete_mark = models.BooleanField(default=False)
     is_group = models.BooleanField(default=False)
     parent = models.ForeignKey('self', null=True,
                                on_delete=models.CASCADE,

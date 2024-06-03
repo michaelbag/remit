@@ -9,7 +9,7 @@ from django.db.transaction import on_commit
 
 
 class GUIDModel(models.Model):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    guid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     class Meta:
         abstract = True

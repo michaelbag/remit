@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import local_settings
 
 PROJECT_DIR = os.path.dirname(__file__)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -21,13 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8io15y&hd(_8lx*u@z!1#%c47uc01h+iy#k=@x%5=cfgb_p_xu'
+SECRET_KEY = local_settings.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = False
-DEBUG = True
+DEBUG = local_settings.DEBUG
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = local_settings.ALLOWED_HOSTS
 
 # Application definition
 
@@ -85,13 +86,13 @@ WSGI_APPLICATION = 'remit.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+DATABASES = local_settings.DATABASES
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -116,23 +117,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 # LANGUAGE_CODE = 'en-us'
-LANGUAGE_CODE = 'ru-ru'
-
+LANGUAGE_CODE = local_settings.LANGUAGE_CODE
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 # STATIC_URL = 'static/'
-STATIC_URL = 'https://static.p7e.ru/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_URL = local_settings.STATIC_URL
+# STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = local_settings.STATIC_ROOT
 
-MEDIA_URL = 'https://img.p7e.ru/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
+# STATIC_URL = 'media/'
+MEDIA_URL = local_settings.MEDIA_URL
+# STATIC_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = local_settings.MEDIA_ROOT
 
 # STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'static/'),)
 # 

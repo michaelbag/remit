@@ -1,4 +1,6 @@
 # import uuid
+import base64
+
 from django.utils.translation import gettext_lazy as _
 
 from django.db import models
@@ -26,8 +28,16 @@ class QRCode(common.models.Catalog):
     qr_type = models.ForeignKey(QRType, on_delete=models.CASCADE)
     fixed = models.BooleanField(default=False)
 
+    @property
+    def short_code(self):
+        return base64.encodebytes(self.guid.bytes_le).decode("utf-8").replace('=', '')
+
     def __str__(self):
-        return '%s [%s]' % (self.title, self.guid.__str__()) if self.title else self.guid.__str__()
+        # return '%s [%s]' % (self.title, self.guid.__str__()) if self.title else self.guid.__str__()
+        # For back decoding:
+        #   uuid.UUID(bytes_le=base64.urlsafe_b64decode(s + '=='))
+        # where s - base64.encodebytes(uuid.uuid4()).decode("utf-8").replace('=', '')
+        return base64.encodebytes(self.guid.bytes_le).decode("utf-8").replace('=', '')
 
     class Meta:
         verbose_name = _('QR Code')
