@@ -1,5 +1,6 @@
-static
-images
+static/*
+images/*
+media/*
 
 ### From https://gist.github.com/LeeHanYeong/463837a5c5338fa745c0f3b9b2fba5f0 ###
 
@@ -14,7 +15,6 @@ images
 __pycache__/
 local_settings.py
 db.sqlite3
-media
 remit/my.cnf
 
 ### Linux ###
