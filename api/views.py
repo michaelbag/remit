@@ -1,14 +1,13 @@
 # from rest_framework.response import Response
-from rest_framework import generics
 # from rest_framework.views import APIView
 from rest_framework import viewsets, permissions
-
 import apps.qr.models
 # from django.shortcuts import render
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
 from apps.res import models as res_models
 from . import serializers
+
 
 # === Equipment
 # class EquipmentList(generics.ListAPIView):
@@ -23,12 +22,6 @@ from . import serializers
 #     permission_classes = [permissions.IsAuthenticated]
 
 
-class EquipmentViewSet(viewsets.ModelViewSet):
-    queryset = equip_models.Equipment.objects.all()
-    serializer_class = serializers.EquipmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
 # === Equipment Type
 # class EquipmentTypeDetail(generics.RetrieveAPIView):
 #     queryset = EquipmentType.objects.all()
@@ -40,15 +33,21 @@ class EquipmentViewSet(viewsets.ModelViewSet):
 #     queryset = EquipmentType.objects.all()
 #     serializer_class = EquipmentTypeSerializer
 #     permission_classes = [permissions.IsAuthenticated]
+# === Equipment Application
+# -- Equipment
+class EquipmentViewSet(viewsets.ModelViewSet):
+    queryset = equip_models.Equipment.objects.all()
+    serializer_class = serializers.EquipmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
+# -- Equipment Type
 class EquipmentTypeViewSet(viewsets.ModelViewSet):
     queryset = equip_models.EquipmentType.objects.all()
     serializer_class = serializers.EquipmentTypeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
-# === Equipment Application
 # --- Equipment Model
 class EquipmentModelViewSet(viewsets.ModelViewSet):
     queryset = equip_models.EquipmentModel.objects.all()
@@ -63,13 +62,14 @@ class SupplierViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-# --- Interface
+# --- Interface type
 class InterfaceTypeViewSet(viewsets.ModelViewSet):
     queryset = equip_models.InterfaceType.objects.all()
     serializer_class = serializers.InterfaceTypeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
+# -- Interface
 class InterfaceViewSet(viewsets.ModelViewSet):
     queryset = equip_models.Interface.objects.all()
     serializer_class = serializers.InterfaceSerializer

@@ -2,20 +2,15 @@ import uuid
 from datetime import date
 from django.db import models
 from macaddress.fields import MACAddressField
-
 import apps.org.models
-import common.models
 from common.models import Catalog, RecursiveCatalog, RecursiveCatalogByElements
 from apps.org import models as org_models
 from apps.res.models import Resource
 
 
-class Supplier(models.Model):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
-    code = models.CharField(max_length=9, blank=True)
+class Supplier(Catalog):
     name = models.CharField(max_length=150, blank=True)
     archive = models.BooleanField(default=False)
-    delete_mark = models.BooleanField(default=False)
 
     def __str__(self):
         return '%s - %s' % (self.code, self.name)
@@ -25,25 +20,15 @@ class Supplier(models.Model):
         ordering = ["name", "code"]
 
 
-class EquipmentType(common.models.Catalog):
-    # guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
-    # code = models.CharField(max_length=9, blank=True)
-    # name = models.CharField(max_length=50, blank=True)
+class EquipmentType(Catalog):
     virtual = models.BooleanField(default=False)
     has_interfaces = models.BooleanField(default=False)
-    # delete_mark = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = 'Equipment type'
-        # ordering = ["name", "code"]
 
 
-class EquipmentModel(common.models.Catalog):
-    # guid = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='GUID')
-    # code = models.CharField(max_length=9, blank=True)
+class EquipmentModel(Catalog):
     name = models.CharField(max_length=50, blank=True)
     title = models.CharField(max_length=150, blank=True, help_text='Full title for printing')
     model_number = models.CharField(max_length=50, blank=True)
@@ -61,15 +46,12 @@ class EquipmentModel(common.models.Catalog):
                                        null=True)
     comment = models.TextField(blank=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Equipment model'
         ordering = ["name", "code"]
 
 
-class Equipment(common.models.Catalog):
+class Equipment(RecursiveCatalog):
     name = models.CharField(max_length=50, blank=True)
     type = models.ForeignKey(EquipmentType,
                              related_name='equipments',
@@ -77,13 +59,6 @@ class Equipment(common.models.Catalog):
                              null=True,
                              on_delete=models.SET_NULL)
     title = models.CharField(max_length=150, blank=True, help_text='Full title for printing')
-    is_group = models.BooleanField(default=False)
-    parent = models.ForeignKey('self', null=True,
-                               on_delete=models.CASCADE,
-                               blank=True,
-                               limit_choices_to={"is_group": True,
-                                                 "delete_mark": False},
-                               related_name='children')
     image = models.ImageField(upload_to='equipment/', blank=True)
     serial_number = models.CharField(max_length=150, blank=True)
     virtual = models.BooleanField(default=False)
@@ -99,7 +74,6 @@ class Equipment(common.models.Catalog):
                               null=True,
                               on_delete=models.SET_NULL,
                               blank=True,
-                              limit_choices_to={"delete_mark": False},
                               related_name="equipments")
     employee = models.ForeignKey(apps.org.models.Employee,
                                  null=True,
@@ -161,12 +135,9 @@ class InterfaceType(Catalog):
         verbose_name = 'Interface Type'
 
 
-class Interface(models.Model):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+class Interface(Catalog):
+    name = models.CharField(max_length=150, blank=True)
     title = models.CharField(max_length=150, blank=True)
-    name = models.CharField(max_length=64, blank=True)
-    code = models.CharField(max_length=9, blank=True)
-    delete_mark = models.BooleanField(default=False)
     mac = MACAddressField(blank=True, null=True)
     equipment = models.ForeignKey(Equipment,
                                   on_delete=models.CASCADE,

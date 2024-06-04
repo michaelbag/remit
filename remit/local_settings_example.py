@@ -18,6 +18,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['https://my.domain.com']
+
 ROOT_URLCONF = 'remit.urls'
 
 # Database

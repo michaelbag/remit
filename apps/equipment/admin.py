@@ -3,7 +3,14 @@ from . import models
 
 # Register your models here.
 
-admin.site.register(models.EquipmentType)
+
+@admin.register(models.EquipmentType)
+class EquipmentTypeAdmin(admin.ModelAdmin):
+    list_display = [
+        'guid',
+        'code',
+        'name'
+    ]
 
 
 @admin.register(models.Equipment)
