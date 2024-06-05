@@ -8,6 +8,7 @@ from apps.org import models as org_models
 from apps.res import models as res_models
 from . import serializers
 
+# class SystemDetail()
 
 # === Equipment
 # class EquipmentList(generics.ListAPIView):
