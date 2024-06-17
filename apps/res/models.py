@@ -32,7 +32,7 @@ class ResourceType(com_models.Catalog):
                                 choices=ResourceCategory)
 
     class Meta:
-        verbose_name = 'Resource Type'
+        verbose_name = _('Resource Type')
 
 
 class Resource(com_models.Catalog):
@@ -78,4 +78,12 @@ class Resource(com_models.Catalog):
         return self.name if self.name else str(self.guid)
 
     class Meta:
-        verbose_name = 'Resource'
+        verbose_name = _('Resource')
+
+
+class ResourceGroup(com_models.Catalog):
+    name = models.CharField(max_length=150, blank=True)
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _('Resource Group')
