@@ -82,7 +82,7 @@ class Resource(com_models.Catalog):
 
 
 class ResourceGroup(com_models.Catalog):
-    name = models.CharField(max_length=150, blank=True, help_text=_('Name'))
+    name = models.CharField(max_length=150, help_text=_('Name'))
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE, help_text=_('Resource'))
     archive = models.BooleanField(default=False, help_text=_('Is archived'))
     comment = models.TextField(blank=True, help_text=_('Comment'))

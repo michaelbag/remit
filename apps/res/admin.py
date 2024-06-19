@@ -1,7 +1,16 @@
 from django.contrib import admin
 from . import models
-
 # admin.site.register(models.Resource)
+
+
+@admin.register(models.ResourceGroup)
+class ResourceGroupAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "resource",
+        "archive",
+        "technical"
+    ]
 
 
 @admin.register(models.Resource)
