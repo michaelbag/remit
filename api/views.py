@@ -1,12 +1,21 @@
 # from rest_framework.response import Response
 # from rest_framework.views import APIView
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, generics
 import apps.qr.models
 # from django.shortcuts import render
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
 from apps.res import models as res_models
+from config import models as config_models
 from . import serializers
+
+
+# === Config ExtSystem
+class ExtSystemDetail(generics.RetrieveAPIView):
+    queryset = config_models.ExtSystem.objects.filter(enabled=True)
+    # queryset = config_models.ExtSystem.objects.all()
+    serializer_class = serializers.ExtSystem
+    permission_classes = [permissions.IsAuthenticated]
 
 # class SystemDetail()
 
@@ -134,3 +143,6 @@ class QRCodeViewSet(viewsets.ModelViewSet):
     queryset = apps.qr.models.QRCode.objects.all()
     serializer_class = serializers.QRCodeSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+# --- Config
+

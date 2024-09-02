@@ -17,10 +17,12 @@ route.register('employee', views.EmployeeViewSet)
 route.register('resource', views.ResourceViewSet)
 route.register('qr_type', views.QRTypeViewSet)
 route.register('qr_code', views.QRCodeViewSet)
+# route.register('ext_system', views.ExtSystemDetail.as_view())
 
 urlpatterns = [
     path('', include(route.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('ext_system/<uuid:pk>/', views.ExtSystemDetail.as_view(), name='ext_system')
     # path('get_eq', views.GetEquipmentInfoView.as_view(), name='get_equipment_list'),
     # path('equipments/', views.EquipmentList.as_view()),
     # path('equipments/<uuid:pk>/', views.EquipmentDetail.as_view())

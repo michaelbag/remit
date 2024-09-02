@@ -4,6 +4,17 @@ import apps.qr.models
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
 from apps.res import models as res_models
+from config import models as config_models
+
+
+class ExtSystem(serializers.ModelSerializer):
+    class Meta:
+        model = config_models.ExtSystem
+        fields = [
+            'guid',
+            'title',
+            'enabled'
+        ]
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
