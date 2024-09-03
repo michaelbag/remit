@@ -17,6 +17,7 @@ route.register('employee', views.EmployeeViewSet)
 route.register('resource', views.ResourceViewSet)
 route.register('qr_type', views.QRTypeViewSet)
 route.register('qr_code', views.QRCodeViewSet)
+route.register('access_profile', views.AccessProfileViewSet)
 # route.register('ext_system', views.ExtSystemDetail.as_view())
 
 urlpatterns = [

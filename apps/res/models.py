@@ -54,7 +54,9 @@ class Resource(com_models.Catalog):
     accounts_from = models.ForeignKey('self',
                                       null=True,
                                       blank=True,
-                                      on_delete=models.SET_NULL)
+                                      on_delete=models.SET_NULL,
+                                      limit_choices_to={'accounts_provider': True})
+    accounts_provider = models.BooleanField(default=False)
     resource_type = models.ForeignKey(ResourceType,
                                       null=True,
                                       blank=True,

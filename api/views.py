@@ -2,12 +2,20 @@
 # from rest_framework.views import APIView
 from rest_framework import viewsets, permissions, generics
 import apps.qr.models
+from apps.acc.models import AccessProfile
 # from django.shortcuts import render
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
 from apps.res import models as res_models
 from config import models as config_models
 from . import serializers
+
+
+# === Access Profile
+class AccessProfileViewSet(viewsets.ModelViewSet):
+    queryset = AccessProfile.objects.all()
+    serializer_class = serializers.AccessProfile
+    permission_classes = [permissions.IsAuthenticated]
 
 
 # === Config ExtSystem

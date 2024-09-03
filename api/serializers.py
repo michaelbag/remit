@@ -1,10 +1,28 @@
 from rest_framework import serializers
 
 import apps.qr.models
+from apps.acc.models import AccessProfile
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
 from apps.res import models as res_models
 from config import models as config_models
+
+
+class AccProfile(serializers.ModelSerializer):
+    class Meta:
+        model = AccessProfile
+        fields = [
+            'guid',
+            'code',
+            'name',
+            # link to resource
+            'resource',
+            'create_date',
+            'end_date',
+            'archive',
+            'comment',
+            'help_text'
+        ]
 
 
 class ExtSystem(serializers.ModelSerializer):

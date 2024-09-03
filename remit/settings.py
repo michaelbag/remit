@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'apps.equipment',
     'apps.org',
     'apps.res',
-    'apps.qr'
+    'apps.qr',
+    'apps.acc'
     # 'api',
 ]
 
