@@ -1,16 +1,16 @@
 from rest_framework import serializers
 
 import apps.qr.models
-from apps.acc.models import AccessProfile
+from apps.acc import models as acc_models
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
 from apps.res import models as res_models
 from config import models as config_models
 
 
-class AccProfile(serializers.ModelSerializer):
+class AccessProfile(serializers.ModelSerializer):
     class Meta:
-        model = AccessProfile
+        model = acc_models.AccessProfile
         fields = [
             'guid',
             'code',
@@ -237,7 +237,8 @@ class ResourceSerializer(serializers.ModelSerializer):
             'ipv4_gateway',
             'ipv4_network_mask',
             'dns',
-            'resource_category'
+            'resource_category',
+            'accounts_provider'
         ]
 
 

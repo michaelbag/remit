@@ -2,7 +2,7 @@
 # from rest_framework.views import APIView
 from rest_framework import viewsets, permissions, generics
 import apps.qr.models
-from apps.acc.models import AccessProfile
+from apps.acc import models as acc_models
 # from django.shortcuts import render
 from apps.equipment import models as equip_models
 from apps.org import models as org_models
@@ -13,7 +13,7 @@ from . import serializers
 
 # === Access Profile
 class AccessProfileViewSet(viewsets.ModelViewSet):
-    queryset = AccessProfile.objects.all()
+    queryset = acc_models.AccessProfile.objects.all()
     serializer_class = serializers.AccessProfile
     permission_classes = [permissions.IsAuthenticated]
 
