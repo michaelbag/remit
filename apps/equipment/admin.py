@@ -26,7 +26,9 @@ class EquipmentAdmin(admin.ModelAdmin):
     ]
 
 
-admin.site.register(models.InterfaceType)
+@admin.register(models.InterfaceType)
+class InterfaceTypeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code']
 
 
 @admin.register(models.Interface)
@@ -43,6 +45,21 @@ class InterfaceAdmin(admin.ModelAdmin):
         'archive',
         'delete_mark'
     ]
+    search_fields = ['name', 'mac']
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, may_have_duplicates = super().get_search_results(
+            request,
+            queryset,
+            search_term,
+        )
+        # try:
+        #     search_term_as_int = int(search_term)
+        # except ValueError:
+        #     pass
+        # else:
+        #     queryset |= self.model.objects.filter(age=search_term_as_int)
+        return queryset, may_have_duplicates
 
 
 @admin.register(models.EquipmentModel)
