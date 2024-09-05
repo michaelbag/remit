@@ -4,6 +4,10 @@ from django.utils.translation import gettext_lazy as _
 import apps.acc.models
 
 
+class ProfilesInLineAdmin(admin.StackedInline):
+    model = apps.acc.models.AccessProfile
+
+
 @admin.register(apps.acc.models.Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = [
@@ -19,6 +23,7 @@ class AccountAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ['guid']
     list_editable = ['archive', 'disabled']
+    # inlines = [ProfilesInLineAdmin]
 
     @staticmethod
     def in_profiles(obj):
