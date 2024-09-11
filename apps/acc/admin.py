@@ -68,6 +68,11 @@ class AccountAdmin(admin.ModelAdmin):
 
     is_disabled.short_description = _('Disabled')
 
+#
+# class GroupsInLineAdmin(admin.StackedInline):
+#     model = apps.acc.models.AccessProfile.groups
+#
+
 
 @admin.register(apps.acc.models.AccessProfile)
 class AccessProfileAdmin(admin.ModelAdmin):
@@ -75,5 +80,12 @@ class AccessProfileAdmin(admin.ModelAdmin):
         'name',
         'code',
         'resource',
-        'guid'
+        'groups_inline',
+        'guid',
     ]
+
+    @staticmethod
+    def groups_inline(obj):
+        return ', '.join([group.name for group in obj.groups.all()])
+
+    groups_inline.short_description = _('Groups in profile')
