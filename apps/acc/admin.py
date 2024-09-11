@@ -4,6 +4,34 @@ from django.utils.translation import gettext_lazy as _
 import apps.acc.models
 
 
+@admin.register(apps.acc.models.ResourceGroup)
+class ResourceGroupAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'resource',
+        'create_date',
+        # 'technical',
+        'is_tech',
+        'archive',
+        'archived',
+        'guid'
+    ]
+    readonly_fields = ['guid']
+    list_editable = ['archive']
+
+    @staticmethod
+    def archived(obj):
+        return _('archived') if obj.archive else '---'
+
+    archived.short_description = _('Archived group')
+
+    @staticmethod
+    def is_tech(obj):
+        return _('technical') if obj.technical else '---'
+
+    is_tech.short_description = _('Technical group')
+
+
 class ProfilesInLineAdmin(admin.StackedInline):
     model = apps.acc.models.AccessProfile
 
@@ -22,7 +50,7 @@ class AccountAdmin(admin.ModelAdmin):
         'in_profiles'
     ]
     readonly_fields = ['guid']
-    list_editable = ['archive', 'disabled']
+    list_editable = ['archive']
     # inlines = [ProfilesInLineAdmin]
 
     @staticmethod
