@@ -71,3 +71,14 @@ class CatalogTable(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+
+class CommonCounter(models.Model):
+    table_name = models.CharField(max_length=50)
+    prefix = models.CharField(max_length=5, blank=True, default='')
+    counter = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Counter for models'
+        unique_together = ('table_name', 'prefix')
+

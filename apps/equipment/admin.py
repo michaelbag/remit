@@ -17,6 +17,7 @@ class EquipmentTypeAdmin(admin.ModelAdmin):
 class EquipmentAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
+        'code',
         'is_group',
         'guid',
         'title',
@@ -24,6 +25,9 @@ class EquipmentAdmin(admin.ModelAdmin):
         'has_interfaces',
         'employee'
     ]
+    search_fields = ['name']
+
+
 
 
 @admin.register(models.InterfaceType)
