@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.forms import ModelForm, ModelChoiceField, Select, SelectMultiple
+from django.forms import ModelForm, ModelChoiceField, Select, SelectMultiple, ModelMultipleChoiceField
 from django.utils.translation import gettext_lazy as _
 
 import apps.acc.models
@@ -83,9 +83,17 @@ class AccessProfileForm(ModelForm):
     resource = ModelChoiceField(queryset=apps.res.models.Resource.objects.filter(accounts_provider=True),
                                 empty_label=_('Choose resource'),
                                 required=True)
-    # groups = ModelChoiceField(queryset=ResourceGroup.objects.filter(resource=),
-    #                           empty_label=_('Choose groups'),
-    #                           required=False)
+    # groups = ModelMultipleChoiceField(queryset=apps.res.models.ResourceGroup.objects.none(), required=False)
+    groups = ModelMultipleChoiceField(queryset=apps.res.models.ResourceGroup.objects.all(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(AccessProfileForm, self).__init__(*args, **kwargs)
+        # TODO: (!) Fix this code. Here some thing wrong!
+        if self.fields['resource']:
+            print("test")
+        else:
+            print("none")
+        #     self.fields['groups'].queryset = apps.res.models.ResourceGroup.objects.filter(resource=self.resource)
 
     class Meta:
         model = apps.acc.models.AccessProfile
@@ -99,11 +107,6 @@ class AccessProfileForm(ModelForm):
             'groups': SelectMultiple()
         }
 
-    def __init__(self, *args, **kwargs):
-        super(AccessProfileForm, self).__init__(*args, **kwargs)
-        # TODO: (!) Fix this code. Here some thing wrong!
-        if self.resource.has_changed():
-            self.fields['groups'].queryset = apps.res.models.ResourceGroup.objects.filter(resource=self.resource)
 
 
 @admin.register(apps.acc.models.AccessProfile)
