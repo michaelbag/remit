@@ -85,7 +85,8 @@ class Resource(com_models.Catalog):
 
 class ResourceGroup(com_models.Catalog):
     name = models.CharField(max_length=150, help_text=_('Name'))
-    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, help_text=_('Resource'))
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, help_text=_('Resource'),
+                                 limit_choices_to={'accounts_provider': True})
     archive = models.BooleanField(default=False, help_text=_('Is archived'))
     comment = models.TextField(blank=True, help_text=_('Comment'))
     create_date = models.DateField(default=date.today, null=True, help_text=_('Create date'))

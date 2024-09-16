@@ -2,24 +2,24 @@ from datetime import date
 
 from django.db import models
 
-from apps.res.models import Resource
+from apps.res.models import Resource, ResourceGroup
 from apps.org.models import Employee
 from common import models as com_models
 from django.utils.translation import gettext_lazy as _
 
-
-class ResourceGroup(com_models.Catalog):
-    name = models.CharField(max_length=150, blank=False)
-    resource = models.ForeignKey('res.Resource', on_delete=models.CASCADE, help_text=_('Resource'), related_name='groups',
-                                 limit_choices_to={'accounts_provider': True})
-    create_date = models.DateField(default=date.today, null=True, help_text=_('Create date'))
-    technical = models.BooleanField(default=False, help_text=_('Technical group'))
-    archive = models.BooleanField(default=False)
-    comment = models.TextField(blank=True)
-    description = models.TextField(blank=True)
-
-    class Meta:
-        verbose_name = _('Resource Group')
+#
+# class ResourceGroup(com_models.Catalog):
+#     name = models.CharField(max_length=150, blank=False)
+#     resource = models.ForeignKey('res.Resource', on_delete=models.CASCADE, help_text=_('Resource'), related_name='groups',
+#                                  limit_choices_to={'accounts_provider': True})
+#     create_date = models.DateField(default=date.today, null=True, help_text=_('Create date'))
+#     technical = models.BooleanField(default=False, help_text=_('Technical group'))
+#     archive = models.BooleanField(default=False)
+#     comment = models.TextField(blank=True)
+#     description = models.TextField(blank=True)
+#
+#     class Meta:
+#         verbose_name = _('Resource Group')
 
 
 class AccessProfile(com_models.Catalog):

@@ -28,8 +28,6 @@ class EquipmentAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-
-
 @admin.register(models.InterfaceType)
 class InterfaceTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'code']
