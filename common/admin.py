@@ -12,4 +12,9 @@ class CommonCounterAdmin(admin.ModelAdmin):
         'prefix',
         'counter'
     ]
+    readonly_fields = [
+        'table_name',
+        'prefix',
+        'counter'
+    ]
     # readonly_fields = [f.name for f in CommonCounter._meta.get_all_field_names()]
