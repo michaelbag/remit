@@ -212,8 +212,20 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'guid',
             'code',
             'name',
+            'department',
             'delete_mark',
             'organization'
+        ]
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = org_models.Department
+        fields = [
+            'guid',
+            'code',
+            'name',
+            'delete_mark'
         ]
 
 

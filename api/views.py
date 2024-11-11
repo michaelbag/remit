@@ -130,6 +130,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
+# --- Department
+class DepartmentViewSet(viewsets.ModelViewSet):
+    queryset = org_models.Department.objects.all()
+    serializer_class = serializers.DepartmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 # === Resources
 # --- Resource
 class ResourceViewSet(viewsets.ModelViewSet):

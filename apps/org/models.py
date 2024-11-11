@@ -10,17 +10,21 @@ class Organization(common_models.Catalog):
 
 
 class Department(common_models.RecursiveCatalogByElements):
-    organization = models.ForeignKey(Organization, related_name='departments', on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization,
+                                     related_name='departments',
+                                     null=True,
+                                     on_delete=models.SET_NULL)
     name = models.CharField(max_length=150, blank=False)
 
     class Meta:
         verbose_name = 'Department'
 
 
-class Employee(common_models.RecursiveCatalog):
-    department = models.ForeignKey(Department, null=True, on_delete=models.SET_NULL, blank=True)
+class Employee(common_models.Catalog):
+    department = models.ForeignKey(Department, null=True, on_delete=models.SET_NULL, blank=True,
+                                   related_name='employees')
     organization = models.ForeignKey(Organization,
-                                     related_name='Employees',
+                                     related_name='employees',
                                      null=True,
                                      blank=True,
                                      on_delete=models.SET_NULL)
