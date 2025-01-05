@@ -1,7 +1,12 @@
 from django.contrib import admin
 from . import models
-
+from django.utils.translation import gettext_lazy as _
+from django.contrib import messages
+from django.utils.translation import ngettext
 # Register your models here.
+
+
+admin.site.disable_action("delete_selected")
 
 
 @admin.register(models.EquipmentType)
@@ -13,19 +18,103 @@ class EquipmentTypeAdmin(admin.ModelAdmin):
     ]
 
 
+class InterfaceInLine(admin.TabularInline):
+    model = models.Interface
+    readonly_fields = [
+        'guid'
+    ]
+    fields = [
+        'guid',
+        'name',
+        'mac',
+        'connected_to',
+        'ipv4_address']
+
+
+@admin.action(description=_("Make selected archived"))
+def make_archived(modeladmin: admin.ModelAdmin, request, queryset):
+    updated = queryset.update(archive=True)
+    modeladmin.message_user(
+        request,
+        ngettext(
+            "%d equipment was successfully marked as archive.",
+            "%d equipments were successfully marked as archive.",
+            updated,
+        )
+        % updated,
+        messages.SUCCESS,
+    )
+
+
+@admin.action(description=_("Make selected unarchived"))
+def make_unarchived(modeladmin: admin.ModelAdmin, request, queryset):
+    updated = queryset.update(archive=False)
+    modeladmin.message_user(
+        request,
+        ngettext(
+            "%d equipment was successfully marked as NOT archive.",
+            "%d equipments were successfully marked as NOT archive.",
+            updated,
+        )
+        % updated,
+        messages.SUCCESS,
+    )
+
+
 @admin.register(models.Equipment)
 class EquipmentAdmin(admin.ModelAdmin):
+    # Навигация по данному полю в истории изменения.
+    #date_hierarchy = 'start_date'
+    exclude = ['guid']
     list_display = [
         '__str__',
         'code',
         'is_group',
-        'guid',
         'title',
         'delete_mark',
         'has_interfaces',
-        'employee'
+        'employee',
+        "archive"
     ]
+    readonly_fields = ['guid']
+    # fields = [
+    #
+    # ]
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": [
+                    'guid',
+                    ('type', 'model'),
+                    ('code', 'name', 'title'),
+                    'hostname',
+                    'employee',
+                    'serial_number',
+                    'virtual',
+                    'has_interfaces',
+                ]
+            }
+        ),
+        (
+            _("Description"),
+            {
+                "classes": ["collapse", "wide"],
+                "fields": [('description', 'comment')]
+            }
+        ),
+        (
+            _('Activity'),
+            {
+                "classes": ["collapse"],
+                "fields": ["start_date", "end_date", "delete_mark", "archive"]
+            }
+        )
+    ]
+    inlines = [InterfaceInLine]
     search_fields = ['name']
+    list_filter = ['type', 'employee']
+    actions = [make_archived, make_unarchived]
 
 
 @admin.register(models.InterfaceType)
