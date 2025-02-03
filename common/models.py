@@ -49,6 +49,7 @@ class RecursiveCatalog(Catalog):
     is_folder = models.BooleanField(default=False)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='elements', on_delete=models.CASCADE,
                                limit_choices_to={'is_group': True})
+    # TODO: Chane is_group filter to is_folder, fix API uploading from 1C
 
     class Meta:
         abstract = True
@@ -76,7 +77,7 @@ class CatalogTable(models.Model):
         super().save(*args, **kwargs)
 
 
-class CommonCounter(models.Model):
+class CommonCounter(GUIDModel):
     table_name = models.CharField(max_length=50)
     prefix = models.CharField(max_length=5, blank=True, default='')
     counter = models.IntegerField(default=0)

@@ -20,16 +20,32 @@ class CommonCounterAdmin(admin.ModelAdmin):
 
 # Not finished.
 # TODO: It's necessary to add commod display list, fieldsets and readonly fields for catalog.
-class CommonAdminFields:
-    @staticmethod
-    def get_catalog_list_display():
-        return [
-            'is_group',
-            'code',
-            'title',
-            'delete_mark'
-        ]
+class CatalogAdmin(admin.ModelAdmin):
+    list_display = [
+        'code',
+        'name',
+        'delete_mark'
+    ]
+    readonly_fields = ['guid']
 
-    @staticmethod
-    def get_catalog_readonly_fields():
-        return ['guid']
+
+class RecursiveCatalogAdmin(admin.ModelAdmin):
+    list_display = [
+        'code',
+        # Old field
+        'is_group',
+        # New field
+        'is_folder',
+        'name',
+        'parent',
+        'delete_mark'
+    ]
+
+
+class RecursiveCatalogByElementsAdmin(admin.ModelAdmin):
+    list_display = [
+        'code',
+        'name',
+        'parent',
+        'delete_mark'
+    ]
