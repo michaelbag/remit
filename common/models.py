@@ -43,7 +43,10 @@ class Catalog(GUIDModel):
 
 
 class RecursiveCatalog(Catalog):
+    # OLD. This field planed to delete.
     is_group = models.BooleanField(default=False)
+    # NEW from 2025-02-03
+    is_folder = models.BooleanField(default=False)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='elements', on_delete=models.CASCADE,
                                limit_choices_to={'is_group': True})
 
@@ -79,6 +82,6 @@ class CommonCounter(models.Model):
     counter = models.IntegerField(default=0)
 
     class Meta:
-        verbose_name = 'Counter for models'
+        verbose_name = 'Counter for model'
         unique_together = ('table_name', 'prefix')
 
