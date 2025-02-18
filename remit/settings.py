@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'smart_selects',
     'api.apps.ApiConfig',
     'common',
     'hello',
@@ -163,3 +164,5 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.IsAdminUser',
     )
 }
+
+JQUERY_URL = True
