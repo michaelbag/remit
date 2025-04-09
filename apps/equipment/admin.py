@@ -68,6 +68,7 @@ class EquipmentAdmin(admin.ModelAdmin):
     exclude = ['guid']
     list_display = [
         '__str__',
+        'equip_code',
         'code',
         'is_group',
         'title',
@@ -88,6 +89,7 @@ class EquipmentAdmin(admin.ModelAdmin):
                     'guid',
                     ('type', 'model'),
                     ('code', 'name', 'title'),
+                    'equip_code',
                     'hostname',
                     'employee',
                     'serial_number',

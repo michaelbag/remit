@@ -63,6 +63,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
             'employee',
             # Links
             'interfaces',
+            'equip_code',
         ]
 
 

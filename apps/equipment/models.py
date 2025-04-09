@@ -79,6 +79,7 @@ class Equipment(RecursiveCatalog):
                                  null=True,
                                  on_delete=models.SET_NULL,
                                  blank=True)
+    equip_code = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
         return f'{"[]" if self.is_group else "-"} {self.name}'
