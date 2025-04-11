@@ -17,7 +17,6 @@ Including another URLconf
 # from django.conf import settings
 # from django.conf.urls.static import static
 from django.contrib import admin
-from django.template.defaulttags import url
 from django.urls import path
 # from hello.views import index as hello_index
 # from config.views import index as config_index
@@ -33,8 +32,10 @@ urlpatterns = [
     # path('config/', config_index),
     # path('e/', include('apps.equipment.urls')),
     path('api/', include('api.urls')),
-    # path('static/', serve, {'document_root': settings.STATIC_ROOT})
+    # path('static/', serve, {'document_root': settings.STATIC_ROOT}),
+    path('chaining/', include('smart_selects.urls')),
 ]
+
 #TODO: Добавить URL паттерн по инструкции из https://django-smart-selects.readthedocs.io/en/latest/installation.html
 #urlpatterns += (url(r'^chaining/', include('smart_selects.urls')),)
 # if settings.DEBUG:

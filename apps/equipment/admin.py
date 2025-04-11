@@ -118,6 +118,10 @@ class EquipmentAdmin(admin.ModelAdmin):
     list_filter = ['type', 'employee']
     actions = [make_archived, make_unarchived]
 
+    class Media:
+        # js = ('https://code.jquery.com/jquery-3.6.0.min.js', )
+        js = ('js/jquery.js', )
+
 
 @admin.register(models.InterfaceType)
 class InterfaceTypeAdmin(admin.ModelAdmin):
@@ -175,6 +179,17 @@ class SupplierAdmin(admin.ModelAdmin):
     ]
 
 
-admin.site.register(models.Service)
+# admin.site.register(models.Service)
+@admin.register(models.Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'code',
+        'equipment',
+    ]
+    search_fields = [
+        'name',
+    ]
+
 admin.site.register(models.Software)
 admin.site.register(models.SoftwareVersion)

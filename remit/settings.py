@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'jquery',
     'smart_selects',
     'api.apps.ApiConfig',
     'common',
@@ -51,7 +52,7 @@ INSTALLED_APPS = [
     'apps.org',
     'apps.res',
     'apps.qr',
-    'apps.acc'
+    'apps.acc',
     # 'api',
 ]
 
@@ -165,4 +166,5 @@ REST_FRAMEWORK = {
     )
 }
 
-JQUERY_URL = True
+# JQUERY_URL = True
+USE_DJANGO_JQUERY = True

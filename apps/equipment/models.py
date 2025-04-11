@@ -6,6 +6,8 @@ import apps.org.models
 from common.models import Catalog, RecursiveCatalog, RecursiveCatalogByElements
 from apps.org import models as org_models
 from apps.res.models import Resource
+from django.utils.translation import gettext_lazy as _
+from smart_selects.db_fields import ChainedForeignKey
 
 
 class Supplier(Catalog):
@@ -70,16 +72,27 @@ class Equipment(RecursiveCatalog):
     description = models.TextField(blank=True)
     hostname = models.CharField(max_length=50, blank=True)
     # TODO: Add filter by current equipment type in model limit_choices_to parameter
-    model = models.ForeignKey(EquipmentModel,
+    # model = models.ForeignKey(EquipmentModel,
+    #                           null=True,
+    #                           on_delete=models.SET_NULL,
+    #                           blank=True,
+    #                           related_name="equipments")
+    #
+    model = ChainedForeignKey(EquipmentModel,
                               null=True,
                               on_delete=models.SET_NULL,
                               blank=True,
-                              related_name="equipments")
+                              related_name='equipments',
+                              chained_field='type',
+                              chained_model_field='equipment_type',
+                              show_all=False,
+                              auto_choose=True,
+                              sort=True)
     employee = models.ForeignKey(apps.org.models.Employee,
                                  null=True,
                                  on_delete=models.SET_NULL,
                                  blank=True)
-    equip_code = models.CharField(max_length=50, blank=True)
+    equip_code = models.CharField(max_length=50, blank=True, verbose_name=_('Equipment code'))
 
     def __str__(self):
         return f'{"[]" if self.is_group else "-"} {self.name}'
