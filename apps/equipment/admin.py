@@ -114,7 +114,7 @@ class EquipmentAdmin(admin.ModelAdmin):
         )
     ]
     inlines = [InterfaceInLine]
-    search_fields = ['name']
+    search_fields = ['name', 'equip_code', 'code']
     list_filter = ['type', 'employee']
     actions = [make_archived, make_unarchived]
 
