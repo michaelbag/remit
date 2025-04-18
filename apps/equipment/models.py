@@ -54,7 +54,8 @@ class EquipmentModel(Catalog):
 
 
 class Equipment(RecursiveCatalog):
-    name = models.CharField(max_length=50, blank=True)
+    # 18.04.25 - name length changed from 50 to 150
+    name = models.CharField(max_length=150, blank=True)
     type = models.ForeignKey(EquipmentType,
                              related_name='equipments',
                              blank=True,
