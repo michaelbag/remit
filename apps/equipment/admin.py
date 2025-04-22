@@ -29,8 +29,11 @@ class InterfaceInLine(admin.TabularInline):
         'guid',
         'name',
         'mac',
+        'interface_type',
         'connected_to',
-        'ipv4_address']
+        'ipv4_address',
+        'comment'
+    ]
 
 
 @admin.action(description=_("Make selected archived"))
@@ -73,7 +76,7 @@ class EquipmentAdmin(admin.ModelAdmin):
         'equip_code',
         'code',
         'is_group',
-        'title',
+        'type',
         'delete_mark',
         'has_interfaces',
         'employee',
@@ -115,7 +118,7 @@ class EquipmentAdmin(admin.ModelAdmin):
             }
         )
     ]
-    inlines = [InterfaceInLine]
+    # inlines = [InterfaceInLine]
     search_fields = ['name', 'equip_code', 'code']
     list_filter = ['type', 'employee']
     actions = [make_archived, make_unarchived]
