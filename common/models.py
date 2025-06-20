@@ -4,6 +4,8 @@ import uuid
 from django.db import models
 from django.db.transaction import on_commit
 
+import remit.settings
+
 
 # Create your models here.
 
@@ -32,6 +34,12 @@ class Catalog(GUIDModel):
     code = models.CharField(max_length=9, blank=True)
     name = models.CharField(max_length=32, blank=True)
     delete_mark = models.BooleanField(default=False)
+
+    @property
+    def next_code(self):
+        # get next code for this catalog
+        # TODO: add function for generation next code in django for this catalog
+        pass
 
     class Meta:
         abstract = True

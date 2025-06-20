@@ -26,7 +26,16 @@ class CatalogAdmin(admin.ModelAdmin):
         'name',
         'delete_mark'
     ]
-    readonly_fields = ['guid']
+    readonly_fields = [
+        'guid',
+        'code'
+    ]
+    fields = [
+        'guid',
+        'code',
+        'name',
+        'delete_mark'
+    ]
 
 
 class RecursiveCatalogAdmin(admin.ModelAdmin):
@@ -37,6 +46,13 @@ class RecursiveCatalogAdmin(admin.ModelAdmin):
         # New field
         'is_folder',
         'name',
+        'parent',
+        'delete_mark'
+    ]
+    fields = [
+        'code',
+        'name',
+        'is_folder',
         'parent',
         'delete_mark'
     ]

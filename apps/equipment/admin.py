@@ -168,9 +168,13 @@ class InterfaceAdmin(admin.ModelAdmin):
 class EquipmentModelAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
+        'guid',
         'equipment_type',
         'supplier',
         'delete_mark'
+    ]
+    readonly_fields = [
+        'guid'
     ]
 
 
@@ -195,6 +199,7 @@ class ServiceAdmin(admin.ModelAdmin):
     search_fields = [
         'name',
     ]
+
 
 admin.site.register(models.Software)
 admin.site.register(models.SoftwareVersion)

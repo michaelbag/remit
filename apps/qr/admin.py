@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
 import apps.qr.models
 
@@ -8,6 +9,7 @@ import apps.qr.models
 class QRTypeAdmin(admin.ModelAdmin):
     list_display = [
         'guid',
+        'name',
         'code',
         'name',
         'url_root',
@@ -33,6 +35,7 @@ class QRCodeAdminForm(forms.ModelForm):
 class QRCodeAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
+        'short_code',
         'code',
         'name',
         'title',
@@ -41,5 +44,31 @@ class QRCodeAdmin(admin.ModelAdmin):
         'archive',
         'delete_mark',
         'fixed'
+    ]
+    # fields = [
+    #     'guid',
+    #     'short_code',
+    #     'code',
+    #     'name',
+    #     'qr_type',
+    #     'created_at',
+    #     'archive',
+    #     'delete_mark',
+    #     'fixed',
+    # ]
+    fieldsets = (
+        (_('Codes'), {'fields': (
+            'guid',
+            'short_code',
+            'code'
+        )}),
+        (_('Main'), {'fields': ('name', 'qr_type', 'fixed')}),
+        (_('Service'), {'fields': ('created_at', 'archive', 'delete_mark')})
+    )
+    readonly_fields = [
+        'guid',
+        'short_code',
+        'code',
+        'created_at',
     ]
     form = QRCodeAdminForm

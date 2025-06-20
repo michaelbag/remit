@@ -168,3 +168,7 @@ REST_FRAMEWORK = {
 
 # JQUERY_URL = True
 USE_DJANGO_JQUERY = True
+
+# System code prefix
+# Test Django - TD
+SYSTEM_PREFIX = 'TD'
