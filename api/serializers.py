@@ -255,6 +255,18 @@ class ResourceSerializer(serializers.ModelSerializer):
         ]
 
 
+class ResourceTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = res_models.ResourceType
+        fields = [
+            'guid',
+            'code',
+            'name',
+            'delete_mark',
+            'category'
+        ]
+
+
 class QRTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = apps.qr.models.QRType

@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.org import models as org_models
 from common import models as com_models
+from smart_selects.db_fields import ChainedForeignKey
 
 
 # class ResourceCategory(com_models.Category):
@@ -57,10 +58,21 @@ class Resource(com_models.Catalog):
                                       on_delete=models.SET_NULL,
                                       limit_choices_to={'accounts_provider': True})
     accounts_provider = models.BooleanField(default=False)
-    resource_type = models.ForeignKey(ResourceType,
+    resource_type = ChainedForeignKey(ResourceType,
                                       null=True,
                                       blank=True,
-                                      on_delete=models.SET_NULL)
+                                      on_delete=models.SET_NULL,
+                                      related_name='resources',
+                                      chained_field='resource_category',
+                                      chained_model_field='category',
+                                      show_all=False,
+                                      auto_choose=True,
+                                      sort=True)
+    # models.ForeignKey(ResourceType,
+    #                               null=True,
+    #                               blank=True,
+    #                               on_delete=models.SET_NULL)
+    #
     # resource_category = models.ForeignKey(ResourceCategory,
     #                                       null=True,
     #                                       blank=True,
@@ -75,6 +87,25 @@ class Resource(com_models.Catalog):
     archive = models.BooleanField(default=False)
     comment = models.TextField(blank=True)
     admin_page_url = models.URLField(blank=True)
+    cached_full_path_name = models.CharField(max_length=150,
+                                             blank=True,
+                                             default='')
+
+    @property
+    def service_equipment(self):
+        return self.service.equipment
+
+    service_equipment.fget.short_description = _("Equipment")
+
+    @property
+    def full_path_name(self):
+        return ("{equipment.name} / {service.name} / {resource.name}".format(
+            equipment=self.service_equipment, service=self.service, resource=self
+        ))
+
+    def save(self, *args, **kwargs):
+        self.cached_full_path_name = self.full_path_name
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name if self.name else str(self.guid)

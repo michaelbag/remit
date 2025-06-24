@@ -145,6 +145,13 @@ class ResourceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
+# --- Resource type
+class ResourceTypeViewSet(viewsets.ModelViewSet):
+    queryset = res_models.ResourceType.objects.all()
+    serializer_class = serializers.ResourceTypeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 # === QR Codes
 # --- QR code type
 class QRTypeViewSet(viewsets.ModelViewSet):

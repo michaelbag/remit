@@ -16,15 +16,55 @@ class ResourceGroupAdmin(admin.ModelAdmin):
 
 @admin.register(models.Resource)
 class ResourceAdmin(admin.ModelAdmin):
+    list_filter = [
+        'service',
+        'resource_category',
+        'resource_type'
+    ]
     list_display = [
         "__str__",
         "service",
         "equipment",
         "employee",
-        "resource_category"
+        "resource_category",
+        'full_path_name'
     ]
     search_fields = [
-        'name'
+        'name',
+        'cached_full_path_name'
+    ]
+    readonly_fields = [
+        'guid',
+        'code',
+        'service_equipment'
+    ]
+    fieldsets = [
+        (
+            None,
+            {
+                'fields': [
+                    ('guid', 'code'),
+                    'name',
+                    'resource_category',
+                    'resource_type',
+                    'service',
+                    'service_equipment',
+                    'comment',
+                    'organization',
+                    'employee',
+                    ('accounts_provider', 'accounts_from')
+                ]
+            }
+        ),
+        (
+            _("Dates"),
+            {
+                "fields": [
+                    ('start_date', 'end_date'),
+                    ('archive', 'delete_mark')
+                ]
+            }
+        )
     ]
 
     @staticmethod
