@@ -83,6 +83,9 @@ class ResourceAdmin(admin.ModelAdmin):
 
 @admin.register(models.ResourceType)
 class ResourceTypeAdmin(admin.ModelAdmin):
+    readonly_fields = [
+        'guid',
+    ]
     list_display = [
         '__str__',
         'code',

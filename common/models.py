@@ -38,8 +38,16 @@ class Catalog(GUIDModel):
     @property
     def next_code(self):
         # get next code for this catalog
-        # TODO: add function for generation next code in django for this catalog
-        pass
+        # TODO: add leading zero at code and prefix of system
+        try:
+            counter = CommonCounter.objects.get(table_name=self._meta.db_table)
+            int_counter = counter.counter + 1
+            counter.counter = int_counter
+        except CommonCounter.DoesNotExist:
+            int_counter = 1
+            counter = CommonCounter.objects.create(table_name=self._meta.db_table, counter=int_counter)
+        counter.save()
+        return int_counter
 
     class Meta:
         abstract = True
@@ -49,6 +57,11 @@ class Catalog(GUIDModel):
     def __str__(self):
         return self.name if self.name else str(self.guid)
 
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = str(self.next_code)
+        super().save(*args, **kwargs)
+
 
 class RecursiveCatalog(Catalog):
     # OLD. This field planed to delete.
@@ -57,6 +70,7 @@ class RecursiveCatalog(Catalog):
     is_folder = models.BooleanField(default=False)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='elements', on_delete=models.CASCADE,
                                limit_choices_to={'is_group': True})
+
     # TODO: Chane is_group filter to is_folder, fix API uploading from 1C
 
     class Meta:
@@ -92,5 +106,4 @@ class CommonCounter(GUIDModel):
 
     class Meta:
         verbose_name = 'Counter for model'
-        unique_together = ('table_name', 'prefix')
-
+        # unique_together = ('table_name', 'prefix')
