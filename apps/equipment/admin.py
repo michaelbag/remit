@@ -119,7 +119,12 @@ class EquipmentAdmin(admin.ModelAdmin):
         )
     ]
     # inlines = [InterfaceInLine]
-    search_fields = ['name', 'equip_code', 'code']
+    search_fields = [
+        'name',
+        'equip_code',
+        'code',
+        'employee__name'
+    ]
     list_filter = ['type', 'employee']
     actions = [make_archived, make_unarchived]
 
@@ -198,8 +203,25 @@ class ServiceAdmin(admin.ModelAdmin):
     ]
     search_fields = [
         'name',
+        'equipment__name'
     ]
 
 
-admin.site.register(models.Software)
+@admin.register(models.Software)
+class SoftwareAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'code',
+        'archive',
+        'comment'
+    ]
+    readonly_fields = [
+        'guid'
+    ]
+    search_fields = [
+        'name',
+        'code'
+    ]
+
+
 admin.site.register(models.SoftwareVersion)

@@ -171,4 +171,4 @@ USE_DJANGO_JQUERY = True
 
 # System code prefix
 # Test Django - TD
-SYSTEM_PREFIX = 'TD'
+SYSTEM_PREFIX = local_settings.SYSTEM_PREFIX

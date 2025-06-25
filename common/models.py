@@ -38,7 +38,6 @@ class Catalog(GUIDModel):
     @property
     def next_code(self):
         # get next code for this catalog
-        # TODO: add leading zero at code and prefix of system
         try:
             counter = CommonCounter.objects.get(table_name=self._meta.db_table)
             int_counter = counter.counter + 1
@@ -47,7 +46,10 @@ class Catalog(GUIDModel):
             int_counter = 1
             counter = CommonCounter.objects.create(table_name=self._meta.db_table, counter=int_counter)
         counter.save()
-        return int_counter
+        code = (remit.settings.SYSTEM_PREFIX
+                + str(int_counter).zfill(self._meta.get_field('code').max_length
+                                         - len(remit.settings.SYSTEM_PREFIX)))
+        return code
 
     class Meta:
         abstract = True
@@ -59,7 +61,7 @@ class Catalog(GUIDModel):
 
     def save(self, *args, **kwargs):
         if not self.code:
-            self.code = str(self.next_code)
+            self.code = self.next_code
         super().save(*args, **kwargs)
 
 
@@ -100,6 +102,7 @@ class CatalogTable(models.Model):
 
 
 class CommonCounter(GUIDModel):
+    guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     table_name = models.CharField(max_length=50)
     prefix = models.CharField(max_length=5, blank=True, default='')
     counter = models.IntegerField(default=0)

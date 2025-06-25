@@ -89,6 +89,9 @@ class ResourceTypeAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
         'code',
-        # 'category',
+        'category',
         'delete_mark'
+    ]
+    list_filter = [
+        'category'
     ]

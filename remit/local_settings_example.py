@@ -64,3 +64,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 # ]
 # settings.py
 
+# System prefix for codes created in this system in catalogs
+SYSTEM_PREFIX = 'TD'
+
