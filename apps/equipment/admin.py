@@ -152,7 +152,7 @@ class InterfaceAdmin(admin.ModelAdmin):
         'archive',
         'delete_mark'
     ]
-    search_fields = ['name', 'mac']
+    search_fields = ['name', 'mac', 'equipment__equip_code']
 
     def get_search_results(self, request, queryset, search_term):
         queryset, may_have_duplicates = super().get_search_results(
@@ -186,11 +186,15 @@ class EquipmentModelAdmin(admin.ModelAdmin):
 @admin.register(models.Supplier)
 class SupplierAdmin(admin.ModelAdmin):
     list_display = [
-        '__str__',
+        'name',
         'code',
         'archive',
-        'delete_mark'
+        'delete_mark',
+        'guid'
     ]
+    readonly_fields = [
+        'guid'
+        ]
 
 
 # admin.site.register(models.Service)
