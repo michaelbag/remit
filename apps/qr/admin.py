@@ -21,6 +21,7 @@ class QRCodeAdminForm(forms.ModelForm):
     class Meta:
         model = apps.qr.models.QRCode
         fields = [
+            'guid',
             'code',
             'name',
             'title',
@@ -35,6 +36,7 @@ class QRCodeAdminForm(forms.ModelForm):
 class QRCodeAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
+        'guid',
         'short_code',
         'code',
         'name',

@@ -30,7 +30,8 @@ class QRCode(common.models.Catalog):
 
     @property
     def short_code(self):
-        return base64.encodebytes(self.guid.bytes_le).decode("utf-8").replace('=', '')
+        # return base64.encodebytes(self.guid.bytes_le).decode("utf-8").replace('=', '')
+        return base64.encodebytes(self.guid.bytes).decode("utf-8").replace('=', '')
 
     # def __str__(self):
     #     # return '%s [%s]' % (self.title, self.guid.__str__()) if self.title else self.guid.__str__()
