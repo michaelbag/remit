@@ -36,7 +36,7 @@ urlpatterns = [
     path('chaining/', include('smart_selects.urls')),
 ]
 
-#TODO: Добавить URL паттерн по инструкции из https://django-smart-selects.readthedocs.io/en/latest/installation.html
+#TODO: KMA. Add URL pattern according instruction from https://django-smart-selects.readthedocs.io/en/latest/installation.html
 #urlpatterns += (url(r'^chaining/', include('smart_selects.urls')),)
 # if settings.DEBUG:
 #     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
