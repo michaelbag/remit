@@ -62,10 +62,10 @@ class QRCodeAdmin(admin.ModelAdmin):
     # ]
     fieldsets = (
         (_('Codes'), {'fields': (
-            # 'guid',
+            'guid',
+            'code',
             'guid_public_code',
             'short_public_code',
-            'code',
             'url'
         )}),
         (_('Main'), {'fields': ('name', 'qr_type', 'fixed')}),

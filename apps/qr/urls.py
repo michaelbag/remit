@@ -6,6 +6,6 @@ app_name = 'qr'  # Optional: Namespace for reverse URL lookups
 
 urlpatterns = [
     # path('', views.index, name='index'),  # Example: Maps root of app to 'index' view
-    # path('q/<str:short_code>/', views.detail, name='qr_form'), # Example: URL with a parameter
+    # path('q/<str:short_code>/', views.index, name='qr_form'), # Example: URL with a parameter
     # Add other app-specific URL patterns here
 ]

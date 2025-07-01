@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.urls import path
 # from hello.views import index as hello_index
 # from config.views import index as config_index
+from apps.qr.views import index as qr_index
 from django.urls import include
 # from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # from . import settings
@@ -28,6 +29,7 @@ from django.urls import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('q/', qr_index),
     # path('hello/', hello_index),
     # path('config/', config_index),
     # path('e/', include('apps.equipment.urls')),
