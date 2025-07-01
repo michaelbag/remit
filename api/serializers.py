@@ -286,11 +286,14 @@ class QRCodeSerializer(serializers.ModelSerializer):
         model = apps.qr.models.QRCode
         fields = [
             'guid',
+            'guid_public_code',
+            'short_public_code',
             'code',
             'name',
             'delete_mark',
             'created_at',
             'title',
             'archive',
-            'qr_type'
+            'qr_type',
+            'url'
         ]

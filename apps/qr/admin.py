@@ -36,8 +36,9 @@ class QRCodeAdminForm(forms.ModelForm):
 class QRCodeAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
-        'guid',
-        'short_code',
+        # 'guid',
+        'guid_public_code',
+        'short_public_code',
         'code',
         'name',
         'title',
@@ -45,7 +46,8 @@ class QRCodeAdmin(admin.ModelAdmin):
         'created_at',
         'archive',
         'delete_mark',
-        'fixed'
+        'fixed',
+        'url'
     ]
     # fields = [
     #     'guid',
@@ -60,16 +62,17 @@ class QRCodeAdmin(admin.ModelAdmin):
     # ]
     fieldsets = (
         (_('Codes'), {'fields': (
-            'guid',
-            'short_code',
-            'code'
+            # 'guid',
+            'guid_public_code',
+            'short_public_code',
+            'code',
+            'url'
         )}),
         (_('Main'), {'fields': ('name', 'qr_type', 'fixed')}),
         (_('Service'), {'fields': ('created_at', 'archive', 'delete_mark')})
     )
     readonly_fields = [
         'guid',
-        'short_code',
         'code',
         'created_at',
     ]
