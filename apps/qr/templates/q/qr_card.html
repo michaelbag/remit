@@ -1,2 +1,10 @@
+{% extends "index.html" %}
+
+{% block title %}QR code page{% endblock %}
+
+{% block content %}
+<h1>{{ code.title }}</h1>
 <p>Short code: {{ short_code }}</p>
-<h1>Name is {{ code.name }}</h1>
+{% endblock %}
+
+{% block footer %}{{ block.super }}, NEW FOOTER{% endblock %}

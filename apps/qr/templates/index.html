@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{% block title %}Index page{% endblock %}</title>
 </head>
 <body>
-{% include template_name %}
+<div class="content">{% block content %}{% endblock %}</div>
+<div>{% block footer %}footer{% endblock %}</div>
 </body>
 </html>
