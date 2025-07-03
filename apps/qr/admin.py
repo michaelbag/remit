@@ -44,22 +44,19 @@ class QRCodeAdmin(admin.ModelAdmin):
         'title',
         'qr_type',
         'created_at',
+        'modified_time',
         'archive',
         'delete_mark',
         'fixed',
         'url'
     ]
-    # fields = [
-    #     'guid',
-    #     'short_code',
-    #     'code',
-    #     'name',
-    #     'qr_type',
-    #     'created_at',
-    #     'archive',
-    #     'delete_mark',
-    #     'fixed',
-    # ]
+    search_fields = [
+        'short_public_code'
+    ]
+    list_filter = [
+        'fixed',
+        'qr_type'
+    ]
     fieldsets = (
         (_('Codes'), {'fields': (
             'guid',
@@ -69,11 +66,11 @@ class QRCodeAdmin(admin.ModelAdmin):
             'url'
         )}),
         (_('Main'), {'fields': ('name', 'title', 'qr_type', 'fixed')}),
-        (_('Service'), {'fields': ('created_at', 'archive', 'delete_mark')})
+        (_('Service'), {'fields': ('created_at', 'modified_time', 'archive', 'delete_mark')})
     )
     readonly_fields = [
         'guid',
-        'code',
         'created_at',
+        'modified_time'
     ]
-    form = QRCodeAdminForm
+    # form = QRCodeAdminForm

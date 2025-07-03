@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import random
 import uuid
@@ -37,6 +38,7 @@ class Catalog(GUIDModel):
     code = models.CharField(max_length=9, blank=True)
     name = models.CharField(max_length=32, blank=True)
     delete_mark = models.BooleanField(default=False)
+    modified_time = models.DateTimeField(auto_now_add=True, editable=False)
 
     @property
     def next_code(self):
@@ -65,6 +67,7 @@ class Catalog(GUIDModel):
     def save(self, *args, **kwargs):
         if not self.code:
             self.code = self.next_code
+        self.modified_time = datetime.datetime.now()
         super().save(*args, **kwargs)
 
 
