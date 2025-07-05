@@ -15,6 +15,9 @@ class QRTypeAdmin(admin.ModelAdmin):
         'url_root',
         'archive'
     ]
+    readonly_fields = [
+        'guid'
+    ]
 
 
 class QRCodeAdminForm(forms.ModelForm):

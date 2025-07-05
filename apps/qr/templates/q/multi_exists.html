@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+
+{% block title %}Object multi returned.{% endblock %}
+
+{% block content %}
+<h1>Object multi returned</h1>
+<p>This QR code <b>{{ short_code }}</b> {{ code.guid }} multi returned.</p>
+<p>{{ django|title }}</p>
+{% endblock %}
+
