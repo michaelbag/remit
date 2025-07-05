@@ -51,3 +51,6 @@ class QRCode(common.models.Catalog):
 
     class Meta:
         verbose_name = _('QR Code')
+        indexes = [
+            models.Index(fields=["short_public_code"], name="short_public_code")
+        ]
