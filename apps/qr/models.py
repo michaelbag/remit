@@ -32,6 +32,7 @@ class QRCode(common.models.Catalog):
     guid_public_code = models.UUIDField(default=uuid.uuid4)
     short_public_code = models.CharField(max_length=50, blank=True)
     url = models.CharField(max_length=150, blank=True)
+    operation = models.CharField(max_length=150, blank=True)
 
     @property
     def short_code(self):

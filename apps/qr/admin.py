@@ -68,7 +68,7 @@ class QRCodeAdmin(admin.ModelAdmin):
             'short_public_code',
             'url'
         )}),
-        (_('Main'), {'fields': ('name', 'title', 'qr_type', 'fixed')}),
+        (_('Main'), {'fields': ('name', 'title', 'operation', 'qr_type', 'fixed')}),
         (_('Service'), {'fields': ('created_at', 'modified_time', 'archive', 'delete_mark')})
     )
     readonly_fields = [
