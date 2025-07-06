@@ -1,10 +1,18 @@
-{% extends "index.html" %}
+{% extends "admin/index.html" %}
+{% block sidebar %}
+    <div>
+        <h1>Extra links</h1>
+        <a href="/admin/extra/">My extra link</a>
+    </div>
+{% endblock %}
 
 {% block title %}QR code page{% endblock %}
 
 {% block content %}
 <h1>{{ code.title }}</h1>
 <p>Short code: {{ code.short_public_code}}</p>
+
+
 {% endblock %}
 
 {% block footer %}{{ block.super }}, NEW FOOTER{% endblock %}
