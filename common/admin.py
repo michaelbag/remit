@@ -17,25 +17,26 @@ class CommonCounterAdmin(admin.ModelAdmin):
     # readonly_fields = [f.name for f in CommonCounter._meta.get_all_field_names()]
 
 
-# Not finished.
-# TODO: It's necessary to add commod display list, fieldsets and readonly fields for catalog.
 class CatalogAdmin(admin.ModelAdmin):
-    list_display = [
-        'code',
-        'name',
-        'delete_mark'
-    ]
-    readonly_fields = [
-        'guid',
-        'code'
-    ]
-    fields = [
-        'guid',
-        'code',
-        'name',
-        'delete_mark'
-    ]
 
+    class CatalogAdminBase:
+        list_display = [
+            'code',
+            'name',
+            'delete_mark',
+            'modified'
+        ]
+        readonly_fields = [
+            'guid',
+            'code',
+            'modified'
+        ]
+        fields = [
+            'guid',
+            'code',
+            'name',
+            'delete_mark'
+        ]
 
 class RecursiveCatalogAdmin(admin.ModelAdmin):
     list_display = [

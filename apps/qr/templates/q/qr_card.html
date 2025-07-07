@@ -1,4 +1,5 @@
-{% extends "admin/index.html" %}
+{% extends "admin/base_site.html" %}
+
 {% block sidebar %}
     <div>
         <h1>Extra links</h1>
@@ -6,13 +7,18 @@
     </div>
 {% endblock %}
 
-{% block title %}QR code page{% endblock %}
+{% block title %}Service code page{% endblock %}
 
-{% block content %}
-<h1>{{ code.title }}</h1>
-<p>Short code: {{ code.short_public_code}}</p>
+{% block branding %}P7E Service system{% endblock %}
 
-
+{% block nav-global %}
+<div><p>NAV-GLOBAL</p></div>
 {% endblock %}
 
-{% block footer %}{{ block.super }}, NEW FOOTER{% endblock %}
+{% block content %}
+<h1>{{ code.name }}</h1>
+{% if code.title %}<p>Title: {{ code.title }}</p>{% endif %}
+<p>Service code: {{ code.short_public_code}}</p>
+{% endblock %}
+
+{% block footer %}{{ block.super }} - footer block -{% endblock %}

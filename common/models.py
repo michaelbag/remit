@@ -39,7 +39,7 @@ class Catalog(GUIDModel):
     code = models.CharField(max_length=9, blank=True)
     name = models.CharField(max_length=32, blank=True)
     delete_mark = models.BooleanField(default=False)
-    modified_time = models.DateTimeField(editable=False, auto_now=True)
+    modified = models.DateTimeField(editable=False, auto_now=True)
 
     @property
     def next_code(self):
