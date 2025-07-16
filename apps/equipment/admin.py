@@ -72,9 +72,10 @@ class EquipmentAdmin(admin.ModelAdmin):
     #date_hierarchy = 'start_date'
     exclude = ['guid']
     list_display = [
-        '__str__',
-        'equip_code',
         'code',
+        'name',
+        # '__str__',
+        'equip_code',
         'is_group',
         'type',
         'delete_mark',
