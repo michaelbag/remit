@@ -1,26 +1,12 @@
-import datetime
-import hashlib
-import random
+# import hashlib
+# import random
 import uuid
 from django.db import models
-from django.db.transaction import on_commit
-from django.utils import timezone
-
+from django.utils.translation import gettext_lazy as _
+# from django.db.transaction import on_commit
+# from django.utils import timezone
 import remit.settings
-
-
-# Create your models here.
-
-
-class GUIDModel(models.Model):
-    # TODO: (!) Very strange situation: guid in new entry of model being generated twice.
-    # 1. When first opened edit form fo new entry.
-    # 2. Then second in save process.
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
-
-    class Meta:
-        abstract = True
-        verbose_name = 'Abstract GUID model'
+from common.com_models import GUIDModel
 
 
 class Category(models.Model):
@@ -39,7 +25,6 @@ class Catalog(GUIDModel):
     code = models.CharField(max_length=9, blank=True)
     name = models.CharField(max_length=32, blank=True)
     delete_mark = models.BooleanField(default=False)
-    modified = models.DateTimeField(editable=False, auto_now=True)
 
     @property
     def next_code(self):
@@ -115,5 +100,5 @@ class CommonCounter(GUIDModel):
     counter = models.IntegerField(default=0)
 
     class Meta:
-        verbose_name = 'Counter for model'
+        verbose_name = _('Counter for model')
         # unique_together = ('table_name', 'prefix')

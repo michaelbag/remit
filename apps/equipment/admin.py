@@ -14,9 +14,13 @@ admin.site.disable_action("delete_selected")
 @admin.register(models.EquipmentType)
 class EquipmentTypeAdmin(admin.ModelAdmin):
     list_display = [
-        'guid',
         'code',
-        'name'
+        'name',
+        'modified',
+        'created'
+    ]
+    readonly_fields = [
+        'guid'
     ]
 
 
@@ -81,9 +85,10 @@ class EquipmentAdmin(admin.ModelAdmin):
         'delete_mark',
         'has_interfaces',
         'employee',
-        "archive"
+        'archive',
+        'modified'
     ]
-    readonly_fields = ['guid']
+    readonly_fields = ['guid', 'modified']
     # fields = [
     #
     # ]

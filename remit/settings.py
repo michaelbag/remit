@@ -116,12 +116,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 # LANGUAGE_CODE = 'en-us'
 LANGUAGE_CODE = local_settings.LANGUAGE_CODE
+LANGUAGES = local_settings.LANGUAGES
 TIME_ZONE = local_settings.TIME_ZONE
 USE_I18N = local_settings.USE_I18N
 USE_TZ = local_settings.USE_TZ

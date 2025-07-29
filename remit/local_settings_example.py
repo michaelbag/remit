@@ -41,6 +41,11 @@ DATABASES = {
 # LANGUAGE_CODE = 'en-us'
 LANGUAGE_CODE = 'ru-ru'
 
+LANGUAGES = [
+    ("ru", "Русский"),
+    ("en", "English"),
+]
+
 TIME_ZONE = 'UTC'
 # TIME_ZONE = 'Europe/Moscow'
 

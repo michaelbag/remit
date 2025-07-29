@@ -9,7 +9,7 @@ class CommonCounterAdmin(admin.ModelAdmin):
         'guid',
         'table_name',
         'prefix',
-        'counter'
+        'counter',
     ]
     readonly_fields = [
         'table_name'
@@ -37,6 +37,7 @@ class CatalogAdmin(admin.ModelAdmin):
             'name',
             'delete_mark'
         ]
+
 
 class RecursiveCatalogAdmin(admin.ModelAdmin):
     list_display = [

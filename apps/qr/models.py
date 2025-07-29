@@ -15,7 +15,7 @@ class QRType(common.models.Catalog):
     fixed = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.url_root if not self.name else self.url_root
+        return self.url_root if not self.name else self.name
 
     class Meta:
         verbose_name = _('QR Type')

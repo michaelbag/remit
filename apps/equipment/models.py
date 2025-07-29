@@ -27,7 +27,7 @@ class EquipmentType(Catalog):
     has_interfaces = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name = 'Equipment type'
+        verbose_name = _('Equipment type')
 
 
 class EquipmentModel(Catalog):
@@ -49,7 +49,7 @@ class EquipmentModel(Catalog):
     comment = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = 'Equipment model'
+        verbose_name = _('Equipment model')
         ordering = ["name", "code"]
 
 

@@ -9,7 +9,6 @@ import common.admin
 @admin.register(apps.qr.models.QRType)
 class QRTypeAdmin(admin.ModelAdmin):
     list_display = [
-        'guid',
         'name',
         'code',
         'name',
