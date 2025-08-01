@@ -3,10 +3,25 @@
 import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import now
 # from django.db.transaction import on_commit
 # from django.utils import timezone
 import remit.settings
 from common.com_models import GUIDModel
+
+
+# class CommonCounter(GUIDModel):
+class CommonCounter(models.Model):
+    guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    table_name = models.CharField(max_length=50)
+    prefix = models.CharField(max_length=5, blank=True, default='')
+    counter = models.IntegerField(default=0)
+    modified = models.DateTimeField(editable=False, default=now)
+    created = models.DateTimeField(editable=False, default=now)
+
+    class Meta:
+        verbose_name = _('Counter for model')
+        # unique_together = ('table_name', 'prefix')
 
 
 class Category(models.Model):
@@ -18,7 +33,7 @@ class Category(models.Model):
 
     class Meta:
         abstract = True
-        verbose_name = 'Abstract Category model'
+        verbose_name = _('Abstract Category model')
 
 
 class Catalog(GUIDModel):
@@ -44,7 +59,7 @@ class Catalog(GUIDModel):
 
     class Meta:
         abstract = True
-        verbose_name = 'Abstract Catalog entry'
+        verbose_name = _('Abstract Catalog entry')
         ordering = ['name']
 
     def __str__(self):
@@ -69,7 +84,7 @@ class RecursiveCatalog(Catalog):
 
     class Meta:
         abstract = True
-        verbose_name = 'Abstract Recursive Catalog entry'
+        verbose_name = _('Abstract Recursive Catalog entry')
 
 
 class RecursiveCatalogByElements(Catalog):
@@ -77,7 +92,7 @@ class RecursiveCatalogByElements(Catalog):
 
     class Meta:
         abstract = True
-        verbose_name = 'Abstract Recursive by elements Catalog entry '
+        verbose_name = _('Abstract Recursive by elements Catalog entry')
 
 
 class CatalogTable(models.Model):
@@ -86,19 +101,10 @@ class CatalogTable(models.Model):
 
     class Meta:
         abstract = True
-        verbose_name = 'Table of catalog'
+        verbose_name = _('Table of catalog')
         unique_together = ('base_model', 'line_number')
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
 
-class CommonCounter(GUIDModel):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    table_name = models.CharField(max_length=50)
-    prefix = models.CharField(max_length=5, blank=True, default='')
-    counter = models.IntegerField(default=0)
-
-    class Meta:
-        verbose_name = _('Counter for model')
-        # unique_together = ('table_name', 'prefix')
