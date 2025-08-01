@@ -10,14 +10,10 @@ import remit.settings
 from common.com_models import GUIDModel
 
 
-# class CommonCounter(GUIDModel):
-class CommonCounter(models.Model):
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+class CommonCounter(GUIDModel):
     table_name = models.CharField(max_length=50)
     prefix = models.CharField(max_length=5, blank=True, default='')
     counter = models.IntegerField(default=0)
-    modified = models.DateTimeField(editable=False, default=now)
-    created = models.DateTimeField(editable=False, default=now)
 
     class Meta:
         verbose_name = _('Counter for model')

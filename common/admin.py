@@ -10,9 +10,13 @@ class CommonCounterAdmin(admin.ModelAdmin):
         'table_name',
         'prefix',
         'counter',
+        'modified',
+        'created'
     ]
     readonly_fields = [
-        'table_name'
+        'table_name',
+        'modified',
+        'created'
     ]
     # readonly_fields = [f.name for f in CommonCounter._meta.get_all_field_names()]
 
