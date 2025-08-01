@@ -3,6 +3,15 @@ from django.contrib import admin
 from common.models import CommonCounter
 
 
+# class TestCommonAdmin(admin.ModelAdmin):
+#     list_display = ['guid', 'code']
+#
+#     def __init__(self, *args, **kwargs):
+#         if isinstance(super().list_display, tuple):
+#             self.list_display = self.list_display.append(super().list_display)
+#         super().__init__(*args, **kwargs)
+
+
 @admin.register(CommonCounter)
 class CommonCounterAdmin(admin.ModelAdmin):
     list_display = [
@@ -14,6 +23,7 @@ class CommonCounterAdmin(admin.ModelAdmin):
         'created'
     ]
     readonly_fields = [
+        'guid',
         'table_name',
         'modified',
         'created'
