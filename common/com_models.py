@@ -2,6 +2,7 @@ import datetime
 import uuid
 
 from django.db import models
+from django.utils.timezone import now
 
 
 class GUIDModel(models.Model):
@@ -10,7 +11,7 @@ class GUIDModel(models.Model):
     # 2. Then second in save process.
     guid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     modified = models.DateTimeField(editable=False, auto_now=True)
-    created = models.DateTimeField(editable=False, default=datetime.datetime.now())
+    created = models.DateTimeField(editable=False, default=now())
 
     class Meta:
         abstract = True
