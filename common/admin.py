@@ -1,26 +1,19 @@
 from django.contrib import admin
-
-from common.models import CommonCounter
-
-
-# class TestCommonAdmin(admin.ModelAdmin):
-#     list_display = ['guid', 'code']
-#
-#     def __init__(self, *args, **kwargs):
-#         if isinstance(super().list_display, tuple):
-#             self.list_display = self.list_display.append(super().list_display)
-#         super().__init__(*args, **kwargs)
+import common.models as models
 
 
-@admin.register(CommonCounter)
-class CommonCounterAdmin(admin.ModelAdmin):
+class TestCommonAdmin(admin.ModelAdmin):
+    list_display = ['guid']
+
+    def __init__(self, *args, **kwargs):
+        self.list_display += TestCommonAdmin.list_display
+        super().__init__(*args, **kwargs)
+
+
+@admin.register(models.CommonCounter)
+class CommonCounterAdmin(TestCommonAdmin):
     list_display = [
-        'guid',
-        'table_name',
-        'prefix',
-        'counter',
-        'modified',
-        'created'
+        'table_name'
     ]
     readonly_fields = [
         'guid',
@@ -28,11 +21,25 @@ class CommonCounterAdmin(admin.ModelAdmin):
         'modified',
         'created'
     ]
-    # readonly_fields = [f.name for f in CommonCounter._meta.get_all_field_names()]
-
+    
 
 class CatalogAdmin(admin.ModelAdmin):
+    list_display = [
+        'code',
+        'name'
+    ]
+    readonly_fields = [
+        'guid',
+        'code',
+        'modified',
+        'created'
+    ]
 
+    def __init__(self, *args, **kwargs):
+        self.list_display = CatalogAdmin.list_display + self.list_display
+        self.readonly_fields += CatalogAdmin.readonly_fields
+        super().__init__(*args, **kwargs)
+    
     class CatalogAdminBase:
         list_display = [
             'code',
@@ -40,11 +47,7 @@ class CatalogAdmin(admin.ModelAdmin):
             'delete_mark',
             'modified'
         ]
-        readonly_fields = [
-            'guid',
-            'code',
-            'modified'
-        ]
+
         fields = [
             'guid',
             'code',

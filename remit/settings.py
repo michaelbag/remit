@@ -127,6 +127,7 @@ USE_I18N = local_settings.USE_I18N
 USE_TZ = local_settings.USE_TZ
 DATE_FORMAT = local_settings.DATE_FORMAT
 DATETIME_FORMAT = local_settings.DATETIME_FORMAT
+SHORT_DATETIME_FORMAT = local_settings.SHORT_DATETIME_FORMAT
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

@@ -37,7 +37,7 @@ class QRCodeAdminForm(forms.ModelForm):
 
 @admin.register(apps.qr.models.QRCode)
 class QRCodeAdmin(common.admin.CatalogAdmin):
-    list_display = common.admin.CatalogAdmin.CatalogAdminBase.list_display + [
+    list_display = [
         'guid_public_code',
         'short_public_code',
         'title',
@@ -64,11 +64,10 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
             'url'
         )}),
         (_('Main'), {'fields': ('name', 'title', 'operation', 'qr_type', 'fixed')}),
-        (_('Service'), {'fields': ('created_at', 'modified', 'archive', 'delete_mark')})
+        (_('Service'), {'fields': ('created_at', 'modified', 'created', 'archive', 'delete_mark')})
     )
+    # TODO: Problem. If readonly_fields not exists in class parent init get error.
     readonly_fields = [
-        'guid',
-        'created_at',
-        'modified'
+        'created_at'
     ]
     # form = QRCodeAdminForm
