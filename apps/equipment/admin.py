@@ -1,41 +1,31 @@
 from django.contrib import admin
 from django.forms import forms
-
 from . import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 from django.utils.translation import ngettext
-# Register your models here.
+from common.admin import CatalogAdmin
 
 
 admin.site.disable_action("delete_selected")
 
 
 @admin.register(models.EquipmentType)
-class EquipmentTypeAdmin(admin.ModelAdmin):
-    list_display = [
-        'code',
-        'name',
-        'modified',
-        'created'
-    ]
-    readonly_fields = [
-        'guid'
-    ]
+class EquipmentTypeAdmin(CatalogAdmin):
+    pass
 
 
 class InterfaceInLine(admin.TabularInline):
     model = models.Interface
-    readonly_fields = [
-        'guid'
-    ]
     fields = [
-        'guid',
         'name',
+        'title',
         'mac',
         'interface_type',
+        'equipment',
         'connected_to',
         'ipv4_address',
+        'virtual',
         'comment'
     ]
 
@@ -71,28 +61,18 @@ def make_unarchived(modeladmin: admin.ModelAdmin, request, queryset):
 
 
 @admin.register(models.Equipment)
-class EquipmentAdmin(admin.ModelAdmin):
+class EquipmentAdmin(CatalogAdmin):
     # Навигация по данному полю в истории изменения.
     #date_hierarchy = 'start_date'
-    exclude = ['guid']
     list_display = [
-        '__str__',
-        'code',
-        'name',
         # '__str__',
         'equip_code',
         'is_group',
         'type',
-        'delete_mark',
         'has_interfaces',
         'employee',
         'archive',
-        'modified'
     ]
-    readonly_fields = ['guid', 'modified']
-    # fields = [
-    #
-    # ]
     fieldsets = [
         (
             None,
@@ -141,23 +121,20 @@ class EquipmentAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.InterfaceType)
-class InterfaceTypeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code']
+class InterfaceTypeAdmin(CatalogAdmin):
+    pass
 
 
 @admin.register(models.Interface)
-class InterfaceAdmin(admin.ModelAdmin):
+class InterfaceAdmin(CatalogAdmin):
     list_display = [
-        '__str__',
         'mac',
-        'name',
         'equipment',
         'virtual',
         'ipv4_address',
         'connected_to',
         'interface_type',
         'archive',
-        'delete_mark'
     ]
     search_fields = ['name', 'mac', 'equipment__equip_code']
 
@@ -177,62 +154,75 @@ class InterfaceAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.EquipmentModel)
-class EquipmentModelAdmin(admin.ModelAdmin):
+class EquipmentModelAdmin(CatalogAdmin):
     list_display = [
-        '__str__',
-        'guid',
         'equipment_type',
         'supplier',
-        'delete_mark'
-    ]
-    readonly_fields = [
-        'guid'
     ]
 
 
 @admin.register(models.Supplier)
-class SupplierAdmin(admin.ModelAdmin):
+class SupplierAdmin(CatalogAdmin):
     list_display = [
-        'name',
-        'code',
         'archive',
-        'delete_mark',
-        'guid'
     ]
-    readonly_fields = [
-        'guid'
-        ]
+    fields = [
+        'code',
+        'name',
+        'archive',
+        'delete_mark'
+    ]
 
 
 # admin.site.register(models.Service)
 @admin.register(models.Service)
-class ServiceAdmin(admin.ModelAdmin):
+class ServiceAdmin(CatalogAdmin):
     list_display = [
-        'name',
-        'code',
+        'software',
         'equipment',
     ]
     search_fields = [
         'name',
-        'equipment__name'
+        'equipment__name',
     ]
+    fieldsets = [
+        (None,
+         {
+             'classes': ('wide',),
+             'fields': ['code', 'name']}
+         ),
+        (_('Software'),
+         {
+             'fields': ['software', 'software_version']
+         }),
+        (None,
+         {
+             'fields': ['comment']
+         }),
+        (_('System fields'),
+         {
+            'fields': ['created', 'modified', 'delete_mark']
+         }),
+    ]
+
+    class Media:
+        js = ('js/jquery.js', )
 
 
 @admin.register(models.Software)
-class SoftwareAdmin(admin.ModelAdmin):
+class SoftwareAdmin(CatalogAdmin):
     list_display = [
-        'name',
-        'code',
         'archive',
         'comment'
-    ]
-    readonly_fields = [
-        'guid'
     ]
     search_fields = [
         'name',
         'code'
     ]
+    actions = [make_archived, make_unarchived]
 
 
-admin.site.register(models.SoftwareVersion)
+# admin.site.register(models.SoftwareVersion)
+@admin.register(models.SoftwareVersion)
+class SoftwareVersionAdmin(CatalogAdmin):
+    list_filter = ['software']

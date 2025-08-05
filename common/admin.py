@@ -2,18 +2,23 @@ from django.contrib import admin
 import common.models as models
 
 
-class TestCommonAdmin(admin.ModelAdmin):
-    list_display = ['guid']
-
-    def __init__(self, *args, **kwargs):
-        self.list_display += TestCommonAdmin.list_display
-        super().__init__(*args, **kwargs)
+# class TestCommonAdmin(admin.ModelAdmin):
+#     list_display = ['guid']
+#
+#     def __init__(self, *args, **kwargs):
+#         self.list_display += TestCommonAdmin.list_display
+#         super().__init__(*args, **kwargs)
 
 
 @admin.register(models.CommonCounter)
-class CommonCounterAdmin(TestCommonAdmin):
+class CommonCounterAdmin(admin.ModelAdmin):
     list_display = [
-        'table_name'
+        'table_name',
+        'counter',
+        'prefix',
+        'guid',
+        'created',
+        'modified'
     ]
     readonly_fields = [
         'guid',
@@ -24,36 +29,32 @@ class CommonCounterAdmin(TestCommonAdmin):
     
 
 class CatalogAdmin(admin.ModelAdmin):
+    use_basic_admin = True
     list_display = [
-        'code',
-        'name'
+        'name',
+        'code'
+    ]
+    # List of fields to append to the end of columns
+    list_display_later = [
+        'delete_mark',
+        'modified',
+        'created'
     ]
     readonly_fields = [
         'guid',
-        'code',
         'modified',
         'created'
     ]
 
     def __init__(self, *args, **kwargs):
-        self.list_display = CatalogAdmin.list_display + self.list_display
-        self.readonly_fields += CatalogAdmin.readonly_fields
+        if self.use_basic_admin:
+            if self.list_display != CatalogAdmin.list_display:
+                self.list_display = CatalogAdmin.list_display + self.list_display + CatalogAdmin.list_display_later
+            else:
+                self.list_display = CatalogAdmin.list_display + CatalogAdmin.list_display_later
+            if self.readonly_fields != CatalogAdmin.readonly_fields:
+                self.readonly_fields += CatalogAdmin.readonly_fields
         super().__init__(*args, **kwargs)
-    
-    class CatalogAdminBase:
-        list_display = [
-            'code',
-            'name',
-            'delete_mark',
-            'modified'
-        ]
-
-        fields = [
-            'guid',
-            'code',
-            'name',
-            'delete_mark'
-        ]
 
 
 class RecursiveCatalogAdmin(admin.ModelAdmin):

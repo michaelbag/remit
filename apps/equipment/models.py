@@ -99,7 +99,7 @@ class Equipment(RecursiveCatalog):
         return f'{"[]" if self.is_group else "-"} {self.name}'
 
     class Meta:
-        verbose_name = "Equipment"
+        verbose_name = _("Equipment")
         ordering = ["title", "name", "code"]
 
 
@@ -108,7 +108,7 @@ class Software(Catalog):
     comment = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = 'Software'
+        verbose_name = _('Software')
 
 
 class SoftwareVersion(Catalog):
@@ -129,9 +129,16 @@ class Service(RecursiveCatalogByElements):
     software = models.ForeignKey(Software, related_name='services', on_delete=models.SET_NULL,
                                  null=True,
                                  blank=True)
-    software_version = models.ForeignKey(SoftwareVersion, related_name='services', on_delete=models.SET_NULL,
+    software_version = ChainedForeignKey(SoftwareVersion,
+                                         related_name='services',
+                                         on_delete=models.SET_NULL,
                                          null=True,
-                                         blank=True)
+                                         blank=True,
+                                         chained_field='software',
+                                         chained_model_field='software',
+                                         show_all=False,
+                                         auto_choose=True,
+                                         sort=True)
     organization = models.ForeignKey(org_models.Organization,
                                      related_name='services',
                                      null=True,
