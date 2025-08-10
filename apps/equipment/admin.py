@@ -69,6 +69,7 @@ class EquipmentAdmin(CatalogAdmin):
         'equip_code',
         'is_group',
         'type',
+        'model',
         'has_interfaces',
         'employee',
         'archive',
@@ -205,8 +206,8 @@ class ServiceAdmin(CatalogAdmin):
          }),
     ]
 
-    class Media:
-        js = ('js/jquery.js', )
+    # class Media:
+    #     js = ('js/jquery.js', )
 
 
 @admin.register(models.Software)
