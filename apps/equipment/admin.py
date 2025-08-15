@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 from django.utils.translation import ngettext
 from common.admin import CatalogAdmin
-
+from .forms import EquipmentForm
 
 admin.site.disable_action("delete_selected")
 
@@ -62,6 +62,7 @@ def make_unarchived(modeladmin: admin.ModelAdmin, request, queryset):
 
 @admin.register(models.Equipment)
 class EquipmentAdmin(CatalogAdmin):
+    form = EquipmentForm
     # Навигация по данному полю в истории изменения.
     #date_hierarchy = 'start_date'
     list_display = [
@@ -74,39 +75,39 @@ class EquipmentAdmin(CatalogAdmin):
         'employee',
         'archive',
     ]
-    fieldsets = [
-        (
-            None,
-            {
-                "fields": [
-                    'guid',
-                    ('type', 'model'),
-                    ('code', 'name', 'title'),
-                    'equip_code',
-                    'hostname',
-                    'employee',
-                    'serial_number',
-                    'virtual',
-                    'has_interfaces',
-                ]
-            }
-        ),
-        (
-            _("Description"),
-            {
-                "classes": ["collapse", "wide"],
-                "fields": [('description', 'comment')]
-            }
-        ),
-        (
-            _('Activity'),
-            {
-                "classes": ["collapse"],
-                "fields": ["start_date", "end_date", "delete_mark", "archive"]
-            }
-        )
-    ]
-    # inlines = [InterfaceInLine]
+    # fieldsets = [
+    #     (
+    #         None,
+    #         {
+    #             "fields": [
+    #                 'guid',
+    #                 ('type', 'model'),
+    #                 ('name', 'code', 'title'),
+    #                 'equip_code',
+    #                 'hostname',
+    #                 'employee',
+    #                 'serial_number',
+    #                 'virtual',
+    #                 'has_interfaces',
+    #             ]
+    #         }
+    #     ),
+    #     (
+    #         _("Description"),
+    #         {
+    #             "classes": ["collapse", "wide"],
+    #             "fields": [('description', 'comment')]
+    #         }
+    #     ),
+    #     (
+    #         _('Activity'),
+    #         {
+    #             "classes": ["collapse"],
+    #             "fields": ["start_date", "end_date", "delete_mark", "archive"]
+    #         }
+    #     )
+    # ]
+    # # inlines = [InterfaceInLine]
     search_fields = [
         'name',
         'equip_code',
@@ -115,10 +116,20 @@ class EquipmentAdmin(CatalogAdmin):
     ]
     list_filter = ['type', 'employee']
     actions = [make_archived, make_unarchived]
+    #
+    # class Media:
+    #     # js = ('https://code.jquery.com/jquery-3.6.0.min.js', )
+    #     js = ('js/jquery.js', 'linked_data.js')
 
     class Media:
-        # js = ('https://code.jquery.com/jquery-3.6.0.min.js', )
-        js = ('js/jquery.js', )
+        js = (
+            # Init django.jQuery
+            'admin/js/jquery.init.js',
+            'admin/js/inlines.js',
+            # Equipment form script $ = django.jQuery
+            'linked_data.js',
+        )
+
 
 
 @admin.register(models.InterfaceType)

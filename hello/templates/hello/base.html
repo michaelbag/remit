@@ -23,13 +23,13 @@
     <header class="site-header">
       <nav class="navbar navbar-expand-md navbar-dark bg-blue fixed-top">
         <div class="container">
-          <a class="navbar-brand mr-4" href="{% url 'e-list' %}"><i class='bx bxs-rocket bx-tada-hover'></i> RemIT Subsystem</a>
+          <a class="navbar-brand mr-4" href="{% url 'eq:elist' %}"><i class='bx bxs-rocket bx-tada-hover'></i> RemIT Subsystem</a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-             <a class="nav-item nav-link " href="{% url 'e-list' %}">Главная</a>
+             <a class="nav-item nav-link " href="{% url 'eq:elist' %}">Главная</a>
                 <a class="nav-item nav-link " href="{% url 'admin:index' %}">Admin</a>
             </div>
             <!-- Правая часть навигационной панели -->
@@ -64,7 +64,7 @@
     </main>
     <!-- Футер закреплен внизу, независимо от количества постов на странице -->
     <footer class="text-center bg-dark">
-      <p><a href="{% url 'e-list' %}">RemIT 2024 © Remark.pro</a></p>
+      <p><a href="{% url 'eq:elist' %}">RemIT 2024 © Remark.pro</a></p>
     </footer>
 
     <!-- Дополнительные скрипты JavaScript -->

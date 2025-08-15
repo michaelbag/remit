@@ -73,22 +73,21 @@ class Equipment(RecursiveCatalog):
     description = models.TextField(blank=True)
     hostname = models.CharField(max_length=50, blank=True)
     # TODO: Add filter by current equipment type in model limit_choices_to parameter
-    # model = models.ForeignKey(EquipmentModel,
-    #                           null=True,
-    #                           on_delete=models.SET_NULL,
-    #                           blank=True,
-    #                           related_name="equipments")
-    #
-    model = ChainedForeignKey(EquipmentModel,
+    model = models.ForeignKey(EquipmentModel,
                               null=True,
                               on_delete=models.SET_NULL,
                               blank=True,
-                              related_name='equipments',
-                              chained_field='type',
-                              chained_model_field='equipment_type',
-                              show_all=False,
-                              auto_choose=True,
-                              sort=True)
+                              related_name="equipments")
+    # model = ChainedForeignKey(EquipmentModel,
+    #                           null=True,
+    #                           on_delete=models.SET_NULL,
+    #                           blank=True,
+    #                           related_name='equipments',
+    #                           chained_field='type',
+    #                           chained_model_field='equipment_type',
+    #                           show_all=False,
+    #                           auto_choose=True,
+    #                           sort=True)
     employee = models.ForeignKey(apps.org.models.Employee,
                                  null=True,
                                  on_delete=models.SET_NULL,

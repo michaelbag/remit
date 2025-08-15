@@ -32,7 +32,7 @@ class CatalogAdmin(admin.ModelAdmin):
     use_basic_admin = True
     list_display = [
         'name',
-        'code'
+        'code',
     ]
     # List of fields to append to the end of columns
     list_display_later = [

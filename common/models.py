@@ -37,6 +37,9 @@ class Catalog(GUIDModel):
     name = models.CharField(max_length=32, blank=True)
     delete_mark = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.name
+
     @property
     def next_code(self):
         # get next code for this catalog
@@ -65,6 +68,8 @@ class Catalog(GUIDModel):
         if not self.code:
             self.code = self.next_code
         # self.modified_time = timezone.now()
+        if not self.name:
+            self.name = self.code
         super().save(*args, **kwargs)
 
 

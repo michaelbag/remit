@@ -36,6 +36,9 @@ CSRF_TRUSTED_ORIGINS = local_settings.CSRF_TRUSTED_ORIGINS
 INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
+    'dal',
+    'dal_select2',
+    # 'smart_selects',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,7 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'jquery',
-    'smart_selects',
     'api.apps.ApiConfig',
     'common',
     'hello',
@@ -170,6 +172,7 @@ REST_FRAMEWORK = {
 }
 
 # JQUERY_URL = True
+# Использовать встроенный jQuery
 USE_DJANGO_JQUERY = True
 
 # System code prefix

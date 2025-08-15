@@ -18,6 +18,7 @@ Including another URLconf
 # from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+from django.urls import re_path as url
 # from hello.views import index as hello_index
 # from config.views import index as config_index
 from apps.qr.views import index as qr_index
@@ -35,7 +36,8 @@ urlpatterns = [
     # path('e/', include('apps.equipment.urls')),
     path('api/', include('api.urls')),
     # path('static/', serve, {'document_root': settings.STATIC_ROOT}),
-    path('chaining/', include('smart_selects.urls')),
+    # path('chaining/', include('smart_selects.urls')),
+    url(r'^eq/', include('apps.equipment.urls'))
 ]
 
 #TODO: KMA. Add URL pattern according instruction from https://django-smart-selects.readthedocs.io/en/latest/installation.html
