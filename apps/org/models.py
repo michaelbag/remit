@@ -8,9 +8,10 @@ from django.utils.translation import gettext_lazy as _
 
 class Organization(common_models.Catalog):
     name = models.CharField(max_length=150, blank=True)
+    archive = models.BooleanField(default=False, help_text=_('Is archived'))
 
     class Meta:
-        verbose_name = 'Organization'
+        verbose_name = _('Organization')
 
 
 class Department(common_models.RecursiveCatalogByElements):
@@ -19,9 +20,10 @@ class Department(common_models.RecursiveCatalogByElements):
                                      null=True,
                                      on_delete=models.SET_NULL)
     name = models.CharField(max_length=150, blank=False)
+    archive = models.BooleanField(default=False, help_text=_('Is archived'))
 
     class Meta:
-        verbose_name = 'Department'
+        verbose_name = _('Department')
 
 
 class Employee(common_models.Catalog):
@@ -30,17 +32,20 @@ class Employee(common_models.Catalog):
                                      null=True,
                                      blank=True,
                                      on_delete=models.SET_NULL)
-    # department = models.ForeignKey(Department, null=True, on_delete=models.SET_NULL, blank=True,
-    #                                related_name='employees')
-    department = ChainedForeignKey(Department, null=True,
+    department = models.ForeignKey(Department,
+                                   null=True,
                                    on_delete=models.SET_NULL,
                                    blank=True,
-                                   related_name='employees',
-                                   chained_field='organization',
-                                   chained_model_field='organization',
-                                   show_all=False,
-                                   auto_choose=True,
-                                   sort=True)
+                                   related_name='employees')
+    # department = ChainedForeignKey(Department, null=True,
+    #                                on_delete=models.SET_NULL,
+    #                                blank=True,
+    #                                related_name='employees',
+    #                                chained_field='organization',
+    #                                chained_model_field='organization',
+    #                                show_all=False,
+    #                                auto_choose=True,
+    #                                sort=True)
     name = models.CharField(max_length=150, blank=False, help_text=_('Full name'))
     archive = models.BooleanField(default=False, help_text=_('Is archived'))
     start_date = models.DateField(default=date.today, null=True, help_text=_('Work till'))
@@ -48,4 +53,3 @@ class Employee(common_models.Catalog):
 
     class Meta:
         verbose_name = 'Employee'
-

@@ -15,54 +15,10 @@ class EquipmentForm(forms.ModelForm):
 
     class Meta:
         model = Equipment
-        fields = {
-            'name',
-            'code',
-            'guid',
-            'serial_number',
-            'type',
-            'model',
-            'comment',
-            'start_date'
-        }
+        fields = '__all__'
         widgets = {
-            'model': autocomplete.ModelSelect2(url='eq:qt',
-                                               forward=('type',))
+            'model': autocomplete.ModelSelect2(url='eq:models',
+                                               forward=('type',)),
+            'type': autocomplete.ModelSelect2(url='eq:type_select'),
+            'employee': autocomplete.ModelSelect2(url='org:employee_select')
         }
-        # fields = [
-        #     (
-        #         None,
-        #         {
-        #             "fields": [
-        #                 'guid',
-        #                 ('type', 'model'),
-        #                 ('name', 'code', 'title'),
-        #                 'equip_code',
-        #                 'hostname',
-        #                 'employee',
-        #                 'serial_number',
-        #                 'virtual',
-        #                 'has_interfaces',
-        #             ]
-        #         }
-        #     ),
-        #     (
-        #         _("Description"),
-        #         {
-        #             "classes": ["collapse", "wide"],
-        #             "fields": [('description', 'comment')]
-        #         }
-        #     ),
-        #     (
-        #         _('Activity'),
-        #         {
-        #             "classes": ["collapse"],
-        #             "fields": ["start_date", "end_date", "delete_mark", "archive"]
-        #         }
-        #     )
-        # ]
-
-    # class Media:
-    #     js = {
-    #         'linked_data.js'
-    #     }

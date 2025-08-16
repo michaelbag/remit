@@ -37,7 +37,8 @@ urlpatterns = [
     path('api/', include('api.urls')),
     # path('static/', serve, {'document_root': settings.STATIC_ROOT}),
     # path('chaining/', include('smart_selects.urls')),
-    url(r'^eq/', include('apps.equipment.urls'))
+    url(r'^eq/', include('apps.equipment.urls')),
+    url(r'^org/', include('apps.org.urls'))
 ]
 
 #TODO: KMA. Add URL pattern according instruction from https://django-smart-selects.readthedocs.io/en/latest/installation.html
