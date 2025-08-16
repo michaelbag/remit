@@ -22,6 +22,9 @@ class Department(common_models.RecursiveCatalogByElements):
     name = models.CharField(max_length=150, blank=False)
     archive = models.BooleanField(default=False, help_text=_('Is archived'))
 
+    def __str__(self):
+        return "%s%s" % (self.name, f" ({self.organization.name})" if self.organization else '')
+
     class Meta:
         verbose_name = _('Department')
 

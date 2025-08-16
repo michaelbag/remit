@@ -25,6 +25,9 @@ class DepartmentSelectionsListView(LoginRequiredMixin, autocomplete.Select2Query
         organization = self.forwarded.get('organization', None)
         if organization:
             qs = qs.filter(organization=organization)
+        guid = self.forwarded.get('pk', None)
+        if guid:
+            qs = qs.exclude(pk=guid)
         qs = qs.order_by('name')
         return qs
 

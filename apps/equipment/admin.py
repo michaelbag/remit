@@ -163,6 +163,7 @@ class InterfaceAdmin(CatalogAdmin):
 
 @admin.register(models.EquipmentModel)
 class EquipmentModelAdmin(CatalogAdmin):
+    non_wrapping_name = False
     list_display = [
         'equipment_type',
         'supplier',

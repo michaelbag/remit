@@ -22,3 +22,16 @@ class EmployeeForm(forms.ModelForm):
             'organization': autocomplete.ModelSelect2(
                 url='org:org_select')
         }
+
+
+class DepartmentForm(forms.ModelForm):
+    class Meta:
+        model = models.Department
+        fields = '__all__'
+        widgets = {
+            'organization': autocomplete.ModelSelect2(url='org:org_select'),
+            'parent': autocomplete.ModelSelect2(
+                url='org:dep_select',
+                forward=['organization', 'archive', 'guid']
+            )
+        }

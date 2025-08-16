@@ -1,5 +1,6 @@
 from django.contrib import admin
 import common.models as models
+from django.utils.html import format_html
 
 
 # class TestCommonAdmin(admin.ModelAdmin):
@@ -30,8 +31,10 @@ class CommonCounterAdmin(admin.ModelAdmin):
 
 class CatalogAdmin(admin.ModelAdmin):
     use_basic_admin = True
+    # TODO: In child classes need to use this property for name or get_non_wrapping_name in list_display
+    non_wrapping_name = True
     list_display = [
-        'name',
+        'get_non_wrapping_name',
         'code',
     ]
     # List of fields to append to the end of columns
@@ -45,6 +48,12 @@ class CatalogAdmin(admin.ModelAdmin):
         'modified',
         'created'
     ]
+
+    def get_non_wrapping_name(self, obj):
+        return format_html(
+            '<div style="white-space: nowrap">{}</div>',
+            obj.name
+        )
 
     def __init__(self, *args, **kwargs):
         if self.use_basic_admin:
