@@ -79,7 +79,7 @@ class RecursiveCatalog(Catalog):
     # NEW from 2025-02-03
     is_folder = models.BooleanField(default=False)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='elements', on_delete=models.CASCADE,
-                               limit_choices_to={'is_group': True})
+                               limit_choices_to={'is_folder': True})
 
     # TODO: Chane is_group filter to is_folder, fix API uploading from 1C
 

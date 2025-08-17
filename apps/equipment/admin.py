@@ -1,22 +1,23 @@
 from django.contrib import admin
 from django.forms import forms
-from . import models
+from . import models as eq_models
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 from django.utils.translation import ngettext
-from common.admin import CatalogAdmin
+from common.admin import CatalogAdmin, RecursiveCatalogAdmin
 from .forms import EquipmentForm
+from .forms import ServiceForm
 
 admin.site.disable_action("delete_selected")
 
 
-@admin.register(models.EquipmentType)
+@admin.register(eq_models.EquipmentType)
 class EquipmentTypeAdmin(CatalogAdmin):
     pass
 
 
 class InterfaceInLine(admin.TabularInline):
-    model = models.Interface
+    model = eq_models.Interface
     fields = [
         'name',
         'title',
@@ -60,53 +61,62 @@ def make_unarchived(modeladmin: admin.ModelAdmin, request, queryset):
     )
 
 
-@admin.register(models.Equipment)
-class EquipmentAdmin(CatalogAdmin):
+@admin.register(eq_models.Equipment)
+class EquipmentAdmin(RecursiveCatalogAdmin):
     form = EquipmentForm
-    # Навигация по данному полю в истории изменения.
-    #date_hierarchy = 'start_date'
+    # date_hierarchy = 'start_date'
+    # TODO: for RecursiveCataloge - realize folder fields (fieldsets)
     list_display = [
-        # '__str__',
         'equip_code',
-        'is_group',
+        'serial_number',
         'type',
         'model',
         'has_interfaces',
         'employee',
         'archive',
     ]
-    fieldsets = [
-        (
-            None,
-            {
-                "fields": [
-                    'guid',
-                    ('type', 'model'),
-                    ('name', 'code', 'title'),
-                    'equip_code',
-                    'hostname',
-                    'employee',
-                    'serial_number',
-                    'virtual',
-                    'has_interfaces',
-                ]
-            }
-        ),
-        (
-            _("Description"),
-            {
-                "classes": ["collapse", "wide"],
-                "fields": [('description', 'comment')]
-            }
-        ),
-        (
-            _('Activity'),
-            {
-                "classes": ["collapse"],
-                "fields": ["start_date", "end_date", "delete_mark", "archive"]
-            }
-        )
-    ]
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if obj and not obj.is_folder:
+            fieldsets += [
+                (
+                    _('Equipment'),
+                    {
+                        "fields": [
+                            ('type', 'model'),
+                            'equip_code',
+                            'hostname',
+                            'employee',
+                            'serial_number',
+                            'virtual',
+                            'has_interfaces',
+                        ]
+                    }
+                ),
+                (
+                    _("Description"),
+                    {
+                        "classes": ["collapse", "wide"],
+                        "fields": [('description', 'comment')]
+                    }
+                ),
+                (
+                    _('Activity'),
+                    {
+                        "classes": ["collapse"],
+                        "fields": ["start_date", "end_date", "delete_mark", "archive"]
+                    }
+                ),
+                (
+                    _('System'),
+                    {
+                        'fields': ['guid', ('created', 'modified')],
+                        'classes': ['collapse']
+                    }
+                )
+            ]
+        return fieldsets
     # # inlines = [InterfaceInLine]
     search_fields = [
         'name',
@@ -127,13 +137,12 @@ class EquipmentAdmin(CatalogAdmin):
         )
 
 
-
-@admin.register(models.InterfaceType)
+@admin.register(eq_models.InterfaceType)
 class InterfaceTypeAdmin(CatalogAdmin):
     pass
 
 
-@admin.register(models.Interface)
+@admin.register(eq_models.Interface)
 class InterfaceAdmin(CatalogAdmin):
     list_display = [
         'mac',
@@ -143,6 +152,16 @@ class InterfaceAdmin(CatalogAdmin):
         'connected_to',
         'interface_type',
         'archive',
+    ]
+    fieldsets = [
+        (_('Main'),
+         {
+             'fields': ['equipment',
+                        ('interface_type', 'virtual'),
+                        ('connected_to', 'ipv4_address'),
+                        'archive'
+                        ]
+         })
     ]
     search_fields = ['name', 'mac', 'equipment__equip_code']
 
@@ -161,16 +180,15 @@ class InterfaceAdmin(CatalogAdmin):
         return queryset, may_have_duplicates
 
 
-@admin.register(models.EquipmentModel)
+@admin.register(eq_models.EquipmentModel)
 class EquipmentModelAdmin(CatalogAdmin):
-    non_wrapping_name = False
     list_display = [
         'equipment_type',
         'supplier',
     ]
 
 
-@admin.register(models.Supplier)
+@admin.register(eq_models.Supplier)
 class SupplierAdmin(CatalogAdmin):
     list_display = [
         'archive',
@@ -184,8 +202,9 @@ class SupplierAdmin(CatalogAdmin):
 
 
 # admin.site.register(models.Service)
-@admin.register(models.Service)
+@admin.register(eq_models.Service)
 class ServiceAdmin(CatalogAdmin):
+    form = ServiceForm
     list_display = [
         'software',
         'equipment',
@@ -214,11 +233,17 @@ class ServiceAdmin(CatalogAdmin):
          }),
     ]
 
-    # class Media:
-    #     js = ('js/jquery.js', )
+    class Media:
+        js = (
+            # Init django.jQuery
+            'admin/js/jquery.init.js',
+            'admin/js/inlines.js',
+            # Equipment form script $ = django.jQuery
+            'service_form.js',
+        )
 
 
-@admin.register(models.Software)
+@admin.register(eq_models.Software)
 class SoftwareAdmin(CatalogAdmin):
     list_display = [
         'archive',
@@ -232,6 +257,6 @@ class SoftwareAdmin(CatalogAdmin):
 
 
 # admin.site.register(models.SoftwareVersion)
-@admin.register(models.SoftwareVersion)
+@admin.register(eq_models.SoftwareVersion)
 class SoftwareVersionAdmin(CatalogAdmin):
     list_filter = ['software']

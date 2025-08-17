@@ -1,4 +1,3 @@
-import uuid
 from datetime import date
 from django.db import models
 from macaddress.fields import MACAddressField
@@ -7,7 +6,6 @@ from common.models import Catalog, RecursiveCatalog, RecursiveCatalogByElements
 from apps.org import models as org_models
 from apps.res.models import Resource
 from django.utils.translation import gettext_lazy as _
-from smart_selects.db_fields import ChainedForeignKey
 
 
 class Supplier(Catalog):
@@ -78,16 +76,6 @@ class Equipment(RecursiveCatalog):
                               on_delete=models.SET_NULL,
                               blank=True,
                               related_name="equipments")
-    # model = ChainedForeignKey(EquipmentModel,
-    #                           null=True,
-    #                           on_delete=models.SET_NULL,
-    #                           blank=True,
-    #                           related_name='equipments',
-    #                           chained_field='type',
-    #                           chained_model_field='equipment_type',
-    #                           show_all=False,
-    #                           auto_choose=True,
-    #                           sort=True)
     employee = models.ForeignKey(apps.org.models.Employee,
                                  null=True,
                                  on_delete=models.SET_NULL,
@@ -95,7 +83,7 @@ class Equipment(RecursiveCatalog):
     equip_code = models.CharField(max_length=50, blank=True, verbose_name=_('Equipment code'))
 
     def __str__(self):
-        return f'{"[]" if self.is_group else "-"} {self.name}'
+        return f'{"[] " if self.is_group else ""} {self.name}'
 
     class Meta:
         verbose_name = _("Equipment")
@@ -125,19 +113,16 @@ class Service(RecursiveCatalogByElements):
     name = models.CharField(max_length=50, blank=True)
     archive = models.BooleanField(default=False)
     comment = models.TextField(blank=True)
-    software = models.ForeignKey(Software, related_name='services', on_delete=models.SET_NULL,
+    software = models.ForeignKey(Software,
+                                 related_name='services',
+                                 on_delete=models.SET_NULL,
                                  null=True,
                                  blank=True)
-    software_version = ChainedForeignKey(SoftwareVersion,
+    software_version = models.ForeignKey(SoftwareVersion,
                                          related_name='services',
                                          on_delete=models.SET_NULL,
                                          null=True,
-                                         blank=True,
-                                         chained_field='software',
-                                         chained_model_field='software',
-                                         show_all=False,
-                                         auto_choose=True,
-                                         sort=True)
+                                         blank=True)
     organization = models.ForeignKey(org_models.Organization,
                                      related_name='services',
                                      null=True,

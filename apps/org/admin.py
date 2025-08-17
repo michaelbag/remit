@@ -67,6 +67,21 @@ class EmployeesAdmin(CatalogAdmin):
     search_fields = [
         'name'
     ]
+    fieldsets = [
+        (
+            None,
+            {
+                'fields': [('name', 'code'), ('organization', 'department'),
+                           ('start_date', 'end_date')]
+            }
+        ),
+        (
+            _('System'),
+            {
+                'fields': ['archive', 'delete_mark', ('created', 'modified'), 'guid']
+            }
+        )
+    ]
 
     class Media:
         js = (
