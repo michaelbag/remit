@@ -13,7 +13,7 @@ class OrganizationAdmin(CatalogAdmin):
         (
             _('Main'),
             {
-                'fields': [('name', 'code'), 'archive']
+                'fields': ['archive']
             }
         ),
         (
@@ -69,9 +69,9 @@ class EmployeesAdmin(CatalogAdmin):
     ]
     fieldsets = [
         (
-            None,
+            _('Position'),
             {
-                'fields': [('name', 'code'), ('organization', 'department'),
+                'fields': [('organization', 'department'),
                            ('start_date', 'end_date')]
             }
         ),
