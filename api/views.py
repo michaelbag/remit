@@ -1,6 +1,6 @@
 # from rest_framework.response import Response
 # from rest_framework.views import APIView
-from rest_framework import viewsets, permissions, generics
+from rest_framework import viewsets, permissions, generics, views
 import apps.qr.models
 from apps.acc import models as acc_models
 # from django.shortcuts import render
@@ -9,6 +9,13 @@ from apps.org import models as org_models
 from apps.res import models as res_models
 from config import models as config_models
 from . import serializers
+
+
+# class CheckObjectView(views.APIView):
+#     def get(self, request, model_name, guid):
+#         field_name = 'delete_mark'
+#         model_name = request.query_params.get('model')
+#         model = apps.get_model()
 
 
 # === Access Profile

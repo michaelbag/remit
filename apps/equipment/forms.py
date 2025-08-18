@@ -27,6 +27,7 @@ class EquipmentForm(forms.ModelForm):
 
 
 class ServiceForm(forms.ModelForm):
+
     class Meta:
         model = models.Service
         fields = '__all__'

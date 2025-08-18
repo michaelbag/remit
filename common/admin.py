@@ -33,10 +33,12 @@ class CommonCounterAdmin(admin.ModelAdmin):
 class CatalogAdmin(admin.ModelAdmin):
     # TODO: In child classes need to use this property for name or get_non_wrapping_name in list_display
     non_wrapping_name = True
+    use_basic_fieldsets = True
+    hidden_system_fieldsets = False
     readonly_fields = [
         'guid',
         'modified',
-        'created'
+        'created',
     ]
     # List of fields to append to the end of columns
     list_display_before = [
@@ -47,6 +49,36 @@ class CatalogAdmin(admin.ModelAdmin):
         'delete_mark',
         'modified',
         'created'
+    ]
+    basic_fieldsets = [
+        (
+            None,
+            {
+                'fields': [
+                    ('name', 'code')
+                ]
+            }
+        )
+    ]
+
+    folder_fieldsets = [
+        (_('Folder'),
+         {
+             'fields': [('parent', 'is_folder_info')]
+         })
+    ]
+    parent_fieldsets = [
+        (_('Parent'),
+         {
+             'fields': [('parent',)]
+         })
+    ]
+    new_obj_fieldsets = [(_('New object'), {'fields': ['is_folder']})]
+    system_fieldsets = [
+        (_('System'), {
+            'classes': ['collapse'],
+            'fields': [('created', 'modified'), 'guid', 'delete_mark']
+        })
     ]
 
     def get_list_display(self, request):
@@ -59,23 +91,19 @@ class CatalogAdmin(admin.ModelAdmin):
         return list_display
 
     def get_fieldsets(self, request, obj=None):
-        # fieldsets = super().get_fieldsets(request, obj)
-        if type(self) is not CatalogAdmin:
-            fieldsets = [
-                (
-                    None,
-                    {
-                        'fields': [
-                            ('name', 'code')
-                        ]
-                    }
-                )
-            ]
-            if self.fieldsets:
-                fieldsets += super().get_fieldsets(request, obj)
-            # fieldsets += super().get_fieldsets(request, obj)
-        else:
-            fieldsets = super().get_fieldsets(request, obj)
+        if not (self.fieldsets or self.use_basic_fieldsets):
+            return super().get_fieldsets(request, obj)
+        fieldsets = [] + self.basic_fieldsets
+        if isinstance(self, RecursiveCatalogAdmin):
+            fieldsets += self.folder_fieldsets
+        if isinstance(self, RecursiveCatalogByElementsAdmin):
+            fieldsets += self.parent_fieldsets
+        if not obj:
+            fieldsets += self.new_obj_fieldsets
+        if self.fieldsets:
+            fieldsets += self.fieldsets
+        if not self.hidden_system_fieldsets:
+            fieldsets += self.system_fieldsets
         return fieldsets
 
     @admin.display(ordering='name', description=_('Name'))
@@ -101,23 +129,29 @@ class RecursiveCatalogAdmin(CatalogAdmin):
         'guid',
         'modified',
         'created',
-        # 'is_folder'
+        'is_folder_info'
     ]
 
-    def get_fieldsets(self, request, obj=None):
-        if type(self) is not RecursiveCatalogAdmin:
-            fieldsets = super().get_fieldsets(request, obj) + [
-                (_('Folder'),
-                 {
-                     'fields': [('parent', 'is_folder')]
-                 })
-            ]
-        else:
-            fieldsets = super().get_fieldsets(request, obj)
-        return fieldsets
+    # def get_fieldsets(self, request, obj=None):
+    #     fieldsets = super().get_fieldsets(request, obj) + [
+    #         (_('Folder'),
+    #          {
+    #              'fields': [('parent', 'is_folder')]
+    #          })
+    #     ]
+    #     return fieldsets
+
+    # def get_readonly_fields(self, request, obj=None):
+    #     readonly_fields = super().get_readonly_fields(request, obj)
+    #     if obj is not None:
+    #         readonly_fields += ['is_folder']
+    #     else:
+    #         if 'is_folder' in readonly_fields:
+    #             readonly_fields.remove('is_folder')
+    #     return readonly_fields
 
 
-class RecursiveCatalogByElementsAdmin(admin.ModelAdmin):
+class RecursiveCatalogByElementsAdmin(CatalogAdmin):
     list_display = [
         'code',
         'name',

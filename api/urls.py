@@ -25,7 +25,8 @@ route.register('res_type', views.ResourceTypeViewSet)
 urlpatterns = [
     path('', include(route.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('ext_system/<uuid:pk>/', views.ExtSystemDetail.as_view(), name='ext_system')
+    path('ext_system/<uuid:pk>/', views.ExtSystemDetail.as_view(), name='ext_system'),
+    path('ping/<str:model_name>/<uuid:pk>/', views.ExtSystemDetail.as_view(), name='ping_model')
     # path('get_eq', views.GetEquipmentInfoView.as_view(), name='get_equipment_list'),
     # path('equipments/', views.EquipmentList.as_view()),
     # path('equipments/<uuid:pk>/', views.EquipmentDetail.as_view())

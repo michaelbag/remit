@@ -37,9 +37,6 @@ class Catalog(GUIDModel):
     name = models.CharField(max_length=32, blank=True)
     delete_mark = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.name
-
     @property
     def next_code(self):
         # get next code for this catalog
@@ -81,7 +78,9 @@ class RecursiveCatalog(Catalog):
     parent = models.ForeignKey('self', null=True, blank=True, related_name='elements', on_delete=models.CASCADE,
                                limit_choices_to={'is_folder': True})
 
-    # TODO: Chane is_group filter to is_folder, fix API uploading from 1C
+    @property
+    def is_folder_info(self):
+        return _('It\'s a folder') if self.is_folder else _('It\'s not a folder')
 
     class Meta:
         abstract = True

@@ -75,48 +75,36 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
         'employee',
         'archive',
     ]
-
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
-        if obj and not obj.is_folder:
-            fieldsets += [
-                (
-                    _('Equipment'),
-                    {
-                        "fields": [
-                            ('type', 'model'),
-                            'equip_code',
-                            'hostname',
-                            'employee',
-                            'serial_number',
-                            'virtual',
-                            'has_interfaces',
-                        ]
-                    }
-                ),
-                (
-                    _("Description"),
-                    {
-                        "classes": ["collapse", "wide"],
-                        "fields": [('description', 'comment')]
-                    }
-                ),
-                (
-                    _('Activity'),
-                    {
-                        "classes": ["collapse"],
-                        "fields": ["start_date", "end_date", "delete_mark", "archive"]
-                    }
-                ),
-                (
-                    _('System'),
-                    {
-                        'fields': ['guid', ('created', 'modified')],
-                        'classes': ['collapse']
-                    }
-                )
-            ]
-        return fieldsets
+    entry_fieldsets = [
+        (
+            _('Equipment'),
+            {
+                "fields": [
+                    ('type', 'model'),
+                    'equip_code',
+                    'hostname',
+                    'employee',
+                    'serial_number',
+                    'virtual',
+                    'has_interfaces'
+                ]
+            }
+        ),
+        (
+            _("Description"),
+            {
+                "classes": ["collapse", "wide"],
+                "fields": [('description', 'comment')]
+            }
+        ),
+        (
+            _('Activity'),
+            {
+                "classes": ["collapse"],
+                "fields": ["start_date", "end_date", "delete_mark", "archive"]
+            }
+        ),
+    ]
     # # inlines = [InterfaceInLine]
     search_fields = [
         'name',
@@ -126,6 +114,14 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
     ]
     list_filter = ['type', 'employee']
     actions = [make_archived, make_unarchived]
+
+    def get_fieldsets(self, request, obj=None):
+        if obj and not obj.is_folder:
+            self.fieldsets = self.entry_fieldsets.copy()
+        else:
+            self.fieldsets = []
+        fieldsets = super().get_fieldsets(request, obj)
+        return fieldsets
 
     class Media:
         js = (
@@ -253,6 +249,7 @@ class SoftwareAdmin(CatalogAdmin):
         'name',
         'code'
     ]
+    fieldsets = [(None, {'fields': ['comment', 'archive']})]
     actions = [make_archived, make_unarchived]
 
 
