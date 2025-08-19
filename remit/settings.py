@@ -172,7 +172,7 @@ REST_FRAMEWORK = {
 }
 
 # JQUERY_URL = True
-# Использовать встроенный jQuery
+# Use internal Django jQuery
 USE_DJANGO_JQUERY = True
 
 # System code prefix

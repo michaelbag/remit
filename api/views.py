@@ -1,7 +1,7 @@
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework import viewsets, permissions, generics, views
-import apps.qr.models
+import apps.qr.models as qr_models
 from apps.acc import models as acc_models
 # from django.shortcuts import render
 from apps.equipment import models as equip_models
@@ -9,13 +9,43 @@ from apps.org import models as org_models
 from apps.res import models as res_models
 from config import models as config_models
 from . import serializers
+from django.apps import apps
 
 
-# class CheckObjectView(views.APIView):
-#     def get(self, request, model_name, guid):
-#         field_name = 'delete_mark'
-#         model_name = request.query_params.get('model')
-#         model = apps.get_model()
+class CheckObjectView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = None
+    model = None
+    models_apps = {
+        'equipment': 'equipment'
+    }
+
+    def get_model(self):
+        model_name = self.kwargs.get('model_name')
+        if model_name not in self.models_apps.keys():
+            return None
+        try:
+            model = apps.get_model(self.models_apps[model_name], model_name)
+            self.model = model
+        except LookupError:
+            return None
+        return model
+
+    def get(self, request, model_name, pk):
+        model = self.get_model()
+        if not model:
+            return Response({'error': 'Model not found'}, status=404)
+        try:
+            self.queryset = model.objects.all()
+            # request.query_params.get('model')
+            instance = model.objects.get(guid=pk)
+            return Response(getattr(instance, 'guid'))
+        except model.DoesNotExist:
+            return Response({'error': 'Instance not found'}, status=404)
+
+    def get_queryset(self):
+        model = self.get_model()
+        return model.objects.all()
 
 
 # === Access Profile
@@ -31,6 +61,7 @@ class ExtSystemDetail(generics.RetrieveAPIView):
     # queryset = config_models.ExtSystem.objects.all()
     serializer_class = serializers.ExtSystem
     permission_classes = [permissions.IsAuthenticated]
+
 
 # class SystemDetail()
 
@@ -162,16 +193,15 @@ class ResourceTypeViewSet(viewsets.ModelViewSet):
 # === QR Codes
 # --- QR code type
 class QRTypeViewSet(viewsets.ModelViewSet):
-    queryset = apps.qr.models.QRType.objects.all()
+    queryset = qr_models.QRType.objects.all()
     serializer_class = serializers.QRTypeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
 # --- QR Code
 class QRCodeViewSet(viewsets.ModelViewSet):
-    queryset = apps.qr.models.QRCode.objects.all()
+    queryset = qr_models.QRCode.objects.all()
     serializer_class = serializers.QRCodeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 # --- Config
-
