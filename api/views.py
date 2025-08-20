@@ -17,7 +17,23 @@ class CheckObjectView(APIView):
     queryset = None
     model = None
     models_apps = {
-        'equipment': 'equipment'
+        'equipment': equip_models.Equipment,
+        'equipment_type': equip_models.EquipmentType,
+        'equipment_model': equip_models.EquipmentModel,
+        'supplier': equip_models.Supplier,
+        'software': equip_models.Software,
+        'software_version': equip_models.SoftwareVersion,
+        'service': equip_models.Service,
+        'interface_type': equip_models.InterfaceType,
+        'interface': equip_models.Interface,
+        'organization': org_models.Organization,
+        'employee': org_models.Employee,
+        'department': org_models.Department,
+        'resource': res_models.Resource,
+        'qr_type': qr_models.QRType,
+        'qr_code': qr_models.QRCode,
+        'access_profile': acc_models.AccessProfile,
+        'res_type': res_models.ResourceType
     }
 
     def get_model(self):
@@ -25,7 +41,8 @@ class CheckObjectView(APIView):
         if model_name not in self.models_apps.keys():
             return None
         try:
-            model = apps.get_model(self.models_apps[model_name], model_name)
+            # model = apps.get_model(self.models_apps[model_name], model_name)
+            model = self.models_apps[model_name]
             self.model = model
         except LookupError:
             return None
