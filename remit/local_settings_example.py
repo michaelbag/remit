@@ -46,13 +46,8 @@ LANGUAGES = [
     ("en", "English"),
 ]
 
-USE_I18N = True
-USE_TZ = True
 TIME_ZONE = 'UTC'
 # TIME_ZONE = 'Europe/Moscow'
-DATE_FORMAT = "d.m.Y"
-DATETIME_FORMAT = "d.m.Y P"
-SHORT_DATETIME_FORMAT = DATETIME_FORMAT
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

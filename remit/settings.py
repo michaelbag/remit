@@ -124,13 +124,15 @@ AUTH_PASSWORD_VALIDATORS = [
 # LANGUAGE_CODE = 'en-us'
 LANGUAGE_CODE = local_settings.LANGUAGE_CODE
 LANGUAGES = local_settings.LANGUAGES
+
+# == DATE
 TIME_ZONE = local_settings.TIME_ZONE
-USE_I18N = local_settings.USE_I18N
-USE_TZ = local_settings.USE_TZ
-DATE_FORMAT = local_settings.DATE_FORMAT
-DATETIME_FORMAT = local_settings.DATETIME_FORMAT
-SHORT_DATE_FORMAT = local_settings.SHORT_DATE_FORMAT
-SHORT_DATETIME_FORMAT = local_settings.SHORT_DATETIME_FORMAT
+USE_I18N = True
+USE_TZ = True
+DATE_FORMAT = 'd.m.Y'
+DATETIME_FORMAT = 'd.m.Y H:i'
+SHORT_DATE_FORMAT = 'd.m.Y'
+SHORT_DATETIME_FORMAT = 'd.m.Y H:i'
 
 
 # Static files (CSS, JavaScript, Images)
