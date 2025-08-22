@@ -9,6 +9,7 @@ from apps.org import models as org_models
 from apps.res import models as res_models
 from config import models as config_models
 from . import serializers
+from django.db import models
 from django.apps import apps
 
 
@@ -75,7 +76,6 @@ class AccessProfileViewSet(viewsets.ModelViewSet):
 # === Config ExtSystem
 class ExtSystemDetail(generics.RetrieveAPIView):
     queryset = config_models.ExtSystem.objects.filter(enabled=True)
-    # queryset = config_models.ExtSystem.objects.all()
     serializer_class = serializers.ExtSystem
     permission_classes = [permissions.IsAuthenticated]
 

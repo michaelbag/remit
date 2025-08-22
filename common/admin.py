@@ -116,14 +116,23 @@ class CatalogAdmin(admin.ModelAdmin):
         else:
             return obj.name
 
+    @admin.display(ordering='is_folder', description='📁')
+    def folder_icon(self, obj):
+        return "📁" if obj.is_folder else ""
+
 
 class RecursiveCatalogAdmin(CatalogAdmin):
     basic_class = 'RecursiveCatalogAdmin'
     list_display_before = [
+        'folder_icon',
         'get_non_wrapping_name',
         'code',
-        'is_folder',
+        # 'is_folder',
         'parent',
+    ]
+    list_display_links = [
+        'get_non_wrapping_name',
+        'code'
     ]
     readonly_fields = [
         'guid',

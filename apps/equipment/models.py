@@ -83,7 +83,7 @@ class Equipment(RecursiveCatalog):
     equip_code = models.CharField(max_length=50, blank=True, verbose_name=_('Equipment code'))
 
     def __str__(self):
-        return f'{"[] " if self.is_group else ""} {self.name}'
+        return f'{"[] " if self.is_folder else ""} {self.name}'
 
     class Meta:
         verbose_name = _("Equipment")

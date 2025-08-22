@@ -1,8 +1,5 @@
-# import datetime
 import uuid
-
 from django.db import models
-from django.utils.timezone import now
 
 
 class GUIDModel(models.Model):
