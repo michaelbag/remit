@@ -2,6 +2,7 @@ from django.contrib import admin
 import common.models as models
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 
 # class TestCommonAdmin(admin.ModelAdmin):
@@ -42,13 +43,20 @@ class CatalogAdmin(admin.ModelAdmin):
     ]
     # List of fields to append to the end of columns
     list_display_before = [
+        'delete_mark_icon',
         'get_non_wrapping_name',
         'code',
     ]
+    list_display_links = [
+        'get_non_wrapping_name',
+        'code'
+    ]
     list_display_later = [
-        'delete_mark',
-        'modified',
-        'created'
+        # 'delete_mark',
+        # 'modified',
+        # 'created',
+        'created_formated',
+        'modified_formated'
     ]
     basic_fieldsets = [
         (
@@ -120,19 +128,28 @@ class CatalogAdmin(admin.ModelAdmin):
     def folder_icon(self, obj):
         return "📁" if obj.is_folder else ""
 
+    @admin.display(ordering='delete_mark', description='␡')
+    def delete_mark_icon(self, obj):
+        return "❌" if obj.delete_mark else ""
+
+    @admin.display(description=_('Created'), ordering='created')
+    def created_formated(self, obj):
+        return timezone.localtime(obj.created).strftime('%d.%m.%Y %H:%M:%S')
+
+    @admin.display(description=_('Modified'), ordering='modified')
+    def modified_formated(self, obj):
+        return timezone.localtime(obj.modified).strftime('%d.%m.%Y %H:%M:%S')
+
 
 class RecursiveCatalogAdmin(CatalogAdmin):
     basic_class = 'RecursiveCatalogAdmin'
     list_display_before = [
+        'delete_mark_icon',
         'folder_icon',
         'get_non_wrapping_name',
         'code',
         # 'is_folder',
         'parent',
-    ]
-    list_display_links = [
-        'get_non_wrapping_name',
-        'code'
     ]
     readonly_fields = [
         'guid',

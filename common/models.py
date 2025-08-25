@@ -80,7 +80,10 @@ class RecursiveCatalog(Catalog):
 
     @property
     def is_folder_info(self):
-        return _('It\'s a folder') if self.is_folder else _('It\'s not a folder')
+        return _('📁 It\'s a folder') if self.is_folder else _('➖ It\'s not a folder')
+
+    def __str__(self):
+        return f'{"📁 " if self.is_folder else ""} {self.name}'
 
     class Meta:
         abstract = True

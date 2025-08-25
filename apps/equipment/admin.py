@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.forms import forms
 from . import models as eq_models
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
@@ -73,7 +72,7 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
         'model',
         'has_interfaces',
         'employee',
-        'archive',
+        'archive_icon',
     ]
     entry_fieldsets = [
         (
@@ -101,7 +100,7 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
             _('Activity'),
             {
                 "classes": ["collapse"],
-                "fields": ["start_date", "end_date", "delete_mark", "archive"]
+                "fields": [("start_date", "end_date"), "archive"]
             }
         ),
     ]
@@ -122,6 +121,10 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
             self.fieldsets = []
         fieldsets = super().get_fieldsets(request, obj)
         return fieldsets
+
+    @admin.display(ordering='archive', description='🗃️')
+    def archive_icon(self, obj):
+        return '🗃️' if obj.archive else ''
 
     class Media:
         js = (
