@@ -12,8 +12,8 @@ class Supplier(Catalog):
     name = models.CharField(max_length=150, blank=True)
     archive = models.BooleanField(default=False)
 
-    def __str__(self):
-        return '%s - %s' % (self.code, self.name)
+    # def __str__(self):
+    #     return '%s - %s' % (self.code, self.name)
 
     class Meta:
         verbose_name = 'Supplier'
@@ -102,7 +102,7 @@ class SoftwareVersion(Catalog):
     release_date = models.DateField(default=date.today, null=True)
 
     class Meta:
-        verbose_name = 'Software Version'
+        verbose_name = _('Software Version')
 
 
 class Service(RecursiveCatalogByElements):

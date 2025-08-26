@@ -1,8 +1,9 @@
 from django.contrib import admin
-import common.models as models
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
+
+import common.models as models
 
 
 # class TestCommonAdmin(admin.ModelAdmin):
@@ -29,7 +30,7 @@ class CommonCounterAdmin(admin.ModelAdmin):
         'modified',
         'created'
     ]
-    
+
 
 class CatalogAdmin(admin.ModelAdmin):
     # TODO: In child classes need to use this property for name or get_non_wrapping_name in list_display
@@ -69,19 +70,19 @@ class CatalogAdmin(admin.ModelAdmin):
         )
     ]
 
-    folder_fieldsets = [
-        (_('Folder'),
-         {
-             'fields': [('parent', 'is_folder_info')]
-         })
-    ]
+    # folder_fieldsets = [
+    #     (_('Folder'),
+    #      {
+    #          'fields': [('parent', 'is_folder_info')]
+    #      })
+    # ]
     parent_fieldsets = [
         (_('Parent'),
          {
              'fields': [('parent',)]
          })
     ]
-    new_obj_fieldsets = [(_('New object'), {'fields': ['is_folder']})]
+    # new_obj_fieldsets = [(_('New object'), {'fields': ['is_folder']})]
     system_fieldsets = [
         (_('System'), {
             'classes': ['collapse'],
@@ -100,14 +101,8 @@ class CatalogAdmin(admin.ModelAdmin):
 
     def get_fieldsets(self, request, obj=None):
         if not (self.fieldsets or self.use_basic_fieldsets):
-            return super().get_fieldsets(request, obj)
+            return admin.ModelAdmin.get_fieldsets(self, request, obj)
         fieldsets = [] + self.basic_fieldsets
-        if isinstance(self, RecursiveCatalogAdmin):
-            fieldsets += self.folder_fieldsets
-        if isinstance(self, RecursiveCatalogByElementsAdmin):
-            fieldsets += self.parent_fieldsets
-        if not obj:
-            fieldsets += self.new_obj_fieldsets
         if self.fieldsets:
             fieldsets += self.fieldsets
         if not self.hidden_system_fieldsets:
@@ -123,10 +118,6 @@ class CatalogAdmin(admin.ModelAdmin):
             )
         else:
             return obj.name
-
-    @admin.display(ordering='is_folder', description='📁')
-    def folder_icon(self, obj):
-        return "📁" if obj.is_folder else ""
 
     @admin.display(ordering='delete_mark', description='␡')
     def delete_mark_icon(self, obj):
@@ -157,30 +148,44 @@ class RecursiveCatalogAdmin(CatalogAdmin):
         'created',
         'is_folder_info'
     ]
+    folder_fieldsets = [
+        (_('Folder'),
+         {
+             'fields': [('parent', 'is_folder_info')]
+         })
+    ]
+    new_obj_fieldsets = [(_('New object'), {'fields': ['is_folder']})]
 
-    # def get_fieldsets(self, request, obj=None):
-    #     fieldsets = super().get_fieldsets(request, obj) + [
-    #         (_('Folder'),
-    #          {
-    #              'fields': [('parent', 'is_folder')]
-    #          })
-    #     ]
-    #     return fieldsets
+    @admin.display(ordering='is_folder', description='📁')
+    def folder_icon(self, obj):
+        return "📁" if obj.is_folder else ""
 
-    # def get_readonly_fields(self, request, obj=None):
-    #     readonly_fields = super().get_readonly_fields(request, obj)
-    #     if obj is not None:
-    #         readonly_fields += ['is_folder']
-    #     else:
-    #         if 'is_folder' in readonly_fields:
-    #             readonly_fields.remove('is_folder')
-    #     return readonly_fields
+    def get_fieldsets(self, request, obj=None):
+        # return super().get_fieldsets(request=request, obj=obj)
+        if not (self.fieldsets or self.use_basic_fieldsets):
+            return admin.ModelAdmin.get_fieldsets(self, request, obj)
+        fieldsets = [] + self.basic_fieldsets
+        fieldsets += self.folder_fieldsets
+        if not obj:
+            fieldsets += self.new_obj_fieldsets
+        if self.fieldsets:
+            fieldsets += self.fieldsets
+        if not self.hidden_system_fieldsets:
+            fieldsets += self.system_fieldsets
+        return fieldsets
 
 
 class RecursiveCatalogByElementsAdmin(CatalogAdmin):
     list_display = [
-        'code',
-        'name',
         'parent',
-        'delete_mark'
     ]
+    fieldsets = [
+        (None, {
+            'fields': ['parent']
+        })
+    ]
+
+    def get_fieldsets(self, request, obj=None):
+        if not (self.fieldsets or self.use_basic_fieldsets):
+            return admin.ModelAdmin.get_fieldsets(self, request, obj)
+        return super().get_fieldsets(request, obj)

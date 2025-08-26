@@ -1,12 +1,14 @@
 from django.contrib import admin
-from . import models
-from . import forms
 from django.urls import reverse
-from common.admin import CatalogAdmin
 from django.utils.translation import gettext_lazy as _
 
+from common.admin import CatalogAdmin
+from common.admin import RecursiveCatalogByElementsAdmin
+from . import forms as org_forms
+from . import models as org_models
 
-@admin.register(models.Organization)
+
+@admin.register(org_models.Organization)
 class OrganizationAdmin(CatalogAdmin):
     list_display = ['archive']
     fieldsets = [
@@ -22,23 +24,26 @@ class OrganizationAdmin(CatalogAdmin):
                 'classes': ['collapse'],
                 'fields': ['modified', 'created', 'delete_mark', 'guid']
             }
-         )
+        )
     ]
 
 
-@admin.register(models.Department)
-class DepartmentAdmin(CatalogAdmin):
-    form = forms.DepartmentForm
-    list_display = ['organization', 'parent', 'archive']
+@admin.register(org_models.Department)
+class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
+    form = org_forms.DepartmentForm
+    list_display = ['organization', 'parent', 'archive_icon']
     list_filter = ['organization', 'archive']
-    fields = [
-        'code',
-        'organization',
-        'parent',
-        'name',
-        'archive',
-        'guid'
+    fieldsets = [
+        (_('Main'),
+         {'fields': [('organization',
+                      'parent'),
+                     'archive']})
+
     ]
+
+    @admin.display(ordering='archive', description='🗃️')
+    def archive_icon(self, obj):
+        return '🗃️' if obj.archive else ''
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         extra_context = extra_context or {}
@@ -53,9 +58,9 @@ class DepartmentAdmin(CatalogAdmin):
         )
 
 
-@admin.register(models.Employee)
+@admin.register(org_models.Employee)
 class EmployeesAdmin(CatalogAdmin):
-    form = forms.EmployeeForm
+    form = org_forms.EmployeeForm
     list_display = [
         'archive',
         'organization',

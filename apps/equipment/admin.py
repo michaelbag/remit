@@ -1,11 +1,13 @@
 from django.contrib import admin
-from . import models as eq_models
-from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
+from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
+
 from common.admin import CatalogAdmin, RecursiveCatalogAdmin
+from . import models as eq_models
 from .forms import EquipmentForm
 from .forms import ServiceForm
+from . import forms as eq_forms
 
 admin.site.disable_action("delete_selected")
 
@@ -74,7 +76,7 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
         'employee',
         'archive_icon',
     ]
-    entry_fieldsets = [
+    entity_fieldsets = [
         (
             _('Equipment'),
             {
@@ -116,7 +118,7 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
 
     def get_fieldsets(self, request, obj=None):
         if obj and not obj.is_folder:
-            self.fieldsets = self.entry_fieldsets.copy()
+            self.fieldsets = self.entity_fieldsets.copy()
         else:
             self.fieldsets = []
         fieldsets = super().get_fieldsets(request, obj)
@@ -125,15 +127,6 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
     @admin.display(ordering='archive', description='🗃️')
     def archive_icon(self, obj):
         return '🗃️' if obj.archive else ''
-
-    class Media:
-        js = (
-            # Init django.jQuery
-            'admin/js/jquery.init.js',
-            'admin/js/inlines.js',
-            # Equipment form script $ = django.jQuery
-            'equipment_form.js',
-        )
 
 
 @admin.register(eq_models.InterfaceType)
@@ -150,7 +143,7 @@ class InterfaceAdmin(CatalogAdmin):
         'ipv4_address',
         'connected_to',
         'interface_type',
-        'archive',
+        'archive_icon',
     ]
     fieldsets = [
         (_('Main'),
@@ -163,6 +156,10 @@ class InterfaceAdmin(CatalogAdmin):
          })
     ]
     search_fields = ['name', 'mac', 'equipment__equip_code']
+
+    @admin.display(description='🗃️', ordering='archive')
+    def archive_icon(self, obj):
+        return '🗃️' if obj.archive else ''
 
     def get_search_results(self, request, queryset, search_term):
         queryset, may_have_duplicates = super().get_search_results(
@@ -181,9 +178,23 @@ class InterfaceAdmin(CatalogAdmin):
 
 @admin.register(eq_models.EquipmentModel)
 class EquipmentModelAdmin(CatalogAdmin):
+    form = eq_forms.EquipmentModelForm
     list_display = [
         'equipment_type',
         'supplier',
+    ]
+    fieldsets = [
+        (_('Main'),
+         {
+             'fields': [
+                 'equipment_type',
+                 'model_number',
+                 'supplier',
+                 'title',
+                 'info_page_url',
+                 'comment'
+             ]
+         })
     ]
 
 
@@ -228,7 +239,7 @@ class ServiceAdmin(CatalogAdmin):
          }),
         (_('System fields'),
          {
-            'fields': ['created', 'modified', 'delete_mark']
+             'fields': ['created', 'modified', 'delete_mark']
          }),
     ]
 
@@ -245,7 +256,7 @@ class ServiceAdmin(CatalogAdmin):
 @admin.register(eq_models.Software)
 class SoftwareAdmin(CatalogAdmin):
     list_display = [
-        'archive',
+        'archive_icon',
         'comment'
     ]
     search_fields = [
@@ -254,6 +265,10 @@ class SoftwareAdmin(CatalogAdmin):
     ]
     fieldsets = [(None, {'fields': ['comment', 'archive']})]
     actions = [make_archived, make_unarchived]
+
+    @admin.display(ordering='archive', description='🗃️')
+    def archive_icon(self, obj):
+        return '🗃️' if obj.archive else ''
 
 
 # admin.site.register(models.SoftwareVersion)

@@ -6,6 +6,21 @@ from . import models
 from django.utils.translation import gettext_lazy as _
 
 
+class EquipmentModelForm(forms.ModelForm):
+    class Meta:
+        model = models.EquipmentModel
+        fields = '__all__'
+        widgets = {
+            'equipment_type': autocomplete.ModelSelect2(url='eq:type_select'),
+        }
+
+    class Media:
+        js = (
+            'admin/js/jquery.init.js',
+            'admin/js/inlines.js',
+        )
+
+
 class EquipmentForm(forms.ModelForm):
     def clean_test(self):
         equipment_type = self.cleaned_data.get('type', None)
@@ -24,6 +39,15 @@ class EquipmentForm(forms.ModelForm):
             'type': autocomplete.ModelSelect2(url='eq:type_select'),
             'employee': autocomplete.ModelSelect2(url='org:employee_select')
         }
+
+    class Media:
+        js = (
+            # Init django.jQuery
+            'admin/js/jquery.init.js',
+            'admin/js/inlines.js',
+            # Equipment form script $ = django.jQuery
+            'equipment_form.js',
+        )
 
 
 class ServiceForm(forms.ModelForm):
