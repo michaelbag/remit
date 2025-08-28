@@ -3,6 +3,8 @@ from django.forms import ModelForm, ModelChoiceField, Select, SelectMultiple, Mo
 from django.utils.translation import gettext_lazy as _
 
 import apps.acc.models
+from . import models as acc_models
+from apps.res import models as res_models
 from apps.res.models import ResourceGroup
 
 
@@ -39,7 +41,7 @@ class ProfilesInLineAdmin(admin.StackedInline):
     model = apps.acc.models.AccessProfile
 
 
-@admin.register(apps.acc.models.Account)
+@admin.register(acc_models.Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = [
         'guid',
@@ -108,8 +110,7 @@ class AccessProfileForm(ModelForm):
         }
 
 
-
-@admin.register(apps.acc.models.AccessProfile)
+@admin.register(acc_models.AccessProfile)
 class AccessProfileAdmin(admin.ModelAdmin):
     list_display = [
         'name',
