@@ -207,6 +207,9 @@ celerybeat-schedule
 venv/
 ENV/
 
+.venv2
+venv2/
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -219,4 +222,5 @@ ENV/
 
 # End of https://www.gitignore.io/api/macos,linux,django,python,pycharm
 .vscode/settings.json
-.vscode
+.vscode.venv
+
