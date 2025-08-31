@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.org import models as org_models
 from common import models as com_models
-from smart_selects.db_fields import ChainedForeignKey
+# from smart_selects.db_fields import ChainedForeignKey
 
 
 # class ResourceCategory(com_models.Category):
@@ -58,21 +58,21 @@ class Resource(com_models.Catalog):
                                       on_delete=models.SET_NULL,
                                       limit_choices_to={'accounts_provider': True})
     accounts_provider = models.BooleanField(default=False)
-    resource_type = ChainedForeignKey(ResourceType,
-                                      null=True,
-                                      blank=True,
-                                      on_delete=models.SET_NULL,
-                                      related_name='resources',
-                                      chained_field='resource_category',
-                                      chained_model_field='category',
-                                      show_all=False,
-                                      auto_choose=True,
-                                      sort=True)
-    # models.ForeignKey(ResourceType,
-    #                               null=True,
-    #                               blank=True,
-    #                               on_delete=models.SET_NULL)
-    #
+    # resource_type = ChainedForeignKey(ResourceType,
+    #                                   null=True,
+    #                                   blank=True,
+    #                                   on_delete=models.SET_NULL,
+    #                                   related_name='resources',
+    #                                   chained_field='resource_category',
+    #                                   chained_model_field='category',
+    #                                   show_all=False,
+    #                                   auto_choose=True,
+    #                                   sort=True)
+    resource_type =  models.ForeignKey(ResourceType,
+                                       null=True, 
+                                       blank=True,
+                                       on_delete=models.SET_NULL)
+    
     # resource_category = models.ForeignKey(ResourceCategory,
     #                                       null=True,
     #                                       blank=True,

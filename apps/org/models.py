@@ -1,5 +1,5 @@
 from django.db import models
-from smart_selects.db_fields import ChainedForeignKey
+# from smart_selects.db_fields import ChainedForeignKey
 
 from common import models as common_models
 from datetime import date
