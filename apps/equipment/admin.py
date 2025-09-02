@@ -148,7 +148,7 @@ class InterfaceAdmin(CatalogAdmin):
     fieldsets = [
         (_('Main'),
          {
-             'fields': ['equipment',
+             'fields': ['equipment', 'mac',
                         ('interface_type', 'virtual'),
                         ('connected_to', 'ipv4_address'),
                         'archive'
