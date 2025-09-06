@@ -1,0 +1,71 @@
+{% load i18n static admin_urls admin_extras %}
+<div id="apps-sidebar">
+    <div class="app-section">
+        <div class="app-title" data-app="dashboard">
+            {% trans 'Applications' %}
+        </div>
+        <div class="app-content" id="app-dashboard">
+            {% get_admin_app_list as app_list %}
+            {% for app in app_list %}
+            <div class="app-subsection">
+                <strong>{{ app.name }}</strong>
+                <ul>
+                    {% for model in app.models %}
+                    <li>
+                        <a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} style="font-weight: bold; color: #417690;"{% endif %}>
+                            {{ model.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if not forloop.last %}<hr>{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Функция для работы collapse
+    function initAppCollapse() {
+        const appHeaders = document.querySelectorAll('.app-title');
+        
+        appHeaders.forEach(header => {
+            const appLabel = header.getAttribute('data-app');
+            const content = document.getElementById(`app-${appLabel}`);
+            
+            if (content) {
+                // Восстановить состояние из localStorage
+                const isExpanded = localStorage.getItem(`app-${appLabel}-expanded`) === 'true';
+                
+                if (isExpanded) {
+                    header.classList.add('expanded');
+                    content.style.display = 'block';
+                }
+                
+                header.addEventListener('click', function() {
+                    const isNowExpanded = !header.classList.contains('expanded');
+                    
+                    header.classList.toggle('expanded');
+                    content.style.display = isNowExpanded ? 'block' : 'none';
+                    
+                    // Сохранить состояние в localStorage
+                    localStorage.setItem(`app-${appLabel}-expanded`, isNowExpanded);
+                });
+            }
+        });
+    }
+    
+    initAppCollapse();
+    
+    // Автоматически открыть меню, если мы на странице одного из приложений
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/admin/') && !currentPath.endsWith('/admin/')) {
+        const expanded = localStorage.getItem('app-dashboard-expanded');
+        if (expanded !== 'true') {
+            document.querySelector('.app-title[data-app="dashboard"]').click();
+        }
+    }
+});
+</script>

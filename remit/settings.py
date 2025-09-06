@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'dal',
     'dal_select2',
-    # 'smart_selects',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -73,15 +72,16 @@ ROOT_URLCONF = 'remit.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "remit.context_processors.admin_app_list",
             ],
         },
     },
@@ -148,11 +148,8 @@ MEDIA_URL = local_settings.MEDIA_URL
 # STATIC_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT = local_settings.MEDIA_ROOT
 
-# STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'static/'),)
-# 
 # STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-#     "/var/www/static/",
+#     os.path.join(BASE_DIR, "static"),
 # ]
 
 # Default primary key field type

@@ -1,0 +1,69 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* Стили для collapse меню */
+.app-section {
+    margin-bottom: 10px;
+}
+.app-title {
+    background: #417690;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 5px 0;
+    font-weight: bold;
+}
+.app-title:hover {
+    background: #205067;
+}
+.app-content {
+    display: none;
+    padding: 10px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.app-title::after {
+    content: " ▼";
+    float: right;
+}
+.app-title.expanded::after {
+    content: " ▲";
+}
+
+/* Боковая панель с приложениями */
+#apps-sidebar {
+    float: left;
+    width: 250px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+#main-content {
+    margin-left: 270px;
+}
+
+@media (max-width: 767px) {
+    #apps-sidebar {
+        float: none;
+        width: 100%;
+        margin-right: 0;
+    }
+    #main-content {
+        margin-left: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}
+{% include "admin/apps_menu.html" %}
+{% endblock %}
