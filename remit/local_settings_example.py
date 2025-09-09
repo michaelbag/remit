@@ -59,7 +59,7 @@ MEDIA_URL = 'images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
 # STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'static/'),)
-# 
+#
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
 #     "/var/www/static/",
@@ -69,3 +69,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 # System prefix for codes created in this system in catalogs
 SYSTEM_PREFIX = 'TD'
 
+# Material theme configuration
+MATERIAL_ADMIN_SITE = {
+    "HEADER": "My Admin Site",
+    "TITLE": "Material Admin",
+}
+
+# Theme configuration
+VIEWFLOW_FRONTEND_THEME = "material"

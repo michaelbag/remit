@@ -34,26 +34,28 @@ CSRF_TRUSTED_ORIGINS = local_settings.CSRF_TRUSTED_ORIGINS
 # Application definition
 
 INSTALLED_APPS = [
-    'rest_framework.authtoken',
-    'rest_framework',
-    'dal',
-    'dal_select2',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'jquery',
-    'api.apps.ApiConfig',
-    'common',
-    'hello',
-    'config',
-    'apps.equipment',
-    'apps.org',
-    'apps.res',
-    'apps.qr',
-    'apps.acc',
+    # "material",
+    # "material.admin",
+    "rest_framework.authtoken",
+    "rest_framework",
+    "dal",
+    "dal_select2",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "jquery",
+    "api.apps.ApiConfig",
+    "common",
+    "hello",
+    "config",
+    "apps.equipment",
+    "apps.org",
+    "apps.res",
+    "apps.qr",
+    "apps.acc",
     # 'api',
 ]
 
@@ -179,3 +181,5 @@ USE_DJANGO_JQUERY = True
 # System code prefix
 # Test Django - TD
 SYSTEM_PREFIX = local_settings.SYSTEM_PREFIX
+
+# MATERIAL_ADMIN_SITE = "material.admin.sites.AdminSite"

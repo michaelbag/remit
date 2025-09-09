@@ -274,4 +274,15 @@ class SoftwareAdmin(CatalogAdmin):
 # admin.site.register(models.SoftwareVersion)
 @admin.register(eq_models.SoftwareVersion)
 class SoftwareVersionAdmin(CatalogAdmin):
+    fieldsets = [(
+        None,
+        {
+            'fields': ['software', 'archive']
+        }
+    )]
+    list_display = ['software', 'archive_icon']
     list_filter = ['software']
+    
+    @admin.display(ordering='archive', description='🗃️')
+    def archive_icon(self, obj):
+        return '🗃️' if obj.archive else ''

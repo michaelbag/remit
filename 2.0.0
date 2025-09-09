@@ -1,0 +1,6 @@
+Requirement already satisfied: django-viewflow in ./.venv/lib/python3.9/site-packages (2.2.9)
+Requirement already satisfied: Django>=4.2 in ./.venv/lib/python3.9/site-packages (from django-viewflow) (4.2.23)
+Requirement already satisfied: django-filter>=2.3.0 in ./.venv/lib/python3.9/site-packages (from django-viewflow) (25.1)
+Requirement already satisfied: asgiref<4,>=3.6.0 in ./.venv/lib/python3.9/site-packages (from Django>=4.2->django-viewflow) (3.9.1)
+Requirement already satisfied: sqlparse>=0.3.1 in ./.venv/lib/python3.9/site-packages (from Django>=4.2->django-viewflow) (0.5.3)
+Requirement already satisfied: typing_extensions>=4 in ./.venv/lib/python3.9/site-packages (from asgiref<4,>=3.6.0->Django>=4.2->django-viewflow) (4.15.0)

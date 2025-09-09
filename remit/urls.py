@@ -27,22 +27,22 @@ from django.urls import include
 # from . import settings
 # from django.views.static import serve
 
-
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('q/', qr_index),
+    path("admin/", admin.site.urls),
+    path("q/", qr_index),
     # path('hello/', hello_index),
     # path('config/', config_index),
     # path('e/', include('apps.equipment.urls')),
-    path('api/', include('api.urls')),
+    path("api/", include("api.urls")),
     # path('static/', serve, {'document_root': settings.STATIC_ROOT}),
     # path('chaining/', include('smart_selects.urls')),
-    url(r'^eq/', include('apps.equipment.urls')),
-    url(r'^org/', include('apps.org.urls'))
+    url(r"^eq/", include("apps.equipment.urls")),
+    url(r"^org/", include("apps.org.urls")),
+    # path("", include(vf_urls)),
 ]
 
-#TODO: KMA. Add URL pattern according instruction from https://django-smart-selects.readthedocs.io/en/latest/installation.html
-#urlpatterns += (url(r'^chaining/', include('smart_selects.urls')),)
+# TODO: KMA. Add URL pattern according instruction from https://django-smart-selects.readthedocs.io/en/latest/installation.html
+# urlpatterns += (url(r'^chaining/', include('smart_selects.urls')),)
 # if settings.DEBUG:
 #     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 #     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
