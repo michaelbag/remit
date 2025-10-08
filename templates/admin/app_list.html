@@ -1,0 +1,227 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+.app-list {
+    margin: 0;
+    padding: 0;
+}
+
+.app-item {
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+.app-header {
+    padding: 10px 15px;
+    cursor: pointer;
+    background: #e9e9e9;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.app-header:hover {
+    background: #ddd;
+}
+
+.app-header.active {
+    background: #007cba;
+    color: white;
+}
+
+.app-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin: 0;
+}
+
+.app-toggle {
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.app-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.app-content {
+    padding: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    max-height: 1000px;
+}
+
+.app-content.collapsed {
+    max-height: 0;
+}
+
+.model-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.model-item {
+    border-bottom: 1px solid #eee;
+}
+
+.model-item:last-child {
+    border-bottom: none;
+}
+
+.model-link {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    transition: background-color 0.3s;
+    position: relative;
+}
+
+.model-link:hover {
+    background: #f0f0f0;
+    text-decoration: none;
+}
+
+.model-link.current {
+    background: #e7f3ff;
+    color: #007cba;
+    font-weight: bold;
+}
+
+.model-link.current::before {
+    content: "→";
+    position: absolute;
+    left: 5px;
+    font-weight: bold;
+    color: #007cba;
+}
+
+.model-name {
+    margin-left: 15px;
+}
+
+.model-add-link {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 12px;
+    color: #666;
+    text-decoration: none;
+}
+
+.model-add-link:hover {
+    color: #007cba;
+    text-decoration: none;
+}
+
+/* Анимация для плавного сворачивания */
+@keyframes slideDown {
+    from { max-height: 0; }
+    to { max-height: 1000px; }
+}
+
+@keyframes slideUp {
+    from { max-height: 1000px; }
+    to { max-height: 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    {% if app_list %}
+        <ul class="app-list">
+            {% for app in app_list %}
+                <li class="app-item">
+                    <div class="app-header" onclick="toggleApp('app-{{ forloop.counter }}')">
+                        <h3 class="app-title">{{ app.name }}</h3>
+                        <span class="app-toggle" id="toggle-{{ forloop.counter }}">▼</span>
+                    </div>
+                    <div class="app-content" id="app-{{ forloop.counter }}">
+                        <ul class="model-list">
+                            {% for model in app.models %}
+                                <li class="model-item">
+                                    <a href="{{ model.admin_url }}" class="model-link {% if model.admin_url == request.resolver_match.url_name or model.admin_url in request.path %}current{% endif %}">
+                                        <span class="model-name">{{ model.name }}</span>
+                                    </a>
+                                    {% if model.add_url %}
+                                        <a href="{{ model.add_url }}" class="model-add-link">+ Add</a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>{% trans "You don't have permission to edit anything." %}</p>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматически разворачиваем приложение с активной моделью
+    const currentModel = document.querySelector('.model-link.current');
+    if (currentModel) {
+        const activeApp = currentModel.closest('.app-item');
+        const appContent = activeApp.querySelector('.app-content');
+        const appHeader = activeApp.querySelector('.app-header');
+        const toggle = activeApp.querySelector('.app-toggle');
+        
+        // Разворачиваем приложение
+        appContent.classList.remove('collapsed');
+        appHeader.classList.add('active');
+        toggle.classList.remove('collapsed');
+    }
+});
+
+function toggleApp(appId) {
+    const appContent = document.getElementById(appId);
+    const appHeader = appContent.previousElementSibling;
+    const toggle = appHeader.querySelector('.app-toggle');
+    
+    // Переключаем состояние
+    const isCollapsed = appContent.classList.contains('collapsed');
+    
+    if (isCollapsed) {
+        // Разворачиваем
+        appContent.classList.remove('collapsed');
+        appHeader.classList.add('active');
+        toggle.classList.remove('collapsed');
+    } else {
+        // Сворачиваем
+        appContent.classList.add('collapsed');
+        appHeader.classList.remove('active');
+        toggle.classList.add('collapsed');
+    }
+}
+
+// Инициализация: сворачиваем все приложения кроме активного
+document.addEventListener('DOMContentLoaded', function() {
+    const apps = document.querySelectorAll('.app-item');
+    const currentModel = document.querySelector('.model-link.current');
+    
+    apps.forEach(function(app, index) {
+        const appContent = app.querySelector('.app-content');
+        const appHeader = app.querySelector('.app-header');
+        const toggle = app.querySelector('.app-toggle');
+        
+        // Если это не приложение с активной моделью, сворачиваем его
+        if (!app.contains(currentModel)) {
+            appContent.classList.add('collapsed');
+            toggle.classList.add('collapsed');
+        } else {
+            appHeader.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}
