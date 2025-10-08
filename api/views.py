@@ -110,6 +110,7 @@ class ExtSystemDetail(generics.RetrieveAPIView):
 # === Equipment Application
 # -- Equipment
 class EquipmentViewSet(viewsets.ModelViewSet):
+    queryset = equip_models.Equipment.objects.all()  # Required for DRF router
     serializer_class = serializers.EquipmentSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
