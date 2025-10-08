@@ -36,7 +36,16 @@ class ExtSystem(serializers.ModelSerializer):
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
+    # Read-only fields for related objects to avoid additional queries
+    type_name = serializers.CharField(source='type.name', read_only=True)
+    model_name = serializers.CharField(source='model.name', read_only=True)
+    employee_name = serializers.CharField(source='employee.name', read_only=True)
+    parent_name = serializers.CharField(source='parent.name', read_only=True)
+    
+    # Optimized related fields
     interfaces = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    interfaces_count = serializers.SerializerMethodField()
+    services_count = serializers.SerializerMethodField()
 
     class Meta:
         model = equip_models.Equipment
@@ -45,11 +54,12 @@ class EquipmentSerializer(serializers.ModelSerializer):
             'code',
             'name',
             'type',
+            'type_name',      # Read-only field
             'title',
             'delete_mark',
-            # 'is_group',
             'is_folder',
             'parent',
+            'parent_name',    # Read-only field
             'image',
             'serial_number',
             'virtual',
@@ -61,11 +71,24 @@ class EquipmentSerializer(serializers.ModelSerializer):
             'hostname',
             'description',
             'model',
+            'model_name',     # Read-only field
             'employee',
-            # Links
-            'interfaces',
+            'employee_name',  # Read-only field
             'equip_code',
+            # Related objects
+            'interfaces',
+            'interfaces_count',  # Computed field
+            'services_count',    # Computed field
         ]
+        read_only_fields = ['guid', 'code', 'created', 'modified']
+
+    def get_interfaces_count(self, obj):
+        """Get count of interfaces without additional query (prefetched)"""
+        return obj.interfaces.count() if hasattr(obj, 'interfaces') else 0
+    
+    def get_services_count(self, obj):
+        """Get count of services without additional query (prefetched)"""
+        return obj.services.count() if hasattr(obj, 'services') else 0
 
 
 class EquipmentTypeSerializer(serializers.ModelSerializer):

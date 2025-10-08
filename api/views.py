@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import viewsets, permissions, generics, views
+from rest_framework import viewsets, permissions, generics, views, filters
+from django_filters.rest_framework import DjangoFilterBackend
 import apps.qr.models as qr_models
 from apps.acc import models as acc_models
 # from django.shortcuts import render
@@ -109,9 +110,38 @@ class ExtSystemDetail(generics.RetrieveAPIView):
 # === Equipment Application
 # -- Equipment
 class EquipmentViewSet(viewsets.ModelViewSet):
-    queryset = equip_models.Equipment.objects.all()
     serializer_class = serializers.EquipmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['type', 'model', 'employee', 'archive', 'virtual', 'is_folder']
+    search_fields = ['name', 'title', 'serial_number', 'hostname', 'equip_code']
+    ordering_fields = ['name', 'title', 'created', 'modified', 'start_date']
+    ordering = ['title', 'name', 'code']
+    
+    def get_queryset(self):
+        """
+        Optimized queryset with select_related and prefetch_related
+        to avoid N+1 queries
+        """
+        queryset = equip_models.Equipment.objects.select_related(
+            'type',           # ForeignKey to EquipmentType
+            'model',          # ForeignKey to EquipmentModel
+            'employee',       # ForeignKey to Employee
+            'parent',         # Self-referential ForeignKey
+        ).prefetch_related(
+            'interfaces',     # Related Interface objects
+            'services',       # Related Service objects
+            'elements',       # Related child Equipment objects
+        ).filter(
+            delete_mark=False  # Filter out deleted items by default
+        )
+        
+        # Additional filtering based on query parameters
+        archive = self.request.query_params.get('archive', None)
+        if archive is not None:
+            queryset = queryset.filter(archive=archive.lower() == 'true')
+            
+        return queryset
 
 
 # -- Equipment Type

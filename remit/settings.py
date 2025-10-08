@@ -70,6 +70,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Additional security middleware for production
+if not local_settings.DEBUG:
+    MIDDLEWARE.insert(1, 'django.middleware.security.SecurityMiddleware')
+
 ROOT_URLCONF = 'remit.urls'
 
 TEMPLATES = [
