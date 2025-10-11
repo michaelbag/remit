@@ -75,7 +75,7 @@ ROOT_URLCONF = 'remit.urls'
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -149,9 +149,9 @@ MEDIA_URL = local_settings.MEDIA_URL
 # STATIC_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT = local_settings.MEDIA_ROOT
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "static"),
+# ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

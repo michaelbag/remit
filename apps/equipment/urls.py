@@ -39,6 +39,17 @@ class SoftwareVersionListView(LoginRequiredMixin, autocomplete.Select2QuerySetVi
         return qs
 
 
+class EquipmentFolderListView(LoginRequiredMixin, autocomplete.Select2QuerySetView):
+    raise_exception = True
+
+    def get_queryset(self):
+        qs = super(EquipmentFolderListView, self).get_queryset()
+        # Filter only folders (is_folder=True)
+        qs = qs.filter(is_folder=True)
+        qs = qs.order_by('name')
+        return qs
+
+
 urlpatterns = [
     # url('', views.home, name='elist'),
     url(
@@ -60,5 +71,10 @@ urlpatterns = [
         'sv_select/',
         SoftwareVersionListView.as_view(model=models.SoftwareVersion),
         name='software_version_select'
+    ),
+    url(
+        'equipment_folder_select/',
+        EquipmentFolderListView.as_view(model=models.Equipment),
+        name='equipment_folder_select'
     )
 ]

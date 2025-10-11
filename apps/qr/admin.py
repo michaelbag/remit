@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
 import apps.qr.models
+import apps.qr.forms
 import common.admin
 
 
@@ -37,6 +38,7 @@ class QRCodeAdminForm(forms.ModelForm):
 
 @admin.register(apps.qr.models.QRCode)
 class QRCodeAdmin(common.admin.CatalogAdmin):
+    form = apps.qr.forms.QRCodeForm
     list_display = [
         'guid_public_code',
         'short_public_code',
@@ -68,6 +70,8 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
     )
     # TODO: Problem. If readonly_fields not exists in class parent init get error.
     readonly_fields = [
-        'created_at'
+        'guid',
+        'created_at',
+        'modified',
+        'created'
     ]
-    # form = QRCodeAdminForm

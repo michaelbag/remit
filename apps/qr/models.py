@@ -39,16 +39,22 @@ class QRCode(common.models.Catalog):
         return base64.encodebytes(self.guid_public_code.bytes).decode("utf-8").replace('=', '').strip()
 
     @property
-    def root_url_from_type(self):
+    def get_full_url(self):
         if self.qr_type:
-            return str(self.qr_type.url_root).replace('{{ShortCode}}', urllib.parse.quote_plus(self.short_public_code))
+            return str(self.qr_type.url_root).replace(
+                "{{ShortCode}}", urllib.parse.quote_plus(self.short_public_code)
+            )
         return None
 
     def save(self, *args, **kwargs):
+        # Generate short_public_code if not exists
         if self.guid_public_code and not self.short_public_code:
             self.short_public_code = self.short_code
-        if not self.url:
-            self.url = self.root_url_from_type
+
+        # Generate URL from qr_type if not exists
+        if not self.url and self.qr_type and self.short_public_code:
+            self.url = self.get_full_url
+
         super().save(*args, **kwargs)
 
     # def __str__(self):

@@ -37,7 +37,8 @@ class EquipmentForm(forms.ModelForm):
             'model': autocomplete.ModelSelect2(url='eq:models',
                                                forward=('type',)),
             'type': autocomplete.ModelSelect2(url='eq:type_select'),
-            'employee': autocomplete.ModelSelect2(url='org:employee_select')
+            'employee': autocomplete.ModelSelect2(url='org:employee_select'),
+            'parent': autocomplete.ModelSelect2(url='eq:equipment_folder_select')
         }
 
     class Media:
