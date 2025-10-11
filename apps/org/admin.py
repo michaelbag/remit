@@ -56,37 +56,58 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Department form JS loaded via extra_context');
             
-            // Функция для поиска полей автокомплита
-            function findAutocompleteFields() {
-                // Ищем поля по различным селекторам
-                const organizationField = document.querySelector('#id_organization') || 
-                                        document.querySelector('select[name="organization"]') ||
-                                        document.querySelector('input[name="organization"]') ||
-                                        document.querySelector('.select2-selection__rendered[title*="organization"]') ||
-                                        document.querySelector('[data-field-name="organization"]');
-                                        
-                const parentField = document.querySelector('#id_parent') || 
-                                  document.querySelector('select[name="parent"]') ||
-                                  document.querySelector('input[name="parent"]') ||
-                                  document.querySelector('.select2-selection__rendered[title*="parent"]') ||
-                                  document.querySelector('[data-field-name="parent"]');
-                
-                return { organizationField, parentField };
-            }
-            
             // Ждем загрузки всех виджетов
             setTimeout(function() {
-                const { organizationField, parentField } = findAutocompleteFields();
+                console.log('Starting field detection...');
                 
-                console.log('Organization field:', organizationField);
-                console.log('Parent field:', parentField);
+                // Выводим все элементы формы для отладки
+                const allInputs = document.querySelectorAll('input, select');
+                console.log('All form elements:', allInputs.length);
+                allInputs.forEach((el, index) => {
+                    console.log(`Element ${index}:`, {
+                        tag: el.tagName,
+                        id: el.id,
+                        name: el.name,
+                        className: el.className,
+                        type: el.type,
+                        placeholder: el.placeholder,
+                        value: el.value
+                    });
+                });
                 
-                if (organizationField && parentField) {
-                    console.log('Found both fields, adding event listeners');
+                // Ищем поля по позиции в форме (первое и второе поле)
+                const formFields = Array.from(document.querySelectorAll('input, select')).filter(el => 
+                    el.type !== 'hidden' && 
+                    el.type !== 'submit' && 
+                    el.type !== 'button' &&
+                    !el.closest('.hidden')
+                );
+                
+                console.log('Visible form fields:', formFields.length);
+                formFields.forEach((field, index) => {
+                    console.log(`Visible field ${index}:`, {
+                        tag: field.tagName,
+                        id: field.id,
+                        name: field.name,
+                        className: field.className,
+                        type: field.type
+                    });
+                });
+                
+                // Предполагаем, что Organization - это первое поле, Parent - второе
+                if (formFields.length >= 2) {
+                    const organizationField = formFields[0];
+                    const parentField = formFields[1];
+                    
+                    console.log('Using positional approach:');
+                    console.log('Organization field (first):', organizationField);
+                    console.log('Parent field (second):', parentField);
                     
                     // Функция очистки поля Parent
                     function clearParentField() {
-                        console.log('Clearing parent field');
+                        console.log('Clearing parent field via positional approach');
+                        
+                        // Пробуем разные способы очистки
                         parentField.value = '';
                         
                         // Для Select2
@@ -103,68 +124,71 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
                         
                         // Стандартный способ
                         parentField.dispatchEvent(new Event('change'));
+                        parentField.dispatchEvent(new Event('input'));
+                        
                         console.log('Parent field cleared');
                     }
                     
                     // Добавляем обработчики на разные события
                     organizationField.addEventListener('change', clearParentField);
                     organizationField.addEventListener('input', clearParentField);
+                    organizationField.addEventListener('blur', clearParentField);
+                    
+                    // Для Select2
                     organizationField.addEventListener('select2:select', clearParentField);
+                    organizationField.addEventListener('select2:change', clearParentField);
                     
-                    // Для автокомплит виджетов
-                    if (organizationField.closest('.autocomplete-light-widget')) {
-                        console.log('Found autocomplete widget, adding custom handler');
-                        const widget = organizationField.closest('.autocomplete-light-widget');
-                        widget.addEventListener('change', clearParentField);
-                    }
+                    console.log('Event listeners added to first field (Organization)');
                     
-                    console.log('Event listeners added');
-                } else {
-                    console.log('Fields not found, trying alternative selectors');
-                    
-                    // Выводим все элементы формы для отладки
-                    const allInputs = document.querySelectorAll('input, select');
-                    console.log('All form elements:', allInputs.length);
-                    allInputs.forEach((el, index) => {
-                        console.log(`Element ${index}:`, {
-                            tag: el.tagName,
-                            id: el.id,
-                            name: el.name,
-                            className: el.className,
-                            type: el.type
-                        });
-                    });
-                    
-                    // Попробуем найти по тексту в лейблах
+                    // Также попробуем найти по тексту в лейблах
                     const labels = document.querySelectorAll('label');
+                    console.log('All labels:', labels.length);
                     labels.forEach((label, index) => {
-                        const text = label.textContent.toLowerCase();
-                        if (text.includes('organization') || text.includes('организация')) {
-                            console.log(`Found organization label ${index}:`, label);
-                            const field = document.querySelector(`#${label.getAttribute('for')}`);
-                            if (field) {
-                                console.log('Associated field:', field);
-                                field.addEventListener('change', function() {
-                                    console.log('Organization field changed via label');
-                                    // Попробуем найти parent field и очистить его
-                                    const parentLabels = document.querySelectorAll('label');
-                                    parentLabels.forEach(parentLabel => {
-                                        const parentText = parentLabel.textContent.toLowerCase();
-                                        if (parentText.includes('parent') || parentText.includes('родитель')) {
-                                            const parentField = document.querySelector(`#${parentLabel.getAttribute('for')}`);
-                                            if (parentField) {
-                                                console.log('Clearing parent field via label');
-                                                parentField.value = '';
-                                                parentField.dispatchEvent(new Event('change'));
-                                            }
-                                        }
-                                    });
-                                });
+                        const text = label.textContent.toLowerCase().trim();
+                        console.log(`Label ${index}: "${text}"`);
+                        
+                        if (text.includes('organization') || text.includes('организация') || text.includes('org')) {
+                            console.log(`Found organization label: "${text}"`);
+                            
+                            // Ищем поле рядом с лейблом
+                            const fieldContainer = label.closest('.form-row, .field, .form-group, tr, td');
+                            if (fieldContainer) {
+                                const nearbyField = fieldContainer.querySelector('input, select');
+                                if (nearbyField) {
+                                    console.log('Found organization field near label:', nearbyField);
+                                    nearbyField.addEventListener('change', clearParentField);
+                                    nearbyField.addEventListener('input', clearParentField);
+                                }
                             }
                         }
                     });
+                    
+                } else {
+                    console.log('Not enough visible fields found');
                 }
-            }, 1000); // Ждем 1 секунду для загрузки всех виджетов
+                
+                // Дополнительный подход - ищем по классам автокомплита
+                const autocompleteWidgets = document.querySelectorAll('.autocomplete-light-widget, .select2-container');
+                console.log('Autocomplete widgets found:', autocompleteWidgets.length);
+                autocompleteWidgets.forEach((widget, index) => {
+                    console.log(`Widget ${index}:`, widget);
+                    const input = widget.querySelector('input, select');
+                    if (input) {
+                        console.log(`Widget ${index} input:`, input);
+                        input.addEventListener('change', function() {
+                            console.log(`Widget ${index} changed, clearing other fields`);
+                            // Очищаем все остальные поля
+                            formFields.forEach(field => {
+                                if (field !== input) {
+                                    field.value = '';
+                                    field.dispatchEvent(new Event('change'));
+                                }
+                            });
+                        });
+                    }
+                });
+                
+            }, 2000); // Увеличиваем задержку до 2 секунд
         });
         </script>
         '''
