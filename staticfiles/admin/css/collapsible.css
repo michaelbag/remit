@@ -1,0 +1,12 @@
+/* Minimal collapsible styles - only for triangles */
+
+.collapse-icon {
+    cursor: pointer;
+    margin-right: 5px;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.collapse-icon:hover {
+    opacity: 0.7;
+}

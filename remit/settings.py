@@ -83,7 +83,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "remit.context_processors.admin_app_list",
             ],
         },
     },
@@ -151,7 +150,7 @@ MEDIA_URL = local_settings.MEDIA_URL
 MEDIA_ROOT = local_settings.MEDIA_ROOT
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static_files"),
+    os.path.join(BASE_DIR, "static"),
 ]
 
 # Default primary key field type
