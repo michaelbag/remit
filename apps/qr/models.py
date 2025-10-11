@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django.db import models
 import common.models
+from django.core.exceptions import ValidationError
 
 
 class QRType(common.models.Catalog):
@@ -38,6 +39,37 @@ class QRCode(common.models.Catalog):
     url = models.CharField(max_length=150, blank=True)
     operation = models.CharField(max_length=150, blank=True)
     qr_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+    
+    # Service object links - only one can be selected
+    equipment = models.ForeignKey(
+        'equipment.Equipment',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='qr_codes',
+        limit_choices_to={'archive': False, 'delete_mark': False},
+        help_text=_('Linked Equipment object')
+    )
+    
+    resource = models.ForeignKey(
+        'res.Resource',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='qr_codes',
+        limit_choices_to={'archive': False, 'delete_mark': False},
+        help_text=_('Linked Resource object')
+    )
+    
+    service = models.ForeignKey(
+        'equipment.Service',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='qr_codes',
+        limit_choices_to={'archive': False, 'delete_mark': False},
+        help_text=_('Linked Service object')
+    )
 
     @property
     def short_code(self):
@@ -51,7 +83,28 @@ class QRCode(common.models.Catalog):
             )
         return None
 
+    def clean(self):
+        """Validate that exactly one service object is selected"""
+        super().clean()
+        
+        # Check that exactly one service object is selected
+        # equipment_selected = bool(self.equipment)
+        # resource_selected = bool(self.resource)
+        # service_selected = bool(self.service)
+        
+        # selected_count = sum([equipment_selected, resource_selected, service_selected])
+        
+        # if selected_count > 1:
+        #     raise ValidationError(_('Only one service object (Equipment, Resource, or Service) can be selected'))
+        
+        # Optional: require at least one service object
+        # if selected_count == 0:
+        #     raise ValidationError(_('At least one service object must be selected'))
+
     def save(self, *args, **kwargs):
+        # Validate before saving
+        self.clean()
+        
         # Generate short_public_code if not exists
         if self.guid_public_code and not self.short_public_code:
             self.short_public_code = self.short_code
@@ -65,6 +118,36 @@ class QRCode(common.models.Catalog):
             self.generate_qr_image()
 
         super().save(*args, **kwargs)
+
+    @property
+    def linked_object(self):
+        """Return the linked service object (Equipment, Resource, or Service)"""
+        if self.equipment:
+            return self.equipment
+        elif self.resource:
+            return self.resource
+        elif self.service:
+            return self.service
+        return None
+
+    @property
+    def linked_object_name(self):
+        """Return the name of the linked service object"""
+        linked = self.linked_object
+        if linked:
+            return getattr(linked, 'name', '') or getattr(linked, 'title', '') or str(linked)
+        return ""
+
+    @property
+    def linked_object_type(self):
+        """Return the type of the linked service object"""
+        if self.equipment:
+            return 'Equipment'
+        elif self.resource:
+            return 'Resource'
+        elif self.service:
+            return 'Service'
+        return None
 
     def generate_qr_image(self):
         """Generate QR code image and save it to qr_image field"""
@@ -106,15 +189,20 @@ class QRCode(common.models.Catalog):
             # Log error but don't fail the save
             print(f"Error generating QR image: {e}")
 
-    # def __str__(self):
-    #     # return '%s [%s]' % (self.title, self.guid.__str__()) if self.title else self.guid.__str__()
-    #     # For back decoding:
-    #     #   uuid.UUID(bytes_le=base64.urlsafe_b64decode(s + '=='))
-    #     # where s - base64.encodebytes(uuid.uuid4()).decode("utf-8").replace('=', '')
-    #     return base64.encodebytes(self.guid.bytes_le).decode("utf-8").replace('=', '')
+    def __str__(self):
+        if self.title:
+            return f"{self.title} [{self.short_public_code}]"
+        elif self.linked_object_name:
+            return f"{self.linked_object_name} [{self.short_public_code}]"
+        else:
+            return f"QR Code [{self.short_public_code}]"
 
     class Meta:
         verbose_name = _('QR Code')
         indexes = [
-            models.Index(fields=["short_public_code"], name="short_public_code")
+            models.Index(fields=["short_public_code"], name="short_public_code"),
+            models.Index(fields=["equipment"], name="qrcode_equipment"),
+            models.Index(fields=["resource"], name="qrcode_resource"),
+            models.Index(fields=["service"], name="qrcode_service"),
         ]
+

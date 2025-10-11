@@ -142,16 +142,16 @@ SHORT_DATETIME_FORMAT = 'd.m.Y H:i'
 # STATIC_URL = 'static/'
 STATIC_URL = local_settings.STATIC_URL
 # STATIC_ROOT = BASE_DIR / 'static'
-STATIC_ROOT = local_settings.STATIC_ROOT
+STATIC_ROOT = local_settings.STATIC_ROOT if hasattr(local_settings, 'STATIC_ROOT') and local_settings.STATIC_ROOT else None
 
 # STATIC_URL = 'media/'
 MEDIA_URL = local_settings.MEDIA_URL
 # STATIC_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT = local_settings.MEDIA_ROOT
 
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, "static"),
-# ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

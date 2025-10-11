@@ -39,10 +39,12 @@ class QRCodeAdminForm(forms.ModelForm):
 @admin.register(apps.qr.models.QRCode)
 class QRCodeAdmin(common.admin.CatalogAdmin):
     form = apps.qr.forms.QRCodeForm
+    
     list_display = [
         'guid_public_code',
         'short_public_code',
         'title',
+        'linked_object_display',
         'qr_type',
         'created_at',
         'modified',
@@ -51,11 +53,19 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
         'url'
     ]
     search_fields = [
-        'short_public_code'
+        'short_public_code',
+        'title',
+        'equipment__name',
+        'equipment__title',
+        'resource__name',
+        'service__name'
     ]
     list_filter = [
         'fixed',
-        'qr_type'
+        'qr_type',
+        'equipment',
+        'resource',
+        'service'
     ]
     fieldsets = (
         (_('Codes'), {'fields': (
@@ -64,6 +74,11 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
             'url'
         )}),
         (_('Main'), {'fields': ('title', 'operation', 'qr_type', 'fixed')}),
+        (_('Service Object Links'), {'fields': (
+            'equipment',
+            'service',
+            'resource', 
+        ), 'description': _('Select only one service object (Equipment, Resource, or Service)')}),
         (_('QR Code Actions'), {'fields': ('regenerate_qr',)}),
         (_('Service'), {'fields': ('created_at', 'archive')})
     )
@@ -110,3 +125,13 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
             obj.generate_qr_image()
         
         super().save_model(request, obj, form, change)
+    
+    def linked_object_display(self, obj):
+        """Display the linked service object"""
+        if obj.linked_object:
+            return f"{obj.linked_object_type}: {obj.linked_object_name}"
+        return "-"
+    linked_object_display.short_description = _('Linked Object')
+    linked_object_display.admin_order_field = 'equipment__name'
+
+
