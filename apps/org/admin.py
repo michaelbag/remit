@@ -50,12 +50,12 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
         extra_context['show_cancel'] = True
         extra_context['cancel_url'] = reverse('admin:org_department_changelist')
         
-        # Добавляем JavaScript для очистки поля Parent при изменении Organization
+        # Add JavaScript to clear Parent field when Organization changes
         extra_context['custom_js'] = '''
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
-                // Ищем поля по позиции в форме (первое и второе поле)
+                // Find fields by position in form (first and second field)
                 const formFields = Array.from(document.querySelectorAll('input, select')).filter(el => 
                     el.type !== 'hidden' && 
                     el.type !== 'submit' && 
@@ -63,46 +63,46 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
                     !el.closest('.hidden')
                 );
                 
-                // Предполагаем, что Organization - это первое поле, Parent - второе
+                // Assume Organization is first field, Parent is second field
                 if (formFields.length >= 2) {
                     const organizationField = formFields[0];
                     const parentField = formFields[1];
                     
-                    // Функция очистки поля Parent
+                    // Function to clear Parent field
                     function clearParentField() {
                         parentField.value = '';
                         
-                        // Для Select2
+                        // For Select2
                         if (parentField.hasAttribute('data-select2-id')) {
                             $(parentField).val(null).trigger('change');
                         }
                         
-                        // Для автокомплит виджетов
+                        // For autocomplete widgets
                         if (window.django && window.django.jQuery) {
                             window.django.jQuery(parentField).val(null).trigger('change');
                         }
                         
-                        // Стандартный способ
+                        // Standard way
                         parentField.dispatchEvent(new Event('change'));
                         parentField.dispatchEvent(new Event('input'));
                     }
                     
-                    // Добавляем обработчики на разные события
+                    // Add event handlers for different events
                     organizationField.addEventListener('change', clearParentField);
                     organizationField.addEventListener('input', clearParentField);
                     organizationField.addEventListener('blur', clearParentField);
                     
-                    // Для Select2
+                    // For Select2
                     organizationField.addEventListener('select2:select', clearParentField);
                     organizationField.addEventListener('select2:change', clearParentField);
                     
-                    // Также попробуем найти по тексту в лейблах
+                    // Also try to find by label text
                     const labels = document.querySelectorAll('label');
                     labels.forEach((label) => {
                         const text = label.textContent.toLowerCase().trim();
                         
                         if (text.includes('organization') || text.includes('организация') || text.includes('org')) {
-                            // Ищем поле рядом с лейблом
+                            // Find field near the label
                             const fieldContainer = label.closest('.form-row, .field, .form-group, tr, td');
                             if (fieldContainer) {
                                 const nearbyField = fieldContainer.querySelector('input, select');
@@ -115,13 +115,13 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
                     });
                 }
                 
-                // Дополнительный подход - ищем по классам автокомплита
+                // Additional approach - find by autocomplete classes
                 const autocompleteWidgets = document.querySelectorAll('.autocomplete-light-widget, .select2-container');
                 autocompleteWidgets.forEach((widget) => {
                     const input = widget.querySelector('input, select');
                     if (input) {
                         input.addEventListener('change', function() {
-                            // Очищаем все остальные поля
+                            // Clear all other fields
                             formFields.forEach(field => {
                                 if (field !== input) {
                                     field.value = '';
