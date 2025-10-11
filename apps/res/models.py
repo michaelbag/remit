@@ -23,6 +23,18 @@ class ResourceCategory(models.TextChoices):
     ROUTING = "routing", _("Routing")
     MANAGEMENT = "management", _("Management and monitoring")
 
+# Create choices tuple for backward compatibility
+RESOURCE_CATEGORY_CHOICES = [
+    ("accounts", _("Accounts")),
+    ("remote", _("Remote resource")),
+    ("local", _("Local")),
+    ("technical", _("Technical")),
+    ("network", _("Sub network")),
+    ("system", _("Information system")),
+    ("routing", _("Routing")),
+    ("management", _("Management and monitoring")),
+]
+
 
 class ResourceType(com_models.Catalog):
     # category = models.ForeignKey(ResourceCategory,
@@ -30,7 +42,7 @@ class ResourceType(com_models.Catalog):
     #                              related_name='types')
     category = models.CharField(max_length=20,
                                 blank=True,
-                                choices=ResourceCategory.choices)
+                                choices=RESOURCE_CATEGORY_CHOICES)
 
     class Meta:
         verbose_name = _('Resource Type')
@@ -79,7 +91,7 @@ class Resource(com_models.Catalog):
     #                                       on_delete=models.SET_NULL)
     resource_category = models.CharField(max_length=20,
                                          blank=True,
-                                         choices=ResourceCategory.choices)
+                                         choices=RESOURCE_CATEGORY_CHOICES)
     ipv4_address = models.GenericIPAddressField(blank=True, null=True)
     ipv4_gateway = models.GenericIPAddressField(blank=True, null=True)
     ipv4_network_mask = models.IntegerField(default=0)
