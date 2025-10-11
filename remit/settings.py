@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "apps.res",
     "apps.qr",
     "apps.acc",
+    "apps.service",
     # 'api',
 ]
 

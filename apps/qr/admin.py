@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import format_html
 
 import apps.qr.models
 import apps.qr.forms
@@ -39,6 +40,7 @@ class QRCodeAdminForm(forms.ModelForm):
 @admin.register(apps.qr.models.QRCode)
 class QRCodeAdmin(common.admin.CatalogAdmin):
     form = apps.qr.forms.QRCodeForm
+    filter_horizontal = ('operations',)
     
     list_display = [
         'guid_public_code',
@@ -46,6 +48,7 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
         'title',
         'linked_object_display',
         'qr_type',
+        'operations_count',
         'created_at',
         'modified',
         'archive',
@@ -65,7 +68,8 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
         'qr_type',
         'equipment',
         'resource',
-        'service'
+        'service',
+        'operations'
     ]
     fieldsets = (
         (_('Codes'), {'fields': (
@@ -74,6 +78,7 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
             'url'
         )}),
         (_('Main'), {'fields': ('title', 'operation', 'qr_type', 'fixed')}),
+        (_('Operations'), {'fields': ('operations', 'operations_list')}),
         (_('Service Object Links'), {'fields': (
             'equipment',
             'service',
@@ -91,7 +96,8 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
         'guid_public_code',
         'short_public_code',
         'url',
-        'qr_image'
+        'qr_image',
+        'operations_list'
     ]
     change_form_template = "admin/qr/qrcode/change_form.html"
     
@@ -133,5 +139,26 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
         return "-"
     linked_object_display.short_description = _('Linked Object')
     linked_object_display.admin_order_field = 'equipment__name'
+    
+    def operations_count(self, obj):
+        """Display count of associated operations"""
+        return obj.operations.count()
+    operations_count.short_description = _('Operations Count')
+    operations_count.admin_order_field = 'operations__count'
+    
+    def operations_list(self, obj):
+        """Display list of associated operations with links"""
+        operations = obj.operations.all()
+        if not operations:
+            return "-"
+        
+        links = []
+        for operation in operations:
+            url = f"/admin/service/operation/{operation.guid}/change/"
+            links.append(f'<a href="{url}" target="_blank">{operation.name or operation.code}</a>')
+        
+        return format_html('<br>'.join(links))
+    operations_list.short_description = _('Associated Operations')
+    operations_list.allow_tags = True
 
 

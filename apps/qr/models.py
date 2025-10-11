@@ -70,6 +70,15 @@ class QRCode(common.models.Catalog):
         limit_choices_to={'archive': False, 'delete_mark': False},
         help_text=_('Linked Service object')
     )
+    
+    # Operations - many-to-many relationship
+    operations = models.ManyToManyField(
+        'service.Operation',
+        blank=True,
+        related_name='qr_codes_operations',
+        verbose_name=_('Operations'),
+        help_text=_('Operations associated with this QR code')
+    )
 
     @property
     def short_code(self):
@@ -101,9 +110,46 @@ class QRCode(common.models.Catalog):
         # if selected_count == 0:
         #     raise ValidationError(_('At least one service object must be selected'))
 
+    def _auto_generate_name(self):
+        """Auto-generate name and title based on linked service objects"""
+        name_parts = []
+        
+        # Add equipment name if available
+        if self.equipment:
+            equipment_name = getattr(self.equipment, 'name', '') or getattr(self.equipment, 'title', '')
+            if equipment_name:
+                name_parts.append(equipment_name)
+        
+        # Add service name if available
+        if self.service:
+            service_name = getattr(self.service, 'name', '') or getattr(self.service, 'title', '')
+            if service_name:
+                name_parts.append(service_name)
+        
+        # Add resource name if available
+        if self.resource:
+            resource_name = getattr(self.resource, 'name', '') or getattr(self.resource, 'title', '')
+            if resource_name:
+                name_parts.append(resource_name)
+        
+        # Set title and name if we have parts
+        if name_parts:
+            auto_title = ' / '.join(name_parts)
+            
+            # Set title if it's empty or if it looks like it was auto-generated
+            if not self.title or self.title in [getattr(self, 'name', '') for self in [self.equipment, self.service, self.resource] if self]:
+                self.title = auto_title
+            
+            # Set name (truncated to 32 characters) if it's empty or if it looks like it was auto-generated
+            if not self.name or self.name in [getattr(self, 'name', '') for self in [self.equipment, self.service, self.resource] if self]:
+                self.name = auto_title[:32]
+
     def save(self, *args, **kwargs):
         # Validate before saving
         self.clean()
+        
+        # Auto-generate name based on linked service objects
+        self._auto_generate_name()
         
         # Generate short_public_code if not exists
         if self.guid_public_code and not self.short_public_code:
