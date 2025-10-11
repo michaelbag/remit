@@ -56,57 +56,115 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Department form JS loaded via extra_context');
             
-            // Попробуем разные селекторы для полей
-            const organizationField = document.querySelector('#id_organization') || 
-                                    document.querySelector('select[name="organization"]') ||
-                                    document.querySelector('input[name="organization"]');
-            const parentField = document.querySelector('#id_parent') || 
-                              document.querySelector('select[name="parent"]') ||
-                              document.querySelector('input[name="parent"]');
+            // Функция для поиска полей автокомплита
+            function findAutocompleteFields() {
+                // Ищем поля по различным селекторам
+                const organizationField = document.querySelector('#id_organization') || 
+                                        document.querySelector('select[name="organization"]') ||
+                                        document.querySelector('input[name="organization"]') ||
+                                        document.querySelector('.select2-selection__rendered[title*="organization"]') ||
+                                        document.querySelector('[data-field-name="organization"]');
+                                        
+                const parentField = document.querySelector('#id_parent') || 
+                                  document.querySelector('select[name="parent"]') ||
+                                  document.querySelector('input[name="parent"]') ||
+                                  document.querySelector('.select2-selection__rendered[title*="parent"]') ||
+                                  document.querySelector('[data-field-name="parent"]');
+                
+                return { organizationField, parentField };
+            }
             
-            console.log('Organization field:', organizationField);
-            console.log('Parent field:', parentField);
-            console.log('Organization field type:', organizationField ? organizationField.tagName : 'null');
-            console.log('Parent field type:', parentField ? parentField.tagName : 'null');
-            
-            if (organizationField && parentField) {
-                // Добавляем обработчик на change событие
-                organizationField.addEventListener('change', function() {
-                    console.log('Organization changed, clearing parent field');
-                    console.log('Organization value:', organizationField.value);
-                    console.log('Parent value before clear:', parentField.value);
+            // Ждем загрузки всех виджетов
+            setTimeout(function() {
+                const { organizationField, parentField } = findAutocompleteFields();
+                
+                console.log('Organization field:', organizationField);
+                console.log('Parent field:', parentField);
+                
+                if (organizationField && parentField) {
+                    console.log('Found both fields, adding event listeners');
                     
-                    // Очищаем поле Parent
-                    parentField.value = '';
-                    
-                    // Проверяем, используется ли Select2
-                    if (parentField.hasAttribute('data-select2-id')) {
-                        console.log('Using Select2, clearing with jQuery');
-                        $(parentField).val(null).trigger('change');
-                    } else {
-                        console.log('Standard field, triggering change event');
+                    // Функция очистки поля Parent
+                    function clearParentField() {
+                        console.log('Clearing parent field');
+                        parentField.value = '';
+                        
+                        // Для Select2
+                        if (parentField.hasAttribute('data-select2-id')) {
+                            console.log('Using Select2, clearing with jQuery');
+                            $(parentField).val(null).trigger('change');
+                        }
+                        
+                        // Для автокомплит виджетов
+                        if (window.django && window.django.jQuery) {
+                            console.log('Using django jQuery for autocomplete');
+                            window.django.jQuery(parentField).val(null).trigger('change');
+                        }
+                        
+                        // Стандартный способ
                         parentField.dispatchEvent(new Event('change'));
+                        console.log('Parent field cleared');
                     }
                     
-                    console.log('Parent value after clear:', parentField.value);
-                });
-                
-                // Также попробуем добавить обработчик на input событие
-                organizationField.addEventListener('input', function() {
-                    console.log('Organization input event triggered');
-                });
-                
-                console.log('Event listeners added to organization field');
-            } else {
-                console.log('Fields not found - trying alternative approach');
-                
-                // Альтернативный подход - ищем по классам или другим атрибутам
-                const allSelects = document.querySelectorAll('select');
-                console.log('All select elements:', allSelects.length);
-                allSelects.forEach((select, index) => {
-                    console.log(`Select ${index}:`, select.name, select.id, select.className);
-                });
-            }
+                    // Добавляем обработчики на разные события
+                    organizationField.addEventListener('change', clearParentField);
+                    organizationField.addEventListener('input', clearParentField);
+                    organizationField.addEventListener('select2:select', clearParentField);
+                    
+                    // Для автокомплит виджетов
+                    if (organizationField.closest('.autocomplete-light-widget')) {
+                        console.log('Found autocomplete widget, adding custom handler');
+                        const widget = organizationField.closest('.autocomplete-light-widget');
+                        widget.addEventListener('change', clearParentField);
+                    }
+                    
+                    console.log('Event listeners added');
+                } else {
+                    console.log('Fields not found, trying alternative selectors');
+                    
+                    // Выводим все элементы формы для отладки
+                    const allInputs = document.querySelectorAll('input, select');
+                    console.log('All form elements:', allInputs.length);
+                    allInputs.forEach((el, index) => {
+                        console.log(`Element ${index}:`, {
+                            tag: el.tagName,
+                            id: el.id,
+                            name: el.name,
+                            className: el.className,
+                            type: el.type
+                        });
+                    });
+                    
+                    // Попробуем найти по тексту в лейблах
+                    const labels = document.querySelectorAll('label');
+                    labels.forEach((label, index) => {
+                        const text = label.textContent.toLowerCase();
+                        if (text.includes('organization') || text.includes('организация')) {
+                            console.log(`Found organization label ${index}:`, label);
+                            const field = document.querySelector(`#${label.getAttribute('for')}`);
+                            if (field) {
+                                console.log('Associated field:', field);
+                                field.addEventListener('change', function() {
+                                    console.log('Organization field changed via label');
+                                    // Попробуем найти parent field и очистить его
+                                    const parentLabels = document.querySelectorAll('label');
+                                    parentLabels.forEach(parentLabel => {
+                                        const parentText = parentLabel.textContent.toLowerCase();
+                                        if (parentText.includes('parent') || parentText.includes('родитель')) {
+                                            const parentField = document.querySelector(`#${parentLabel.getAttribute('for')}`);
+                                            if (parentField) {
+                                                console.log('Clearing parent field via label');
+                                                parentField.value = '';
+                                                parentField.dispatchEvent(new Event('change'));
+                                            }
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    });
+                }
+            }, 1000); // Ждем 1 секунду для загрузки всех виджетов
         });
         </script>
         '''
