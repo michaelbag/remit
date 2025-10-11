@@ -81,10 +81,27 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
     change_form_template = "admin/qr/qrcode/change_form.html"
     
     def save_model(self, request, obj, form, change):
-        """Handle QR code regeneration when regenerate_qr checkbox is checked"""
+        """Handle QR code regeneration when regenerate_qr checkbox is checked or qr_type changes"""
         regenerate = form.cleaned_data.get('regenerate_qr', False)
         
-        if regenerate and obj.url:
+        # Check if qr_type has changed (only for existing objects, not new ones)
+        qr_type_changed = False
+        if change and obj.pk:
+            try:
+                # Get the original object from database
+                original_obj = self.model.objects.get(pk=obj.pk)
+                qr_type_changed = original_obj.qr_type != obj.qr_type
+            except self.model.DoesNotExist:
+                pass
+        
+        # If qr_type changed, regenerate URL first
+        if qr_type_changed and obj.qr_type and obj.short_public_code:
+            obj.url = obj.get_full_url
+        
+        # Regenerate if checkbox is checked or qr_type has changed
+        should_regenerate = regenerate or qr_type_changed
+        
+        if should_regenerate and obj.url:
             # Delete old QR image file if it exists
             if obj.qr_image:
                 obj.qr_image.delete(save=False)
