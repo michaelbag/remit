@@ -59,19 +59,37 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
     ]
     fieldsets = (
         (_('Codes'), {'fields': (
-            'guid',
-            'code',
             'guid_public_code',
             'short_public_code',
             'url'
         )}),
-        (_('Main'), {'fields': ('name', 'title', 'operation', 'qr_type', 'fixed')}),
-        (_('Service'), {'fields': ('created_at', 'modified', 'created', 'archive', 'delete_mark')})
+        (_('Main'), {'fields': ('title', 'operation', 'qr_type', 'fixed')}),
+        (_('QR Code Actions'), {'fields': ('regenerate_qr',)}),
+        (_('Service'), {'fields': ('created_at', 'archive')})
     )
     # TODO: Problem. If readonly_fields not exists in class parent init get error.
     readonly_fields = [
         'guid',
-        'created_at',
         'modified',
-        'created'
+        'created',
+        'created_at',
+        'guid_public_code',
+        'short_public_code',
+        'url',
+        'qr_image'
     ]
+    change_form_template = "admin/qr/qrcode/change_form.html"
+    
+    def save_model(self, request, obj, form, change):
+        """Handle QR code regeneration when regenerate_qr checkbox is checked"""
+        regenerate = form.cleaned_data.get('regenerate_qr', False)
+        
+        if regenerate and obj.url:
+            # Delete old QR image file if it exists
+            if obj.qr_image:
+                obj.qr_image.delete(save=False)
+            
+            # Generate new QR code image
+            obj.generate_qr_image()
+        
+        super().save_model(request, obj, form, change)
