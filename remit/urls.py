@@ -29,7 +29,7 @@ from django.urls import include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("q/", qr_index),
+    path("q/", include("apps.qr.urls")),  # Direct access to qr app URLs without qr/ prefix
     # path('hello/', hello_index),
     # path('config/', config_index),
     # path('e/', include('apps.equipment.urls')),
@@ -38,7 +38,7 @@ urlpatterns = [
     # path('chaining/', include('smart_selects.urls')),
     url(r"^eq/", include("apps.equipment.urls")),
     url(r"^org/", include("apps.org.urls")),
-    url(r"^qr/", include("apps.qr.urls")),
+    # url(r"^qr/", include("apps.qr.urls")),  # Removed to avoid namespace conflict
     # path("", include(vf_urls)),
 ]
 

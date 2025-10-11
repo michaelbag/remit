@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Form - {{ qr_code.title|default:qr_code.short_public_code }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header .subtitle {
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .qr-info {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .qr-info h2 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 14px;
+            color: #333;
+            word-break: break-all;
+        }
+        .linked-object {
+            background: #e8f5e8;
+            border: 1px solid #c3e6c3;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .linked-object h3 {
+            margin: 0 0 10px 0;
+            color: #2d5a2d;
+            font-size: 16px;
+        }
+        .operations {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .operations h3 {
+            margin: 0 0 10px 0;
+            color: #856404;
+            font-size: 16px;
+        }
+        .operation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .operation-list li {
+            background: white;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .qr-image {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-image img {
+            max-width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background: white;
+        }
+        .url-display {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+        .no-data {
+            color: #666;
+            font-style: italic;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ qr_code.title|default:qr_code.name|default:"QR Code" }}</h1>
+            <div class="subtitle">Service Code: {{ qr_code.short_public_code }}</div>
+        </div>
+        
+        <div class="content">
+            <div class="qr-info">
+                <h2>QR Code Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Code</div>
+                        <div class="info-value">{{ qr_code.short_public_code }}</div>
+                    </div>
+                    {% if qr_code.title %}
+                    <div class="info-item">
+                        <div class="info-label">Title</div>
+                        <div class="info-value">{{ qr_code.title }}</div>
+                    </div>
+                    {% endif %}
+                    {% if qr_code.name %}
+                    <div class="info-item">
+                        <div class="info-label">Name</div>
+                        <div class="info-value">{{ qr_code.name }}</div>
+                    </div>
+                    {% endif %}
+                    {% if qr_code.qr_type %}
+                    <div class="info-item">
+                        <div class="info-label">Type</div>
+                        <div class="info-value">{{ qr_code.qr_type.name|default:qr_code.qr_type.url_root }}</div>
+                    </div>
+                    {% endif %}
+                    {% if qr_code.operation %}
+                    <div class="info-item">
+                        <div class="info-label">Operation</div>
+                        <div class="info-value">{{ qr_code.operation }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if qr_code.linked_object %}
+            <div class="linked-object">
+                <h3>Linked Service Object</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Type</div>
+                        <div class="info-value">{{ qr_code.linked_object_type }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Name</div>
+                        <div class="info-value">{{ qr_code.linked_object_name }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if qr_code.operations.exists %}
+            <div class="operations">
+                <h3>Associated Operations</h3>
+                <ul class="operation-list">
+                    {% for operation in qr_code.operations.all %}
+                    <li>{{ operation.name|default:operation.code }} - {{ operation.description|default:"No description" }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if qr_code.qr_image %}
+            <div class="qr-image">
+                <img src="{{ qr_code.qr_image.url }}" alt="QR Code for {{ qr_code.short_public_code }}">
+                {% if qr_code.url %}
+                <div class="url-display">
+                    <strong>URL:</strong> {{ qr_code.url }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if not qr_code.linked_object and not qr_code.operations.exists and not qr_code.qr_image %}
+            <div class="no-data">
+                <p>No additional information available for this QR code.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>Generated by P7E Service System</p>
+        </div>
+    </div>
+</body>
+</html>

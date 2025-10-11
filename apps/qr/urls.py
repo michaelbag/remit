@@ -75,6 +75,11 @@ urlpatterns = [
     # path('', views.index, name='index'),  # Example: Maps root of app to 'index' view
     # path('q/<str:short_code>/', views.index, name='qr_form'), # Example: URL with a parameter
     path(
+        '<str:shortcode>',
+        views.qr_form_view,
+        name='qr_form'
+    ),
+    path(
         'qrtype_select/',
         QRTypeListView.as_view(model=models.QRType),
         name='qrtype_select'
