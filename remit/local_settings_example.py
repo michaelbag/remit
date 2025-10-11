@@ -11,14 +11,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-***'
+# SECRET_KEY = 'django-insecure-***'
+SECRET_KEY = 'django-insecure-example-secret-key-for-development-only-change-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "example.com",
+    "test.example.com",
+]
 
-CSRF_TRUSTED_ORIGINS = ['https://my.domain.com']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://example.com',
+    'https://test.example.com'
+]
 
 ROOT_URLCONF = 'remit.urls'
 
@@ -46,14 +57,14 @@ LANGUAGES = [
     ("en", "English"),
 ]
 
-TIME_ZONE = 'UTC'
-# TIME_ZONE = 'Europe/Moscow'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = 'images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
@@ -68,12 +79,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
 # System prefix for codes created in this system in catalogs
 SYSTEM_PREFIX = 'TD'
-
-# Material theme configuration
-MATERIAL_ADMIN_SITE = {
-    "HEADER": "My Admin Site",
-    "TITLE": "Material Admin",
-}
-
-# Theme configuration
-VIEWFLOW_FRONTEND_THEME = "material"
