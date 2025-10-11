@@ -7,8 +7,8 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Organization(common_models.Catalog):
-    name = models.CharField(max_length=150, blank=True)
-    archive = models.BooleanField(default=False, help_text=_('Is archived'))
+    name = models.CharField(max_length=150, blank=True, db_index=True)
+    archive = models.BooleanField(default=False, help_text=_('Is archived'), db_index=True)
 
     class Meta:
         verbose_name = _('Organization')
@@ -50,7 +50,7 @@ class Employee(common_models.Catalog):
     #                                auto_choose=True,
     #                                sort=True)
     name = models.CharField(max_length=150, blank=False, help_text=_('Full name'), db_index=True)
-    archive = models.BooleanField(default=False, help_text=_('Is archived'))
+    archive = models.BooleanField(default=False, help_text=_('Is archived'), db_index=True)
     start_date = models.DateField(default=date.today, null=True, help_text=_('Work till'))
     end_date = models.DateField(null=True, blank=True, help_text=_('Fired date'))
 

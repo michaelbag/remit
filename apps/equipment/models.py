@@ -53,7 +53,7 @@ class EquipmentModel(Catalog):
 
 class Equipment(RecursiveCatalog):
     # 18.04.25 - name length changed from 50 to 150
-    name = models.CharField(max_length=150, blank=True)
+    name = models.CharField(max_length=150, blank=True, db_index=True)
     type = models.ForeignKey(EquipmentType,
                              related_name='equipments',
                              blank=True,
@@ -66,7 +66,7 @@ class Equipment(RecursiveCatalog):
     has_interfaces = models.BooleanField(default=False)
     start_date = models.DateField(default=date.today, null=True)
     end_date = models.DateField(null=True, blank=True)
-    archive = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False, db_index=True)
     comment = models.TextField(blank=True)
     description = models.TextField(blank=True)
     hostname = models.CharField(max_length=50, blank=True)
@@ -88,7 +88,7 @@ class Equipment(RecursiveCatalog):
 
 
 class Software(Catalog):
-    archive = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False, db_index=True)
     comment = models.TextField(blank=True)
 
     class Meta:

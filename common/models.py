@@ -33,9 +33,9 @@ class Category(models.Model):
 
 
 class Catalog(GUIDModel):
-    code = models.CharField(max_length=9, blank=True)
-    name = models.CharField(max_length=32, blank=True)
-    delete_mark = models.BooleanField(default=False)
+    code = models.CharField(max_length=9, blank=True, db_index=True)
+    name = models.CharField(max_length=32, blank=True, db_index=True)
+    delete_mark = models.BooleanField(default=False, db_index=True)
 
     @property
     def next_code(self):

@@ -23,11 +23,11 @@ from django.utils.translation import gettext_lazy as _
 
 
 class AccessProfile(com_models.Catalog):
-    name = models.CharField(max_length=150, blank=True)
+    name = models.CharField(max_length=150, blank=True, db_index=True)
     resource = models.ForeignKey('res.Resource', on_delete=models.CASCADE, help_text=_('Resource'), related_name='profiles')
     create_date = models.DateField(default=date.today, null=True, help_text=_('Create date'))
     end_date = models.DateField(null=True, blank=True, help_text=_('Expiry date'))
-    archive = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False, db_index=True)
     comment = models.TextField(blank=True)
     help_text = models.TextField(blank=True)
     groups = models.ManyToManyField(ResourceGroup, related_name='profiles', blank=True, help_text='Profile groups')
@@ -46,7 +46,7 @@ class AccessProfile(com_models.Catalog):
 
 
 class Account(com_models.Catalog):
-    name = models.CharField(max_length=50, blank=True)
+    name = models.CharField(max_length=50, blank=True, db_index=True)
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE, help_text=_('Resource'),
                                  related_name='accounts', limit_choices_to={'accounts_provider': True})
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, help_text=_('Employee'),
@@ -55,7 +55,7 @@ class Account(com_models.Catalog):
     create_date = models.DateField(default=date.today, null=True, help_text=_('Create date'))
     end_date = models.DateField(null=True, blank=True, help_text=_('Expiry date'))
     disabled = models.BooleanField(default=False)
-    archive = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False, db_index=True)
     comment = models.TextField(blank=True)
     profiles = models.ManyToManyField(AccessProfile, related_name='accounts', blank=True)
 

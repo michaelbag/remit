@@ -37,7 +37,7 @@ class ResourceType(com_models.Catalog):
 
 
 class Resource(com_models.Catalog):
-    name = models.CharField(max_length=150, blank=True)
+    name = models.CharField(max_length=150, blank=True, db_index=True)
     # Resource Owner - Service
     service = models.ForeignKey('equipment.Service',
                                 on_delete=models.CASCADE,
@@ -84,7 +84,7 @@ class Resource(com_models.Catalog):
     ipv4_gateway = models.GenericIPAddressField(blank=True, null=True)
     ipv4_network_mask = models.IntegerField(default=0)
     dns = models.TextField(blank=True)
-    archive = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False, db_index=True)
     comment = models.TextField(blank=True)
     admin_page_url = models.URLField(blank=True)
     cached_full_path_name = models.CharField(max_length=150,
@@ -115,10 +115,10 @@ class Resource(com_models.Catalog):
 
 
 class ResourceGroup(com_models.Catalog):
-    name = models.CharField(max_length=150, help_text=_('Name'))
+    name = models.CharField(max_length=150, help_text=_('Name'), db_index=True)
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE, help_text=_('Resource'),
                                  limit_choices_to={'accounts_provider': True})
-    archive = models.BooleanField(default=False, help_text=_('Is archived'))
+    archive = models.BooleanField(default=False, help_text=_('Is archived'), db_index=True)
     comment = models.TextField(blank=True, help_text=_('Comment'))
     create_date = models.DateField(default=date.today, null=True, help_text=_('Create date'))
     technical = models.BooleanField(default=False, help_text=_('Technical group'))

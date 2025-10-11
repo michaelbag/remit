@@ -11,7 +11,7 @@ import common.models
 
 class QRType(common.models.Catalog):
     url_root = models.URLField()
-    archive = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False, db_index=True)
     fixed = models.BooleanField(default=False)
 
     def __str__(self):
@@ -26,7 +26,7 @@ class QRCode(common.models.Catalog):
     # short_key = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     title = models.CharField(max_length=150, blank=True)
-    archive = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False, db_index=True)
     qr_type = models.ForeignKey(QRType, on_delete=models.CASCADE)
     fixed = models.BooleanField(default=False)
     guid_public_code = models.UUIDField(default=uuid.uuid4)
