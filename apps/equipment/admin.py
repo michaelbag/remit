@@ -227,7 +227,7 @@ class ServiceAdmin(CatalogAdmin):
         (None,
          {
              'classes': ('wide',),
-             'fields': ['code', 'name']}
+             'fields': ['equipment', 'organization']}
          ),
         (_('Software'),
          {

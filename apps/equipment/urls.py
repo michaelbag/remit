@@ -50,6 +50,17 @@ class EquipmentFolderListView(LoginRequiredMixin, autocomplete.Select2QuerySetVi
         return qs
 
 
+class EquipmentListView(LoginRequiredMixin, autocomplete.Select2QuerySetView):
+    raise_exception = True
+
+    def get_queryset(self):
+        qs = super(EquipmentListView, self).get_queryset()
+        # Filter only non-archived and non-deleted Equipment
+        qs = qs.filter(archive=False, delete_mark=False)
+        qs = qs.order_by('name', 'title')
+        return qs
+
+
 urlpatterns = [
     # url('', views.home, name='elist'),
     url(
@@ -76,5 +87,10 @@ urlpatterns = [
         'equipment_folder_select/',
         EquipmentFolderListView.as_view(model=models.Equipment),
         name='equipment_folder_select'
+    ),
+    url(
+        'equipment_select/',
+        EquipmentListView.as_view(model=models.Equipment),
+        name='equipment_select'
     )
 ]

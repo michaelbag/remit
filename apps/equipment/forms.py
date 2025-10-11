@@ -57,6 +57,13 @@ class ServiceForm(forms.ModelForm):
         model = models.Service
         fields = '__all__'
         widgets = {
+            'equipment': autocomplete.ModelSelect2(
+                url='eq:equipment_select',
+                attrs={
+                    'data-placeholder': _('Select Equipment...'),
+                    'data-minimum-input-length': 2,
+                }
+            ),
             'software': autocomplete.ModelSelect2(url='eq:software_select'),
             'software_version': autocomplete.ModelSelect2(url='eq:software_version_select', forward=('software',)),
         }
