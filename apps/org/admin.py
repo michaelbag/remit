@@ -56,17 +56,30 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Department form JS loaded via extra_context');
             
-            const organizationField = document.querySelector('#id_organization');
-            const parentField = document.querySelector('#id_parent');
+            // Попробуем разные селекторы для полей
+            const organizationField = document.querySelector('#id_organization') || 
+                                    document.querySelector('select[name="organization"]') ||
+                                    document.querySelector('input[name="organization"]');
+            const parentField = document.querySelector('#id_parent') || 
+                              document.querySelector('select[name="parent"]') ||
+                              document.querySelector('input[name="parent"]');
             
             console.log('Organization field:', organizationField);
             console.log('Parent field:', parentField);
+            console.log('Organization field type:', organizationField ? organizationField.tagName : 'null');
+            console.log('Parent field type:', parentField ? parentField.tagName : 'null');
             
             if (organizationField && parentField) {
+                // Добавляем обработчик на change событие
                 organizationField.addEventListener('change', function() {
                     console.log('Organization changed, clearing parent field');
+                    console.log('Organization value:', organizationField.value);
+                    console.log('Parent value before clear:', parentField.value);
+                    
+                    // Очищаем поле Parent
                     parentField.value = '';
                     
+                    // Проверяем, используется ли Select2
                     if (parentField.hasAttribute('data-select2-id')) {
                         console.log('Using Select2, clearing with jQuery');
                         $(parentField).val(null).trigger('change');
@@ -74,11 +87,25 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
                         console.log('Standard field, triggering change event');
                         parentField.dispatchEvent(new Event('change'));
                     }
+                    
+                    console.log('Parent value after clear:', parentField.value);
                 });
                 
-                console.log('Event listener added to organization field');
+                // Также попробуем добавить обработчик на input событие
+                organizationField.addEventListener('input', function() {
+                    console.log('Organization input event triggered');
+                });
+                
+                console.log('Event listeners added to organization field');
             } else {
-                console.log('Fields not found');
+                console.log('Fields not found - trying alternative approach');
+                
+                // Альтернативный подход - ищем по классам или другим атрибутам
+                const allSelects = document.querySelectorAll('select');
+                console.log('All select elements:', allSelects.length);
+                allSelects.forEach((select, index) => {
+                    console.log(`Select ${index}:`, select.name, select.id, select.className);
+                });
             }
         });
         </script>
