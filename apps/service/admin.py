@@ -45,7 +45,12 @@ class OperationAdmin(admin.ModelAdmin):
         links = []
         for qr_code in qr_codes:
             url = f"/admin/qr/qrcode/{qr_code.guid}/change/"
-            links.append(f'<a href="{url}" target="_blank">{qr_code.short_public_code}</a>')
+            # Display title with short_public_code in brackets, or just short_public_code if title is empty
+            if qr_code.title:
+                display_text = f"{qr_code.title} ({qr_code.short_public_code})"
+            else:
+                display_text = qr_code.short_public_code
+            links.append(f'<a href="{url}" target="_blank">{display_text}</a>')
         
         return format_html('<br>'.join(links))
     qr_codes_list.short_description = _('Associated QR Codes')

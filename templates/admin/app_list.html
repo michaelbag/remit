@@ -1,0 +1,42 @@
+{% load i18n admin_extras %}
+{# Override admin app_list to make model lists collapsible by application #}
+
+<style>
+  /* Simple tweak so details/summary look good in the admin sidebar */
+  .app-group { margin: 0 0 .25rem 0; }
+  .app-group > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: .25rem .5rem;
+    font-weight: 600;
+  }
+  .app-group[open] > summary { background: rgba(0,0,0,0.04); }
+  .model-list { list-style: none; margin: 0; padding: 0 .5rem .25rem .75rem; }
+  .model-list li { margin: 0; padding: 0; }
+  .model-list a { display: block; padding: .2rem 0; text-decoration: none; }
+</style>
+
+{% if app_list %}
+  {% for app in app_list %}
+    {% app_has_current app as has_current %}
+    <details class="app-group" {% if has_current %}open{% endif %}>
+      <summary>{{ app.name }}</summary>
+      <ul class="model-list">
+        {% for model in app.models %}
+          {% is_current_model model as is_current %}
+          <li {% if is_current %}style="font-weight:600"{% endif %}>
+            {% if model.admin_url %}
+              <a href="{{ model.admin_url }}">{% if is_current %}→ {% endif %}{{ model.name }}</a>
+            {% else %}
+              <span>{% if is_current %}→ {% endif %}{{ model.name }}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% endfor %}
+{% else %}
+  <p>{% translate 'You don\'t have permission to view or edit anything.' %}</p>
+{% endif %}
+
+

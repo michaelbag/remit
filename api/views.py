@@ -11,6 +11,9 @@ from config import models as config_models
 from . import serializers
 from django.db import models
 from django.apps import apps
+from django.utils.dateparse import parse_datetime
+from django.utils import timezone
+from rest_framework import status
 
 
 class CheckObjectView(APIView):
@@ -220,5 +223,53 @@ class QRCodeViewSet(viewsets.ModelViewSet):
     queryset = qr_models.QRCode.objects.all()
     serializer_class = serializers.QRCodeSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+# --- QR Code Statistics
+class QRCodeModifiedCountView(APIView):
+    """
+    API endpoint to get count of QR codes modified since a specific datetime.
+    
+    Query parameters:
+    - since: ISO datetime string (e.g., '2024-01-01T00:00:00Z' or '2024-01-01 00:00:00')
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        since_param = request.query_params.get('since')
+        
+        if not since_param:
+            return Response(
+                {'error': 'Parameter "since" is required. Format: ISO datetime string'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Parse the datetime string
+        try:
+            # Try parsing with timezone info first
+            since_datetime = parse_datetime(since_param)
+            if since_datetime is None:
+                # If parse_datetime fails, try with timezone.now() as fallback
+                from datetime import datetime
+                since_datetime = datetime.fromisoformat(since_param.replace('Z', '+00:00'))
+            
+            # Ensure timezone awareness
+            if timezone.is_naive(since_datetime):
+                since_datetime = timezone.make_aware(since_datetime)
+                
+        except (ValueError, TypeError) as e:
+            return Response(
+                {'error': f'Invalid datetime format. Use ISO format: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Count QR codes modified since the specified datetime
+        count = qr_models.QRCode.objects.filter(modified__gte=since_datetime).count()
+        
+        return Response({
+            'count': count,
+            'since': since_datetime.isoformat(),
+            'message': f'Found {count} QR codes modified since {since_datetime.isoformat()}'
+        })
 
 # --- Config
