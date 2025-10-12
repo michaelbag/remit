@@ -150,9 +150,10 @@ MEDIA_URL = local_settings.MEDIA_URL
 # STATIC_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT = local_settings.MEDIA_ROOT
 
+# STATICFILES_DIRS should not contain the same path as STATIC_ROOT
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-]
+] if not (hasattr(local_settings, 'STATIC_ROOT') and local_settings.STATIC_ROOT) else []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
