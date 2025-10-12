@@ -21,6 +21,7 @@ class ResourceAdmin(CatalogAdmin):
     form = ResourceForm
     list_filter = [
         'service',
+        'service__equipment',
         'resource_category',
         'resource_type',
         'archive',
@@ -29,9 +30,10 @@ class ResourceAdmin(CatalogAdmin):
     list_display = [
         "service",
         "equipment",
-        "employee",
         "resource_category",
-        'full_path_name'
+        "resource_type",
+        "employee",
+        "full_path_name",
     ]
     search_fields = [
         'name',
