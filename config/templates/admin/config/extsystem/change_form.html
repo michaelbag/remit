@@ -1,0 +1,75 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+{% endblock %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script>
+function copyGuidToClipboard(guid) {
+    if (navigator.clipboard && window.isSecureContext) {
+        // Use modern clipboard API
+        navigator.clipboard.writeText(guid).then(function() {
+            showCopyNotification('GUID copied to clipboard: ' + guid);
+        }).catch(function(err) {
+            fallbackCopyTextToClipboard(guid);
+        });
+    } else {
+        // Fallback for older browsers or non-secure contexts
+        fallbackCopyTextToClipboard(guid);
+    }
+}
+
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopyNotification('GUID copied to clipboard: ' + text);
+        } else {
+            showCopyNotification('Failed to copy GUID');
+        }
+    } catch (err) {
+        showCopyNotification('Failed to copy GUID');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showCopyNotification(message) {
+    // Create a temporary notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        z-index: 9999;
+        font-size: 14px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(function() {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

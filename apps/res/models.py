@@ -41,7 +41,7 @@ class ResourceType(com_models.Catalog):
     #                              on_delete=models.CASCADE,
     #                              related_name='types')
     category = models.CharField(max_length=20,
-                                blank=True,
+                                blank=False,
                                 choices=RESOURCE_CATEGORY_CHOICES)
 
     class Meta:

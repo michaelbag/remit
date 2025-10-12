@@ -38,6 +38,7 @@ urlpatterns = [
     # path('chaining/', include('smart_selects.urls')),
     url(r"^eq/", include("apps.equipment.urls")),
     url(r"^org/", include("apps.org.urls")),
+    url(r"^res/", include("apps.res.urls")),
     # url(r"^qr/", include("apps.qr.urls")),  # Removed to avoid namespace conflict
     # path("", include(vf_urls)),
 ]

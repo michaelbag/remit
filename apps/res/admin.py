@@ -1,6 +1,8 @@
 from django.contrib import admin
 from . import models
+from .forms import ResourceForm
 from django.utils.translation import gettext_lazy as _
+from common.admin import CatalogAdmin
 # admin.site.register(models.Resource)
 
 
@@ -15,14 +17,16 @@ class ResourceGroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Resource)
-class ResourceAdmin(admin.ModelAdmin):
+class ResourceAdmin(CatalogAdmin):
+    form = ResourceForm
     list_filter = [
         'service',
         'resource_category',
-        'resource_type'
+        'resource_type',
+        'archive',
+        'delete_mark'
     ]
     list_display = [
-        "__str__",
         "service",
         "equipment",
         "employee",
@@ -36,24 +40,37 @@ class ResourceAdmin(admin.ModelAdmin):
     readonly_fields = [
         'guid',
         'code',
-        'service_equipment'
+        'service_equipment',
+        'modified',
+        'created'
     ]
     fieldsets = [
         (
-            None,
+            _("Resource Information"),
             {
                 'fields': [
-                    ('guid', 'code'),
-                    'name',
                     'resource_category',
                     'resource_type',
+                    'form_only_equipment',
                     'service',
-                    'service_equipment',
                     'comment',
                     'organization',
                     'employee',
                     ('accounts_provider', 'accounts_from')
                 ]
+            }
+        ),
+        (
+            _("Network Configuration"),
+            {
+                'fields': [
+                    'ipv4_address',
+                    'ipv4_gateway',
+                    'ipv4_network_mask',
+                    'dns',
+                    'admin_page_url'
+                ],
+                'classes': ['collapse']
             }
         ),
         (
@@ -82,16 +99,29 @@ class ResourceAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.ResourceType)
-class ResourceTypeAdmin(admin.ModelAdmin):
-    readonly_fields = [
-        'guid',
-    ]
+class ResourceTypeAdmin(CatalogAdmin):
     list_display = [
-        '__str__',
-        'code',
+        'category',
+    ]
+    list_filter = [
         'category',
         'delete_mark'
     ]
-    list_filter = [
-        'category'
+    fieldsets = [
+        (
+            _('Resource Type Information'),
+            {
+                'fields': [
+                    'category',  # Required field
+                ]
+            }
+        )
     ]
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """Customize the form to make category field required"""
+        form = super().get_form(request, obj, **kwargs)
+        if 'category' in form.base_fields:
+            form.base_fields['category'].required = True
+            form.base_fields['category'].help_text = _('This field is required')
+        return form
