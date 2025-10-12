@@ -2,7 +2,69 @@
 
 import django.db.models.deletion
 import uuid
-from django.db import migrations, models
+from django.db import migrations, models, connection
+
+
+def create_qrservicelink_table_if_not_exists(apps, schema_editor):
+    """
+    Create QRServiceLink table only if it doesn't exist.
+    This prevents errors on production systems where the table already exists.
+    """
+    with connection.cursor() as cursor:
+        # Check if table exists
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.tables 
+            WHERE table_schema = DATABASE() 
+            AND table_name = 'qr_qrservicelink'
+        """)
+        
+        table_exists = cursor.fetchone()[0] > 0
+        
+        if not table_exists:
+            # Create the table using raw SQL
+            cursor.execute("""
+                CREATE TABLE `qr_qrservicelink` (
+                    `guid` char(32) NOT NULL PRIMARY KEY,
+                    `modified` datetime(6) NOT NULL,
+                    `created` datetime(6) NOT NULL,
+                    `code` varchar(9) NOT NULL,
+                    `name` varchar(32) NOT NULL,
+                    `delete_mark` bool NOT NULL,
+                    `link_type` varchar(20) NOT NULL,
+                    `description` longtext NOT NULL,
+                    `is_primary` bool NOT NULL,
+                    `archive` bool NOT NULL,
+                    `equipment_id` char(32) NULL,
+                    `qr_code_id` char(32) NOT NULL,
+                    `service_id` char(32) NULL
+                )
+            """)
+            
+            # Create indexes
+            cursor.execute("CREATE INDEX `qr_qrservicelink_modified` ON `qr_qrservicelink` (`modified`)")
+            cursor.execute("CREATE INDEX `qr_qrservicelink_created` ON `qr_qrservicelink` (`created`)")
+            cursor.execute("CREATE INDEX `qr_qrservicelink_code` ON `qr_qrservicelink` (`code`)")
+            cursor.execute("CREATE INDEX `qr_qrservicelink_name` ON `qr_qrservicelink` (`name`)")
+            cursor.execute("CREATE INDEX `qr_qrservicelink_delete_mark` ON `qr_qrservicelink` (`delete_mark`)")
+            cursor.execute("CREATE INDEX `qr_qrservicelink_archive` ON `qr_qrservicelink` (`archive`)")
+            cursor.execute("CREATE INDEX `qr_service_link_type` ON `qr_qrservicelink` (`qr_code_id`, `link_type`)")
+            cursor.execute("CREATE INDEX `qr_service_link_equipment` ON `qr_qrservicelink` (`equipment_id`)")
+            cursor.execute("CREATE INDEX `qr_service_link_service` ON `qr_qrservicelink` (`service_id`)")
+            cursor.execute("CREATE INDEX `qr_service_link_primary` ON `qr_qrservicelink` (`is_primary`)")
+            
+            print("Created qr_qrservicelink table")
+        else:
+            print("qr_qrservicelink table already exists, skipping creation")
+
+
+def reverse_create_qrservicelink_table(apps, schema_editor):
+    """
+    Reverse operation - drop the table if it exists
+    """
+    with connection.cursor() as cursor:
+        cursor.execute("DROP TABLE IF EXISTS qr_qrservicelink")
+        print("Dropped qr_qrservicelink table")
 
 
 class Migration(migrations.Migration):
@@ -13,28 +75,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='QRServiceLink',
-            fields=[
-                ('guid', models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False)),
-                ('modified', models.DateTimeField(auto_now=True, db_index=True)),
-                ('created', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('code', models.CharField(blank=True, db_index=True, max_length=9)),
-                ('name', models.CharField(blank=True, db_index=True, max_length=32)),
-                ('delete_mark', models.BooleanField(db_index=True, default=False)),
-                ('link_type', models.CharField(choices=[('equipment', 'Equipment'), ('service', 'Service')], help_text='Type of linked object', max_length=20)),
-                ('description', models.TextField(blank=True, help_text='Description of the link')),
-                ('is_primary', models.BooleanField(default=False, help_text='Primary link for this QR code')),
-                ('archive', models.BooleanField(db_index=True, default=False)),
-                ('equipment', models.ForeignKey(blank=True, help_text='Linked Equipment object', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='qr_links', to='equipment.equipment')),
-                ('qr_code', models.ForeignKey(help_text='QR Code to link', on_delete=django.db.models.deletion.CASCADE, related_name='service_links', to='qr.qrcode')),
-                ('service', models.ForeignKey(blank=True, help_text='Linked Service object', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='qr_links', to='equipment.service')),
-            ],
-            options={
-                'verbose_name': 'QR Service Link',
-                'verbose_name_plural': 'QR Service Links',
-                'indexes': [models.Index(fields=['qr_code', 'link_type'], name='qr_service_link_type'), models.Index(fields=['equipment'], name='qr_service_link_equipment'), models.Index(fields=['service'], name='qr_service_link_service'), models.Index(fields=['is_primary'], name='qr_service_link_primary')],
-                'unique_together': {('qr_code', 'equipment'), ('qr_code', 'service')},
-            },
+        migrations.RunPython(
+            create_qrservicelink_table_if_not_exists,
+            reverse_create_qrservicelink_table,
         ),
     ]
