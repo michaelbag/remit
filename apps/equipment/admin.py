@@ -139,7 +139,7 @@ class InterfaceAdmin(CatalogAdmin):
     list_display = [
         'mac',
         'equipment',
-        'virtual',
+        'virtual_display',
         'ipv4_address',
         'connected_to',
         'interface_type',
@@ -160,6 +160,11 @@ class InterfaceAdmin(CatalogAdmin):
     @admin.display(description='🗃️', ordering='archive')
     def archive_icon(self, obj):
         return '🗃️' if obj.archive else ''
+
+    @admin.display(description='Virtual', ordering='virtual')
+    def virtual_display(self, obj):
+        return '(V)' if obj.virtual else '---'
+
 
     def get_search_results(self, request, queryset, search_term):
         queryset, may_have_duplicates = super().get_search_results(

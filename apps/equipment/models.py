@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from django.db import models
 from macaddress.fields import MACAddressField
 import apps.org.models
@@ -85,6 +85,12 @@ class Equipment(RecursiveCatalog):
     class Meta:
         verbose_name = _("Equipment")
         ordering = ["title", "name", "code"]
+
+    def save(self, *args, **kwargs):
+        # Если устанавливается archive=True и end_date не заполнено, устанавливаем текущую дату
+        if self.archive and not self.end_date:
+            self.end_date = date.today()
+        super().save(*args, **kwargs)
 
 
 class Software(Catalog):

@@ -11,7 +11,7 @@
     font-weight: 600;
   }
   .app-group[open] > summary { background: rgba(0,0,0,0.04); }
-  .model-list { list-style: none; margin: 0; padding: 0 .5rem .25rem .75rem; }
+  .model-list { list-style: none; margin: 0; padding: 0 .5rem .25rem 2rem; }
   .model-list li { margin: 0; padding: 0; }
   .model-list a { display: block; padding: .2rem 0; text-decoration: none; }
 </style>
@@ -26,7 +26,7 @@
           {% is_current_model model as is_current %}
           <li {% if is_current %}style="font-weight:600"{% endif %}>
             {% if model.admin_url %}
-              <a href="{{ model.admin_url }}">{% if is_current %}→ {% endif %}{{ model.name }}</a>
+              <a href="{{ model.admin_url }}">{{ model.name }}{% if is_current %} →{% endif %}</a>
             {% else %}
               <span>{% if is_current %}→ {% endif %}{{ model.name }}</span>
             {% endif %}
