@@ -140,10 +140,8 @@ SHORT_DATETIME_FORMAT = 'd.m.Y H:i'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-# STATIC_URL = 'static/'
-STATIC_URL = local_settings.STATIC_URL
-# STATIC_ROOT = BASE_DIR / 'static'
-STATIC_ROOT = local_settings.STATIC_ROOT if hasattr(local_settings, 'STATIC_ROOT') and local_settings.STATIC_ROOT else None
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Media files (Images, Files)
 # https://docs.djangoproject.com/en/5.0/topics/files/
@@ -152,9 +150,11 @@ MEDIA_URL = 'images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
 # STATICFILES_DIRS should not contain the same path as STATIC_ROOT
+# In development (DEBUG=True): use STATICFILES_DIRS
+# In production (DEBUG=False): use STATIC_ROOT
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-] if not (hasattr(local_settings, 'STATIC_ROOT') and local_settings.STATIC_ROOT) else []
+] if DEBUG else []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
