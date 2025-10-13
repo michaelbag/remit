@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "apps.qr",
     "apps.acc",
     "apps.service",
+    "apps.telegram",
     # 'api',
 ]
 
@@ -183,5 +184,9 @@ USE_DJANGO_JQUERY = True
 # System code prefix
 # Test Django - TD
 SYSTEM_PREFIX = local_settings.SYSTEM_PREFIX
+
+# Telegram Bot settings
+TELEGRAM_BOT_TOKEN = local_settings.TELEGRAM_BOT_TOKEN
+TELEGRAM_WEBHOOK_URL = local_settings.TELEGRAM_WEBHOOK_URL
 
 # MATERIAL_ADMIN_SITE = "material.admin.sites.AdminSite"

@@ -57,22 +57,38 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
 class EmployeesAdmin(CatalogAdmin):
     form = org_forms.EmployeeForm
     list_display = [
-        'archive',
+        'name',
+        'phone_display',
         'organization',
         'department',
         'start_date',
         'end_date',
+        'archive_icon',
     ]
-    list_filter = ['organization', 'department']
+    list_filter = ['organization', 'department', 'archive']
     search_fields = [
-        'name'
+        'name',
+        'phone'
     ]
     fieldsets = [
+        (
+            _('Main'),
+            {
+                'fields': ['name']
+            }
+        ),
         (
             _('Position'),
             {
                 'fields': [('organization', 'department'),
                            ('start_date', 'end_date')]
+            }
+        ),
+        (
+            _('Telegram'),
+            {
+                'fields': ['phone'],
+                'description': _('Phone number for Telegram bot integration. Format: 79161234567 or +79161234567')
             }
         ),
         (
@@ -82,6 +98,19 @@ class EmployeesAdmin(CatalogAdmin):
             }
         )
     ]
+
+    @admin.display(description='Phone', ordering='phone')
+    def phone_display(self, obj):
+        if obj.phone:
+            # Показываем номер в удобном формате
+            if len(obj.phone) == 11 and obj.phone.startswith('7'):
+                return f"+{obj.phone[0]} ({obj.phone[1:4]}) {obj.phone[4:7]}-{obj.phone[7:9]}-{obj.phone[9:11]}"
+            return obj.phone
+        return '-'
+
+    @admin.display(ordering='archive', description='🗃️')
+    def archive_icon(self, obj):
+        return '🗃️' if obj.archive else ''
 
     class Media:
         js = (
