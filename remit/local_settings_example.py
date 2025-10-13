@@ -68,3 +68,7 @@ TIME_ZONE = 'Europe/Moscow'
 
 # System prefix for codes created in this system in catalogs
 SYSTEM_PREFIX = 'TD'
+
+# Telegram Bot settings
+TELEGRAM_WEBHOOK_URL = 'https://example.com/tg/webhook'
+TELEGRAM_BOT_TOKEN = 'your-telegram-bot-token-here'
