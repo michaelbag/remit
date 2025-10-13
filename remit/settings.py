@@ -145,10 +145,11 @@ STATIC_URL = local_settings.STATIC_URL
 # STATIC_ROOT = BASE_DIR / 'static'
 STATIC_ROOT = local_settings.STATIC_ROOT if hasattr(local_settings, 'STATIC_ROOT') and local_settings.STATIC_ROOT else None
 
-# STATIC_URL = 'media/'
-MEDIA_URL = local_settings.MEDIA_URL
-# STATIC_ROOT = BASE_DIR / 'media'
-MEDIA_ROOT = local_settings.MEDIA_ROOT
+# Media files (Images, Files)
+# https://docs.djangoproject.com/en/5.0/topics/files/
+
+MEDIA_URL = 'images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
 # STATICFILES_DIRS should not contain the same path as STATIC_ROOT
 STATICFILES_DIRS = [
