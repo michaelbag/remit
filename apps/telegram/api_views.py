@@ -16,11 +16,13 @@ from rest_framework import status
 
 from .models import (
     TelegramUser, TelegramSubscriptionCategory, TelegramUserSubscription,
-    TelegramBroadcast, TelegramBroadcastDelivery, TelegramMessageTemplate
+    TelegramBroadcast, TelegramBroadcastDelivery, TelegramMessageTemplate,
+    TelegramUserRole, TelegramUserGroup, TelegramUserGroupMembership,
+    TelegramPermission, TelegramAuditLog
 )
 from .services import (
     TelegramSubscriptionService, TelegramBroadcastService, 
-    TelegramNotificationService
+    TelegramNotificationService, TelegramRBACService
 )
 
 logger = logging.getLogger(__name__)
@@ -592,3 +594,237 @@ def get_subscription_stats(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# RBAC API Views
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_groups(request):
+    """Получить список групп пользователей"""
+    try:
+        groups = TelegramUserGroup.objects.filter(is_active=True)
+        data = []
+        for group in groups:
+            data.append({
+                'id': group.id,
+                'name': group.name,
+                'description': group.description,
+                'roles': group.roles,
+                'member_count': group.members.filter(is_active=True).count()
+            })
+        return Response(data)
+    except Exception as e:
+        logger.error(f"Error getting user groups: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def assign_user_to_group(request):
+    """Назначить пользователя в группу"""
+    try:
+        telegram_user_id = request.data.get('telegram_user_id')
+        group_id = request.data.get('group_id')
+        roles = request.data.get('roles', [])
+        
+        if not telegram_user_id or not group_id:
+            return Response({'error': 'telegram_user_id and group_id are required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        telegram_user = TelegramUser.objects.get(id=telegram_user_id)
+        group = TelegramUserGroup.objects.get(id=group_id)
+        
+        rbac_service = TelegramRBACService()
+        membership, created = rbac_service.assign_user_to_group(
+            telegram_user, group, roles, request.user
+        )
+        
+        if membership:
+            return Response({
+                'success': True,
+                'created': created,
+                'membership_id': membership.id
+            })
+        else:
+            return Response({'error': 'Failed to assign user to group'}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    except TelegramUser.DoesNotExist:
+        return Response({'error': 'Telegram user not found'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+    except TelegramUserGroup.DoesNotExist:
+        return Response({'error': 'Group not found'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error assigning user to group: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_user_from_group(request):
+    """Удалить пользователя из группы"""
+    try:
+        telegram_user_id = request.data.get('telegram_user_id')
+        group_id = request.data.get('group_id')
+        
+        if not telegram_user_id or not group_id:
+            return Response({'error': 'telegram_user_id and group_id are required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        telegram_user = TelegramUser.objects.get(id=telegram_user_id)
+        group = TelegramUserGroup.objects.get(id=group_id)
+        
+        rbac_service = TelegramRBACService()
+        success = rbac_service.remove_user_from_group(telegram_user, group, request.user)
+        
+        if success:
+            return Response({'success': True})
+        else:
+            return Response({'error': 'Failed to remove user from group'}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    except TelegramUser.DoesNotExist:
+        return Response({'error': 'Telegram user not found'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+    except TelegramUserGroup.DoesNotExist:
+        return Response({'error': 'Group not found'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error removing user from group: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_permissions(request, telegram_user_id):
+    """Получить разрешения пользователя"""
+    try:
+        telegram_user = TelegramUser.objects.get(id=telegram_user_id)
+        rbac_service = TelegramRBACService()
+        
+        permissions = rbac_service.get_user_effective_permissions(telegram_user)
+        roles = telegram_user.get_all_roles()
+        groups = telegram_user.get_active_groups()
+        
+        data = {
+            'user': {
+                'id': telegram_user.id,
+                'username': telegram_user.user.username,
+                'telegram_id': telegram_user.telegram_id
+            },
+            'roles': roles,
+            'groups': [
+                {
+                    'id': membership.group.id,
+                    'name': membership.group.name,
+                    'assigned_roles': membership.assigned_roles
+                }
+                for membership in groups
+            ],
+            'permissions': [
+                {
+                    'id': perm.id,
+                    'name': perm.name,
+                    'code': perm.code,
+                    'type': perm.permission_type,
+                    'description': perm.description
+                }
+                for perm in permissions
+            ]
+        }
+        
+        return Response(data)
+        
+    except TelegramUser.DoesNotExist:
+        return Response({'error': 'Telegram user not found'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error getting user permissions: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_audit_logs(request):
+    """Получить логи аудита"""
+    try:
+        telegram_user_id = request.GET.get('telegram_user_id')
+        action_type = request.GET.get('action_type')
+        limit = int(request.GET.get('limit', 100))
+        
+        rbac_service = TelegramRBACService()
+        
+        telegram_user = None
+        if telegram_user_id:
+            telegram_user = TelegramUser.objects.get(id=telegram_user_id)
+        
+        logs = rbac_service.get_audit_logs(
+            telegram_user=telegram_user,
+            action_type=action_type,
+            limit=limit
+        )
+        
+        data = []
+        for log in logs:
+            data.append({
+                'id': log.id,
+                'telegram_user': {
+                    'id': log.telegram_user.id,
+                    'username': log.telegram_user.user.username
+                },
+                'action_type': log.action_type,
+                'action': log.action,
+                'details': log.details,
+                'success': log.success,
+                'error_message': log.error_message,
+                'ip_address': log.ip_address,
+                'created_at': log.created_at
+            })
+        
+        return Response(data)
+        
+    except TelegramUser.DoesNotExist:
+        return Response({'error': 'Telegram user not found'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error getting audit logs: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_available_roles(request):
+    """Получить доступные роли"""
+    try:
+        roles = [
+            {'code': role_code, 'name': role_name}
+            for role_code, role_name in TelegramUserRole.choices
+        ]
+        return Response(roles)
+    except Exception as e:
+        logger.error(f"Error getting available roles: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_permissions(request):
+    """Получить список разрешений"""
+    try:
+        permissions = TelegramPermission.objects.filter(is_active=True)
+        data = []
+        for perm in permissions:
+            data.append({
+                'id': perm.id,
+                'name': perm.name,
+                'code': perm.code,
+                'description': perm.description,
+                'permission_type': perm.permission_type,
+                'required_roles': perm.required_roles
+            })
+        return Response(data)
+    except Exception as e:
+        logger.error(f"Error getting permissions: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

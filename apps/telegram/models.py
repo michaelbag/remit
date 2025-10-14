@@ -24,6 +24,61 @@ class TelegramUser(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.telegram_id})"
+    
+    def get_all_roles(self):
+        """Получить все роли пользователя из всех активных групп"""
+        roles = set()
+        for membership in self.group_memberships.filter(is_active=True):
+            roles.update(membership.assigned_roles)
+        return list(roles)
+    
+    def has_role(self, role):
+        """Проверить, есть ли у пользователя указанная роль"""
+        return role in self.get_all_roles()
+    
+    def has_any_role(self, roles):
+        """Проверить, есть ли у пользователя хотя бы одна из указанных ролей"""
+        user_roles = self.get_all_roles()
+        return any(role in user_roles for role in roles)
+    
+    def has_all_roles(self, roles):
+        """Проверить, есть ли у пользователя все указанные роли"""
+        user_roles = self.get_all_roles()
+        return all(role in user_roles for role in roles)
+    
+    def get_role_hierarchy_level(self):
+        """Получить уровень иерархии ролей пользователя (чем выше, тем больше прав)"""
+        role_hierarchy = {
+            'viewer': 1,
+            'user': 2,
+            'operator': 3,
+            'admin': 4,
+            'super_admin': 5
+        }
+        
+        user_roles = self.get_all_roles()
+        if not user_roles:
+            return 0
+        
+        return max(role_hierarchy.get(role, 0) for role in user_roles)
+    
+    def can_access_feature(self, feature_code):
+        """Проверить доступ к функции по коду разрешения"""
+        from .services import TelegramRBACService
+        rbac_service = TelegramRBACService()
+        return rbac_service.check_permission(self, feature_code)
+    
+    def get_active_groups(self):
+        """Получить активные группы пользователя"""
+        return self.group_memberships.filter(is_active=True).select_related('group')
+    
+    def get_roles_display(self):
+        """Получить отображаемые названия ролей пользователя"""
+        roles = self.get_all_roles()
+        role_display = []
+        for role in roles:
+            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+        return ', '.join(role_display)
 
 
 class TelegramMessage(models.Model):
@@ -197,3 +252,126 @@ class TelegramBroadcastDelivery(models.Model):
     
     def __str__(self):
         return f"{self.broadcast.title} -> {self.telegram_user.user.username}"
+
+
+class TelegramUserRole(models.TextChoices):
+    """Фиксированные роли для пользователей Telegram бота"""
+    VIEWER = 'viewer', _('Viewer')
+    USER = 'user', _('User')
+    OPERATOR = 'operator', _('Operator')
+    ADMIN = 'admin', _('Admin')
+    SUPER_ADMIN = 'super_admin', _('Super Admin')
+
+
+class TelegramUserGroup(models.Model):
+    """Модель для групп пользователей Telegram"""
+    name = models.CharField(max_length=100, verbose_name=_('Group Name'))
+    description = models.TextField(blank=True, verbose_name=_('Description'))
+    roles = models.JSONField(default=list, verbose_name=_('Allowed Roles'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Telegram User Group')
+        verbose_name_plural = _('Telegram User Groups')
+        ordering = ['name']
+    
+    def __str__(self):
+        return f"{self.name} ({', '.join(self.roles)})"
+    
+    def get_roles_display(self):
+        """Получить отображаемые названия ролей"""
+        role_display = []
+        for role in self.roles:
+            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+        return ', '.join(role_display)
+
+
+class TelegramUserGroupMembership(models.Model):
+    """Модель для членства пользователей в группах"""
+    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='group_memberships')
+    group = models.ForeignKey(TelegramUserGroup, on_delete=models.CASCADE, related_name='members')
+    assigned_roles = models.JSONField(default=list, verbose_name=_('Assigned Roles'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    assigned_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Assigned At'))
+    assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                                  related_name='assigned_telegram_memberships', verbose_name=_('Assigned By'))
+    
+    class Meta:
+        verbose_name = _('Telegram User Group Membership')
+        verbose_name_plural = _('Telegram User Group Memberships')
+        unique_together = ('telegram_user', 'group')
+        ordering = ['-assigned_at']
+    
+    def __str__(self):
+        return f"{self.telegram_user.user.username} in {self.group.name}"
+    
+    def get_roles_display(self):
+        """Получить отображаемые названия назначенных ролей"""
+        role_display = []
+        for role in self.assigned_roles:
+            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+        return ', '.join(role_display)
+
+
+class TelegramPermission(models.Model):
+    """Модель для разрешений Telegram бота"""
+    PERMISSION_TYPES = [
+        ('command', _('Command')),
+        ('feature', _('Feature')),
+        ('data_access', _('Data Access')),
+        ('admin', _('Administrative')),
+    ]
+    
+    name = models.CharField(max_length=100, unique=True, verbose_name=_('Permission Name'))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_('Permission Code'))
+    description = models.TextField(blank=True, verbose_name=_('Description'))
+    permission_type = models.CharField(max_length=20, choices=PERMISSION_TYPES, default='command')
+    required_roles = models.JSONField(default=list, verbose_name=_('Required Roles'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    
+    class Meta:
+        verbose_name = _('Telegram Permission')
+        verbose_name_plural = _('Telegram Permissions')
+        ordering = ['permission_type', 'name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+    
+    def get_required_roles_display(self):
+        """Получить отображаемые названия требуемых ролей"""
+        role_display = []
+        for role in self.required_roles:
+            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+        return ', '.join(role_display)
+
+
+class TelegramAuditLog(models.Model):
+    """Модель для аудита действий пользователей"""
+    ACTION_TYPES = [
+        ('command', _('Command Execution')),
+        ('permission_check', _('Permission Check')),
+        ('role_assignment', _('Role Assignment')),
+        ('group_membership', _('Group Membership Change')),
+        ('data_access', _('Data Access')),
+    ]
+    
+    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='audit_logs')
+    action_type = models.CharField(max_length=20, choices=ACTION_TYPES, verbose_name=_('Action Type'))
+    action = models.CharField(max_length=100, verbose_name=_('Action'))
+    details = models.JSONField(default=dict, blank=True, verbose_name=_('Details'))
+    success = models.BooleanField(default=True, verbose_name=_('Success'))
+    error_message = models.TextField(blank=True, verbose_name=_('Error Message'))
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name=_('IP Address'))
+    user_agent = models.TextField(blank=True, verbose_name=_('User Agent'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    
+    class Meta:
+        verbose_name = _('Telegram Audit Log')
+        verbose_name_plural = _('Telegram Audit Logs')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.telegram_user.user.username} - {self.action} ({self.created_at})"

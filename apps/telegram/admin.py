@@ -5,7 +5,8 @@ from django.utils import timezone
 from .models import (
     TelegramUser, TelegramMessage, TelegramSubscriptionCategory,
     TelegramUserSubscription, TelegramBroadcast, TelegramBroadcastDelivery,
-    TelegramMessageTemplate
+    TelegramMessageTemplate, TelegramUserRole, TelegramUserGroup,
+    TelegramUserGroupMembership, TelegramPermission, TelegramAuditLog
 )
 from .services import TelegramBroadcastService
 
@@ -188,3 +189,101 @@ class TelegramBroadcastDeliveryAdmin(admin.ModelAdmin):
             'fields': ['sent_at', 'delivered_at', 'telegram_message_id', 'error_message']
         })
     ]
+
+
+@admin.register(TelegramUserGroup)
+class TelegramUserGroupAdmin(admin.ModelAdmin):
+    list_display = ['name', 'get_roles_display', 'is_active', 'member_count', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'description']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def member_count(self, obj):
+        return obj.members.filter(is_active=True).count()
+    member_count.short_description = 'Участников'
+    
+    fieldsets = [
+        ('Основная информация', {
+            'fields': ['name', 'description', 'is_active']
+        }),
+        ('Роли', {
+            'fields': ['roles']
+        }),
+        ('Временные метки', {
+            'fields': ['created_at', 'updated_at'],
+            'classes': ['collapse']
+        })
+    ]
+
+
+@admin.register(TelegramUserGroupMembership)
+class TelegramUserGroupMembershipAdmin(admin.ModelAdmin):
+    list_display = ['telegram_user', 'group', 'get_roles_display', 'is_active', 'assigned_at', 'assigned_by']
+    list_filter = ['is_active', 'group', 'assigned_at']
+    search_fields = ['telegram_user__user__username', 'group__name']
+    readonly_fields = ['assigned_at']
+    
+    fieldsets = [
+        ('Членство', {
+            'fields': ['telegram_user', 'group', 'is_active']
+        }),
+        ('Роли', {
+            'fields': ['assigned_roles']
+        }),
+        ('Метаданные', {
+            'fields': ['assigned_at', 'assigned_by'],
+            'classes': ['collapse']
+        })
+    ]
+
+
+@admin.register(TelegramPermission)
+class TelegramPermissionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code', 'permission_type', 'get_required_roles_display', 'is_active', 'created_at']
+    list_filter = ['permission_type', 'is_active', 'created_at']
+    search_fields = ['name', 'code', 'description']
+    readonly_fields = ['created_at']
+    
+    fieldsets = [
+        ('Основная информация', {
+            'fields': ['name', 'code', 'description', 'permission_type', 'is_active']
+        }),
+        ('Требуемые роли', {
+            'fields': ['required_roles']
+        }),
+        ('Временные метки', {
+            'fields': ['created_at'],
+            'classes': ['collapse']
+        })
+    ]
+
+
+@admin.register(TelegramAuditLog)
+class TelegramAuditLogAdmin(admin.ModelAdmin):
+    list_display = ['telegram_user', 'action_type', 'action', 'success', 'created_at']
+    list_filter = ['action_type', 'success', 'created_at']
+    search_fields = ['telegram_user__user__username', 'action', 'error_message']
+    readonly_fields = ['created_at', 'ip_address', 'user_agent']
+    
+    fieldsets = [
+        ('Действие', {
+            'fields': ['telegram_user', 'action_type', 'action', 'success']
+        }),
+        ('Детали', {
+            'fields': ['details', 'error_message'],
+            'classes': ['collapse']
+        }),
+        ('Метаданные', {
+            'fields': ['created_at', 'ip_address', 'user_agent'],
+            'classes': ['collapse']
+        })
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False

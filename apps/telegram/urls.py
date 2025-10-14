@@ -30,4 +30,13 @@ urlpatterns = [
     
     # API endpoints for statistics
     path('api/stats/subscriptions/', api_views.get_subscription_stats, name='api_subscription_stats'),
+    
+    # RBAC API endpoints
+    path('api/rbac/groups/', api_views.get_user_groups, name='api_telegram_user_groups'),
+    path('api/rbac/assign-user/', api_views.assign_user_to_group, name='api_telegram_assign_user_to_group'),
+    path('api/rbac/remove-user/', api_views.remove_user_from_group, name='api_telegram_remove_user_from_group'),
+    path('api/rbac/user-permissions/<int:telegram_user_id>/', api_views.get_user_permissions, name='api_telegram_user_permissions'),
+    path('api/rbac/audit-logs/', api_views.get_audit_logs, name='api_telegram_audit_logs'),
+    path('api/rbac/roles/', api_views.get_available_roles, name='api_telegram_available_roles'),
+    path('api/rbac/permissions/', api_views.get_permissions, name='api_telegram_permissions'),
 ]

@@ -2,8 +2,8 @@ import requests
 import logging
 from django.conf import settings
 from django.contrib.auth.models import User
-from .models import TelegramUser, TelegramMessage, TelegramSubscriptionCategory
-from .services import TelegramSubscriptionService
+from .models import TelegramUser, TelegramMessage, TelegramSubscriptionCategory, TelegramUserRole
+from .services import TelegramSubscriptionService, TelegramRBACService
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ class TelegramBot:
         self.token = settings.TELEGRAM_BOT_TOKEN
         self.webhook_url = settings.TELEGRAM_WEBHOOK_URL
         self.api_url = f"https://api.telegram.org/bot{self.token}"
+        self.rbac_service = TelegramRBACService()
     
     def send_message(self, chat_id, text, parse_mode='HTML', reply_markup=None):
         """Отправка сообщения пользователю"""
@@ -185,7 +186,9 @@ class TelegramBot:
                 "/status - Статус системы\n"
                 "/equipment - Список оборудования\n"
                 "/subscriptions - Управление подписками\n"
-                "/mysubscriptions - Мои подписки"
+                "/mysubscriptions - Мои подписки\n"
+                "/roles - Мои роли\n"
+                "/permissions - Мои разрешения"
             )
         elif command == '/help':
             response_text = (
@@ -197,7 +200,9 @@ class TelegramBot:
                 "/subscriptions - Доступные подписки\n"
                 "/mysubscriptions - Мои подписки\n"
                 "/subscribe <код> - Подписаться на категорию\n"
-                "/unsubscribe <код> - Отписаться от категории"
+                "/unsubscribe <код> - Отписаться от категории\n"
+                "/roles - Мои роли и группы\n"
+                "/permissions - Мои разрешения"
             )
         elif command == '/status':
             response_text = "✅ Система работает нормально"
@@ -231,6 +236,10 @@ class TelegramBot:
         elif command.startswith('/unsubscribe '):
             category_code = command.split(' ', 1)[1]
             response_text = self.handle_unsubscribe_command(telegram_user, category_code)
+        elif command == '/roles':
+            response_text = self.get_user_roles_info(telegram_user)
+        elif command == '/permissions':
+            response_text = self.get_user_permissions_info(telegram_user)
         else:
             response_text = "❓ Неизвестная команда. Используйте /help для справки."
         
@@ -434,3 +443,97 @@ class TelegramBot:
     def unsubscribe_user(self, telegram_user, category_code):
         """Отписать пользователя от категории"""
         return TelegramSubscriptionService.unsubscribe_user(telegram_user, category_code)
+    
+    def check_permission(self, telegram_user, permission_code):
+        """Проверить разрешение пользователя"""
+        return self.rbac_service.check_permission(telegram_user, permission_code)
+    
+    def log_command_execution(self, telegram_user, command, success=True, error_message=''):
+        """Логировать выполнение команды"""
+        self.rbac_service.log_audit_action(
+            telegram_user=telegram_user,
+            action_type='command',
+            action=f'Execute command: {command}',
+            details={'command': command},
+            success=success,
+            error_message=error_message
+        )
+    
+    def handle_command_with_permission(self, telegram_user, command, permission_code, command_handler):
+        """Выполнить команду с проверкой разрешений"""
+        # Проверяем разрешение
+        if not self.check_permission(telegram_user, permission_code):
+            response_text = (
+                f"❌ У вас нет прав для выполнения команды {command}.\n"
+                f"Обратитесь к администратору для получения необходимых разрешений."
+            )
+            self.send_message(telegram_user.telegram_id, response_text)
+            self.log_command_execution(telegram_user, command, success=False, 
+                                     error_message="Permission denied")
+            return response_text
+        
+        # Выполняем команду
+        try:
+            response_text = command_handler(telegram_user)
+            self.log_command_execution(telegram_user, command, success=True)
+            return response_text
+        except Exception as e:
+            error_msg = f"Error executing command {command}: {str(e)}"
+            logger.error(error_msg)
+            response_text = f"❌ Произошла ошибка при выполнении команды: {str(e)}"
+            self.send_message(telegram_user.telegram_id, response_text)
+            self.log_command_execution(telegram_user, command, success=False, 
+                                     error_message=error_msg)
+            return response_text
+    
+    def get_user_roles_info(self, telegram_user):
+        """Получить информацию о ролях пользователя"""
+        roles = telegram_user.get_all_roles()
+        groups = telegram_user.get_active_groups()
+        
+        if not roles:
+            return "У вас нет назначенных ролей. Обратитесь к администратору."
+        
+        response_text = "👤 <b>Ваши роли и группы:</b>\n\n"
+        
+        # Показываем роли
+        response_text += "🔑 <b>Роли:</b>\n"
+        for role in roles:
+            role_display = dict(TelegramUserRole.choices).get(role, role)
+            response_text += f"• {role_display}\n"
+        
+        # Показываем группы
+        if groups:
+            response_text += "\n👥 <b>Группы:</b>\n"
+            for membership in groups:
+                response_text += f"• {membership.group.name}\n"
+                if membership.assigned_roles:
+                    assigned_roles = [dict(TelegramUserRole.choices).get(r, r) for r in membership.assigned_roles]
+                    response_text += f"  Роли: {', '.join(assigned_roles)}\n"
+        
+        return response_text
+    
+    def get_user_permissions_info(self, telegram_user):
+        """Получить информацию о разрешениях пользователя"""
+        permissions = self.rbac_service.get_user_effective_permissions(telegram_user)
+        
+        if not permissions:
+            return "У вас нет активных разрешений."
+        
+        response_text = "🔐 <b>Ваши разрешения:</b>\n\n"
+        
+        # Группируем разрешения по типам
+        permission_types = {}
+        for perm in permissions:
+            if perm.permission_type not in permission_types:
+                permission_types[perm.permission_type] = []
+            permission_types[perm.permission_type].append(perm)
+        
+        for perm_type, perms in permission_types.items():
+            type_display = dict(TelegramPermission.PERMISSION_TYPES).get(perm_type, perm_type)
+            response_text += f"📋 <b>{type_display}:</b>\n"
+            for perm in perms:
+                response_text += f"• {perm.name}\n"
+            response_text += "\n"
+        
+        return response_text

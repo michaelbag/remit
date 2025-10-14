@@ -5,7 +5,9 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from .models import (
     TelegramUser, TelegramSubscriptionCategory, TelegramUserSubscription,
-    TelegramBroadcast, TelegramBroadcastDelivery, TelegramMessageTemplate
+    TelegramBroadcast, TelegramBroadcastDelivery, TelegramMessageTemplate,
+    TelegramUserRole, TelegramUserGroup, TelegramUserGroupMembership,
+    TelegramPermission, TelegramAuditLog
 )
 # from .bot import TelegramBot  # Импорт будет сделан внутри методов для избежания циклического импорта
 
@@ -394,3 +396,329 @@ class TelegramNotificationService:
                 message=f"🚨 ЭКСТРЕННОЕ ОПОВЕЩЕНИЕ 🚨\n\n{message}",
                 title="Экстренное оповещение"
             )
+
+
+class TelegramRBACService:
+    """Сервис для управления ролевым доступом (RBAC)"""
+    
+    def __init__(self):
+        pass
+    
+    def check_permission(self, telegram_user, permission_code, request=None):
+        """Проверить разрешение пользователя"""
+        try:
+            permission = TelegramPermission.objects.get(
+                code=permission_code,
+                is_active=True
+            )
+            
+            user_roles = telegram_user.get_all_roles()
+            has_permission = any(role in permission.required_roles for role in user_roles)
+            
+            # Логируем проверку разрешения
+            self.log_audit_action(
+                telegram_user=telegram_user,
+                action_type='permission_check',
+                action=f'Check permission: {permission_code}',
+                details={
+                    'permission_code': permission_code,
+                    'user_roles': user_roles,
+                    'required_roles': permission.required_roles,
+                    'has_permission': has_permission
+                },
+                success=has_permission,
+                request=request
+            )
+            
+            return has_permission
+            
+        except TelegramPermission.DoesNotExist:
+            logger.warning(f"Permission {permission_code} not found")
+            return False
+        except Exception as e:
+            logger.error(f"Error checking permission {permission_code}: {e}")
+            return False
+    
+    def assign_user_to_group(self, telegram_user, group, roles, assigned_by=None):
+        """Назначить пользователя в группу с ролями"""
+        try:
+            # Проверяем, что роли разрешены в группе
+            allowed_roles = set(group.roles)
+            requested_roles = set(roles)
+            
+            if not requested_roles.issubset(allowed_roles):
+                invalid_roles = requested_roles - allowed_roles
+                raise ValueError(f"Roles {invalid_roles} are not allowed in group {group.name}")
+            
+            membership, created = TelegramUserGroupMembership.objects.get_or_create(
+                telegram_user=telegram_user,
+                group=group,
+                defaults={
+                    'assigned_roles': roles,
+                    'assigned_by': assigned_by
+                }
+            )
+            
+            if not created:
+                membership.assigned_roles = roles
+                membership.assigned_by = assigned_by
+                membership.is_active = True
+                membership.save()
+            
+            # Логируем назначение
+            self.log_audit_action(
+                telegram_user=telegram_user,
+                action_type='group_membership',
+                action=f'Assigned to group: {group.name}',
+                details={
+                    'group_id': group.id,
+                    'group_name': group.name,
+                    'assigned_roles': roles,
+                    'assigned_by': assigned_by.username if assigned_by else None
+                },
+                success=True
+            )
+            
+            return membership, created
+            
+        except Exception as e:
+            logger.error(f"Error assigning user to group: {e}")
+            return None, False
+    
+    def remove_user_from_group(self, telegram_user, group, removed_by=None):
+        """Удалить пользователя из группы"""
+        try:
+            membership = TelegramUserGroupMembership.objects.get(
+                telegram_user=telegram_user,
+                group=group
+            )
+            membership.is_active = False
+            membership.save()
+            
+            # Логируем удаление
+            self.log_audit_action(
+                telegram_user=telegram_user,
+                action_type='group_membership',
+                action=f'Removed from group: {group.name}',
+                details={
+                    'group_id': group.id,
+                    'group_name': group.name,
+                    'removed_by': removed_by.username if removed_by else None
+                },
+                success=True
+            )
+            
+            return True
+            
+        except TelegramUserGroupMembership.DoesNotExist:
+            logger.warning(f"User {telegram_user.user.username} is not in group {group.name}")
+            return False
+        except Exception as e:
+            logger.error(f"Error removing user from group: {e}")
+            return False
+    
+    def get_user_effective_permissions(self, telegram_user):
+        """Получить все эффективные разрешения пользователя"""
+        user_roles = telegram_user.get_all_roles()
+        permissions = []
+        
+        for permission in TelegramPermission.objects.filter(is_active=True):
+            if any(role in permission.required_roles for role in user_roles):
+                permissions.append(permission)
+        
+        return permissions
+    
+    def get_users_with_role(self, role):
+        """Получить всех пользователей с указанной ролью"""
+        return TelegramUser.objects.filter(
+            group_memberships__assigned_roles__contains=[role],
+            group_memberships__is_active=True,
+            is_active=True
+        ).distinct()
+    
+    def get_users_with_permission(self, permission_code):
+        """Получить всех пользователей с указанным разрешением"""
+        try:
+            permission = TelegramPermission.objects.get(
+                code=permission_code,
+                is_active=True
+            )
+            
+            return TelegramUser.objects.filter(
+                group_memberships__assigned_roles__overlap=permission.required_roles,
+                group_memberships__is_active=True,
+                is_active=True
+            ).distinct()
+            
+        except TelegramPermission.DoesNotExist:
+            return TelegramUser.objects.none()
+    
+    def create_default_groups(self):
+        """Создать группы по умолчанию"""
+        default_groups = [
+            {
+                'name': 'Viewers',
+                'description': 'Группа для пользователей с правами просмотра',
+                'roles': ['viewer']
+            },
+            {
+                'name': 'Users',
+                'description': 'Группа для обычных пользователей',
+                'roles': ['viewer', 'user']
+            },
+            {
+                'name': 'Operators',
+                'description': 'Группа для операторов оборудования',
+                'roles': ['viewer', 'user', 'operator']
+            },
+            {
+                'name': 'Admins',
+                'description': 'Группа для администраторов',
+                'roles': ['viewer', 'user', 'operator', 'admin']
+            },
+            {
+                'name': 'Super Admins',
+                'description': 'Группа для супер-администраторов',
+                'roles': ['viewer', 'user', 'operator', 'admin', 'super_admin']
+            }
+        ]
+        
+        created_groups = []
+        for group_data in default_groups:
+            group, created = TelegramUserGroup.objects.get_or_create(
+                name=group_data['name'],
+                defaults=group_data
+            )
+            if created:
+                created_groups.append(group)
+        
+        return created_groups
+    
+    def create_default_permissions(self):
+        """Создать разрешения по умолчанию"""
+        default_permissions = [
+            # Команды бота
+            {
+                'name': 'View Equipment',
+                'code': 'view_equipment',
+                'description': 'Просмотр списка оборудования',
+                'permission_type': 'command',
+                'required_roles': ['viewer', 'user', 'operator', 'admin', 'super_admin']
+            },
+            {
+                'name': 'Manage Equipment',
+                'code': 'manage_equipment',
+                'description': 'Управление оборудованием',
+                'permission_type': 'command',
+                'required_roles': ['operator', 'admin', 'super_admin']
+            },
+            {
+                'name': 'View Subscriptions',
+                'code': 'view_subscriptions',
+                'description': 'Просмотр подписок',
+                'permission_type': 'command',
+                'required_roles': ['viewer', 'user', 'operator', 'admin', 'super_admin']
+            },
+            {
+                'name': 'Manage Subscriptions',
+                'code': 'manage_subscriptions',
+                'description': 'Управление подписками',
+                'permission_type': 'command',
+                'required_roles': ['user', 'operator', 'admin', 'super_admin']
+            },
+            # Административные функции
+            {
+                'name': 'Admin Panel Access',
+                'code': 'admin_panel',
+                'description': 'Доступ к административной панели',
+                'permission_type': 'admin',
+                'required_roles': ['admin', 'super_admin']
+            },
+            {
+                'name': 'Manage Users',
+                'code': 'manage_users',
+                'description': 'Управление пользователями',
+                'permission_type': 'admin',
+                'required_roles': ['admin', 'super_admin']
+            },
+            {
+                'name': 'Manage Broadcasts',
+                'code': 'manage_broadcasts',
+                'description': 'Управление рассылками',
+                'permission_type': 'admin',
+                'required_roles': ['admin', 'super_admin']
+            },
+            {
+                'name': 'System Administration',
+                'code': 'system_admin',
+                'description': 'Системное администрирование',
+                'permission_type': 'admin',
+                'required_roles': ['super_admin']
+            }
+        ]
+        
+        created_permissions = []
+        for perm_data in default_permissions:
+            permission, created = TelegramPermission.objects.get_or_create(
+                code=perm_data['code'],
+                defaults=perm_data
+            )
+            if created:
+                created_permissions.append(permission)
+        
+        return created_permissions
+    
+    def log_audit_action(self, telegram_user, action_type, action, details=None, 
+                        success=True, error_message='', request=None):
+        """Логировать действие для аудита"""
+        try:
+            audit_log = TelegramAuditLog.objects.create(
+                telegram_user=telegram_user,
+                action_type=action_type,
+                action=action,
+                details=details or {},
+                success=success,
+                error_message=error_message,
+                ip_address=self._get_client_ip(request) if request else None,
+                user_agent=self._get_user_agent(request) if request else None
+            )
+            return audit_log
+        except Exception as e:
+            logger.error(f"Error logging audit action: {e}")
+            return None
+    
+    def _get_client_ip(self, request):
+        """Получить IP адрес клиента"""
+        if request:
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip = x_forwarded_for.split(',')[0]
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            return ip
+        return None
+    
+    def _get_user_agent(self, request):
+        """Получить User Agent"""
+        if request:
+            return request.META.get('HTTP_USER_AGENT', '')
+        return None
+    
+    def get_audit_logs(self, telegram_user=None, action_type=None, 
+                      start_date=None, end_date=None, limit=100):
+        """Получить логи аудита с фильтрацией"""
+        logs = TelegramAuditLog.objects.all()
+        
+        if telegram_user:
+            logs = logs.filter(telegram_user=telegram_user)
+        
+        if action_type:
+            logs = logs.filter(action_type=action_type)
+        
+        if start_date:
+            logs = logs.filter(created_at__gte=start_date)
+        
+        if end_date:
+            logs = logs.filter(created_at__lte=end_date)
+        
+        return logs.order_by('-created_at')[:limit]
