@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from common.admin import CatalogAdmin
 from .models import (
     TelegramUser, TelegramMessage, TelegramSubscriptionCategory,
     TelegramUserSubscription, TelegramBroadcast, TelegramBroadcastDelivery,
@@ -12,6 +13,8 @@ from .models import (
 from .services import TelegramBroadcastService
 
 
+
+
 @admin.register(TelegramUser)
 class TelegramUserAdmin(admin.ModelAdmin):
     list_display = ['get_full_display', 'telegram_id', 'get_telegram_info', 'employee', 'is_active', 'created_at']
@@ -19,16 +22,15 @@ class TelegramUserAdmin(admin.ModelAdmin):
     search_fields = ['user__username', 'telegram_id', 'username', 'first_name', 'last_name', 'phone_number', 'employee__name']
     readonly_fields = ['created_at', 'updated_at']
     
+    @admin.display(description=_('User'), ordering='user__username')
     def get_full_display(self, obj):
         """Display full user information"""
         return obj.get_full_display()
-    get_full_display.short_description = _('User')
-    get_full_display.admin_order_field = 'user__username'
     
+    @admin.display(description=_('Telegram Info'))
     def get_telegram_info(self, obj):
         """Display Telegram account information"""
         return obj.get_telegram_info()
-    get_telegram_info.short_description = _('Telegram Info')
     
     fieldsets = [
         (_('Basic Information'), {
@@ -48,21 +50,19 @@ class TelegramUserAdmin(admin.ModelAdmin):
 
 
 @admin.register(TelegramMessage)
-class TelegramMessageAdmin(admin.ModelAdmin):
-    list_display = ['get_telegram_user_display', 'message_type', 'content_short', 'is_processed', 'created']
+class TelegramMessageAdmin(CatalogAdmin):
+    list_display = ['get_telegram_user_display', 'message_type', 'content_short', 'is_processed']
     list_filter = ['message_type', 'is_processed', 'created']
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'content', 'response']
-    readonly_fields = ['created']
     
+    @admin.display(description=_('User'), ordering='telegram_user__user__username')
     def get_telegram_user_display(self, obj):
         """Display Telegram user"""
         return obj.telegram_user.get_full_display()
-    get_telegram_user_display.short_description = _('User')
-    get_telegram_user_display.admin_order_field = 'telegram_user__user__username'
     
+    @admin.display(description=_('Content'))
     def content_short(self, obj):
         return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
-    content_short.short_description = _('Content')
     
     fieldsets = [
         (_('Basic Information'), {
@@ -70,10 +70,6 @@ class TelegramMessageAdmin(admin.ModelAdmin):
         }),
         (_('Message'), {
             'fields': ['content', 'response']
-        }),
-        (_('Timestamps'), {
-            'fields': ['created'],
-            'classes': ['collapse']
         })
     ]
 
@@ -85,9 +81,9 @@ class TelegramSubscriptionCategoryAdmin(admin.ModelAdmin):
     search_fields = ['name', 'code', 'description']
     readonly_fields = ['created_at', 'updated_at']
     
+    @admin.display(description=_('Subscribers'))
     def subscriber_count(self, obj):
         return obj.subscribers.filter(status='active').count()
-    subscriber_count.short_description = _('Subscribers')
     
     fieldsets = [
         (_('Basic Information'), {
@@ -110,11 +106,10 @@ class TelegramUserSubscriptionAdmin(admin.ModelAdmin):
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'category__name', 'category__code']
     readonly_fields = ['subscribed_at', 'unsubscribed_at', 'last_notification_at', 'notification_count']
     
+    @admin.display(description=_('User'), ordering='telegram_user__user__username')
     def get_telegram_user_display(self, obj):
         """Display Telegram user"""
         return obj.telegram_user.get_full_display()
-    get_telegram_user_display.short_description = _('User')
-    get_telegram_user_display.admin_order_field = 'telegram_user__user__username'
     
     fieldsets = [
         (_('Subscription'), {
@@ -131,11 +126,10 @@ class TelegramUserSubscriptionAdmin(admin.ModelAdmin):
 
 
 @admin.register(TelegramMessageTemplate)
-class TelegramMessageTemplateAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'is_active', 'created_at']
-    list_filter = ['is_active', 'category', 'created_at']
+class TelegramMessageTemplateAdmin(CatalogAdmin):
+    list_display = ['category', 'is_active']
+    list_filter = ['is_active', 'category', 'created']
     search_fields = ['name', 'subject_template', 'message_template']
-    readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = [
         (_('Basic Information'), {
@@ -143,10 +137,6 @@ class TelegramMessageTemplateAdmin(admin.ModelAdmin):
         }),
         (_('Template'), {
             'fields': ['subject_template', 'message_template', 'variables']
-        }),
-        (_('Timestamps'), {
-            'fields': ['created_at', 'updated_at'],
-            'classes': ['collapse']
         })
     ]
 
@@ -159,6 +149,7 @@ class TelegramBroadcastAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'sent_at', 'total_recipients', 'delivered_count', 'failed_count']
     filter_horizontal = ['target_categories', 'target_users']
     
+    @admin.display(description=_('Actions'))
     def send_broadcast_button(self, obj):
         if obj.status in ['draft', 'scheduled']:
             return format_html(
@@ -167,7 +158,6 @@ class TelegramBroadcastAdmin(admin.ModelAdmin):
                 _('Send')
             )
         return '-'
-    send_broadcast_button.short_description = _('Actions')
     
     fieldsets = [
         (_('Basic Information'), {
@@ -202,15 +192,14 @@ class TelegramBroadcastDeliveryAdmin(admin.ModelAdmin):
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'broadcast__title', 'error_message']
     readonly_fields = ['sent_at', 'delivered_at', 'telegram_message_id']
     
+    @admin.display(description=_('User'), ordering='telegram_user__user__username')
     def get_telegram_user_display(self, obj):
         """Display Telegram user"""
         return obj.telegram_user.get_full_display()
-    get_telegram_user_display.short_description = _('User')
-    get_telegram_user_display.admin_order_field = 'telegram_user__user__username'
     
+    @admin.display(description=_('Error'))
     def error_message_short(self, obj):
         return obj.error_message[:50] + '...' if len(obj.error_message) > 50 else obj.error_message
-    error_message_short.short_description = _('Error')
     
     fieldsets = [
         (_('Delivery'), {
@@ -229,9 +218,9 @@ class TelegramUserGroupAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
     
+    @admin.display(description=_('Members'))
     def member_count(self, obj):
         return obj.members.filter(is_active=True).count()
-    member_count.short_description = _('Members')
     
     fieldsets = [
         (_('Basic Information'), {
@@ -254,11 +243,10 @@ class TelegramUserGroupMembershipAdmin(admin.ModelAdmin):
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'group__name']
     readonly_fields = ['assigned_at']
     
+    @admin.display(description=_('User'), ordering='telegram_user__user__username')
     def get_telegram_user_display(self, obj):
         """Display Telegram user"""
         return obj.telegram_user.get_full_display()
-    get_telegram_user_display.short_description = _('User')
-    get_telegram_user_display.admin_order_field = 'telegram_user__user__username'
     
     fieldsets = [
         (_('Membership'), {
@@ -302,11 +290,10 @@ class TelegramAuditLogAdmin(admin.ModelAdmin):
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'action', 'error_message']
     readonly_fields = ['created_at', 'ip_address', 'user_agent']
     
+    @admin.display(description=_('User'), ordering='telegram_user__user__username')
     def get_telegram_user_display(self, obj):
         """Display Telegram user"""
         return obj.telegram_user.get_full_display()
-    get_telegram_user_display.short_description = _('User')
-    get_telegram_user_display.admin_order_field = 'telegram_user__user__username'
     
     fieldsets = [
         (_('Action'), {

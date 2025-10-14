@@ -162,6 +162,7 @@ class TelegramBroadcastService:
         """Отправить рассылку"""
         try:
             broadcast = TelegramBroadcast.objects.get(id=broadcast_id)
+            logger.info(f"Starting broadcast {broadcast_id}: {broadcast.title}")
             broadcast.status = 'sending'
             broadcast.save()
             
@@ -170,11 +171,21 @@ class TelegramBroadcastService:
             broadcast.total_recipients = len(recipients)
             broadcast.save()
             
+            logger.info(f"Found {len(recipients)} recipients for broadcast {broadcast_id}")
+            
+            if not recipients:
+                logger.warning(f"No recipients found for broadcast {broadcast_id}")
+                broadcast.status = 'failed'
+                broadcast.save()
+                return False
+            
             success_count = 0
             failed_count = 0
             
             for telegram_user in recipients:
                 try:
+                    logger.info(f"Sending message to {telegram_user.telegram_id} ({telegram_user.get_full_display()})")
+                    
                     # Создаем запись о доставке
                     delivery = TelegramBroadcastDelivery.objects.create(
                         broadcast=broadcast,
@@ -188,20 +199,24 @@ class TelegramBroadcastService:
                         text=broadcast.message
                     )
                     
+                    logger.info(f"Bot response for {telegram_user.telegram_id}: {response}")
+                    
                     if response and response.get('ok'):
                         delivery.status = 'sent'
                         delivery.sent_at = timezone.now()
                         delivery.telegram_message_id = response.get('result', {}).get('message_id')
                         success_count += 1
+                        logger.info(f"Message sent successfully to {telegram_user.telegram_id}")
                     else:
                         delivery.status = 'failed'
                         delivery.error_message = str(response)
                         failed_count += 1
+                        logger.error(f"Failed to send message to {telegram_user.telegram_id}: {response}")
                     
                     delivery.save()
                     
                 except Exception as e:
-                    logger.error(f"Failed to send message to {telegram_user.telegram_id}: {e}")
+                    logger.error(f"Exception sending message to {telegram_user.telegram_id}: {e}")
                     failed_count += 1
             
             # Обновляем статистику
@@ -211,6 +226,7 @@ class TelegramBroadcastService:
             broadcast.sent_at = timezone.now()
             broadcast.save()
             
+            logger.info(f"Broadcast {broadcast_id} completed: {success_count} sent, {failed_count} failed")
             return True
             
         except TelegramBroadcast.DoesNotExist:

@@ -61,32 +61,33 @@ def get_webhook_info(request):
 
 
 @staff_member_required
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def admin_send_broadcast(request, broadcast_id):
     """Отправка рассылки из админки"""
     from .models import TelegramBroadcast
     from .services import TelegramBroadcastService
     
     try:
-        
         # Получаем рассылку
         try:
             broadcast = TelegramBroadcast.objects.get(id=broadcast_id)
         except TelegramBroadcast.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Broadcast not found'}, status=404)
+            messages.error(request, 'Рассылка не найдена')
+            return redirect('admin:telegram_telegrambroadcast_changelist')
         
         # Проверяем статус рассылки
         if broadcast.status not in ['draft', 'scheduled']:
-            return JsonResponse({'status': 'error', 'message': 'Broadcast cannot be sent'}, status=400)
+            messages.error(request, f'Рассылка не может быть отправлена. Текущий статус: {broadcast.get_status_display()}')
+            return redirect('admin:telegram_telegrambroadcast_changelist')
         
         # Отправляем рассылку
         broadcast_service = TelegramBroadcastService()
         result = broadcast_service.send_broadcast(broadcast_id)
         
-        if result.get('success'):
+        if result:
             messages.success(request, f'Рассылка "{broadcast.title}" успешно отправлена!')
         else:
-            messages.error(request, f'Ошибка при отправке рассылки: {result.get("error", "Unknown error")}')
+            messages.error(request, f'Ошибка при отправке рассылки "{broadcast.title}"')
         
         # Перенаправляем обратно в админку
         return redirect('admin:telegram_telegrambroadcast_changelist')

@@ -221,16 +221,13 @@ class TelegramUserSubscription(models.Model):
         return f"{self.telegram_user.user.username} - {self.category.name}"
 
 
-class TelegramMessageTemplate(models.Model):
+class TelegramMessageTemplate(Catalog):
     """Model for Telegram message templates"""
-    name = models.CharField(max_length=100, verbose_name=_('Template Name'))
     category = models.ForeignKey(TelegramSubscriptionCategory, on_delete=models.CASCADE, related_name='templates')
     subject_template = models.CharField(max_length=200, verbose_name=_('Subject Template'))
     message_template = models.TextField(verbose_name=_('Message Template'))
     variables = models.JSONField(default=list, blank=True, verbose_name=_('Available Variables'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
     
     class Meta:
         verbose_name = _('Telegram Message Template')
