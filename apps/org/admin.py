@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from common.admin import CatalogAdmin
@@ -43,6 +44,7 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
 
     @admin.display(ordering='archive', description='🗃️')
     def archive_icon(self, obj):
+        """Display archive status icon"""
         return '🗃️' if obj.archive else ''
 
     class Media:
@@ -56,9 +58,13 @@ class DepartmentAdmin(RecursiveCatalogByElementsAdmin):
 @admin.register(org_models.Employee)
 class EmployeesAdmin(CatalogAdmin):
     form = org_forms.EmployeeForm
+    use_basic_fieldsets = False  # Disable automatic basic_fieldsets
+    hidden_system_fieldsets = True  # Hide system fieldsets from CatalogAdmin
     list_display = [
         'name',
         'phone_display',
+        'email_display',
+        'telegram_users_display',
         'organization',
         'department',
         'start_date',
@@ -68,13 +74,15 @@ class EmployeesAdmin(CatalogAdmin):
     list_filter = ['organization', 'department', 'archive']
     search_fields = [
         'name',
-        'phone'
+        'phone',
+        'email'
     ]
+    readonly_fields = ['telegram_users_display']
     fieldsets = [
         (
             _('Main'),
             {
-                'fields': ['name']
+                'fields': [('name', 'code')]
             }
         ),
         (
@@ -85,31 +93,60 @@ class EmployeesAdmin(CatalogAdmin):
             }
         ),
         (
-            _('Telegram'),
+            _('Contact Information'),
             {
-                'fields': ['phone'],
-                'description': _('Phone number for Telegram bot integration. Format: 79161234567 or +79161234567')
+                'fields': ['phone', 'email'],
+                'description': _('Contact information for employee. Phone format: 79161234567 or +79161234567')
+            }
+        ),
+        (
+            _('Telegram Users'),
+            {
+                'fields': ['telegram_users_display'],
+                'description': _('Telegram users linked to this employee'),
+                'classes': ['collapse']
             }
         ),
         (
             _('System'),
             {
-                'fields': ['archive', 'delete_mark', ('created', 'modified'), 'guid']
+                'fields': ['archive', 'delete_mark', 'guid']
             }
         )
     ]
 
-    @admin.display(description='Phone', ordering='phone')
+    @admin.display(description=_('Phone'), ordering='phone')
     def phone_display(self, obj):
-        if obj.phone:
-            # Показываем номер в удобном формате
-            if len(obj.phone) == 11 and obj.phone.startswith('7'):
-                return f"+{obj.phone[0]} ({obj.phone[1:4]}) {obj.phone[4:7]}-{obj.phone[7:9]}-{obj.phone[9:11]}"
-            return obj.phone
-        return '-'
+        """Display phone number in convenient format"""
+        return obj.formatted_phone or '-'
+
+    @admin.display(description=_('Email'), ordering='email')
+    def email_display(self, obj):
+        """Display email address"""
+        return obj.email if obj.email else '-'
+
+    @admin.display(description=_('Telegram Users'))
+    def telegram_users_display(self, obj):
+        """Display linked Telegram users with links to admin pages"""
+        telegram_users = obj.telegram_users.filter(is_active=True)
+        if not telegram_users.exists():
+            return '-'
+        
+        user_links = []
+        for tg_user in telegram_users:
+            # Create a link to the Telegram user admin page
+            admin_url = reverse('admin:telegram_telegramuser_change', args=[tg_user.pk])
+            user_info = f"@{tg_user.username}" if tg_user.username else f"{tg_user.first_name} {tg_user.last_name}".strip()
+            if not user_info:
+                user_info = f"ID: {tg_user.telegram_id}"
+            
+            user_links.append(f'<a href="{admin_url}" target="_blank">{user_info}</a>')
+        
+        return format_html('<br>'.join(user_links))
 
     @admin.display(ordering='archive', description='🗃️')
     def archive_icon(self, obj):
+        """Display archive status icon"""
         return '🗃️' if obj.archive else ''
 
     class Media:

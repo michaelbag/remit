@@ -188,7 +188,8 @@ class TelegramBot:
                 "/subscriptions - Управление подписками\n"
                 "/mysubscriptions - Мои подписки\n"
                 "/roles - Мои роли\n"
-                "/permissions - Мои разрешения"
+                "/permissions - Мои разрешения\n"
+                "/forgetme - Отвязать профиль от сотрудника"
             )
         elif command == '/help':
             response_text = (
@@ -199,10 +200,11 @@ class TelegramBot:
                 "/equipment - Список оборудования\n"
                 "/subscriptions - Доступные подписки\n"
                 "/mysubscriptions - Мои подписки\n"
-                "/subscribe <код> - Подписаться на категорию\n"
-                "/unsubscribe <код> - Отписаться от категории\n"
+                "/subscribe <code>код</code> - Подписаться на категорию\n"
+                "/unsubscribe <code>код</code> - Отписаться от категории\n"
                 "/roles - Мои роли и группы\n"
-                "/permissions - Мои разрешения"
+                "/permissions - Мои разрешения\n"
+                "/forgetme - Отвязать профиль от сотрудника"
             )
         elif command == '/status':
             response_text = "✅ Система работает нормально"
@@ -240,6 +242,8 @@ class TelegramBot:
             response_text = self.get_user_roles_info(telegram_user)
         elif command == '/permissions':
             response_text = self.get_user_permissions_info(telegram_user)
+        elif command == '/forgetme':
+            response_text = self.handle_forgetme_command(telegram_user)
         else:
             response_text = "❓ Неизвестная команда. Используйте /help для справки."
         
@@ -743,3 +747,42 @@ class TelegramBot:
             response_text += "\n"
         
         return response_text
+    
+    def handle_forgetme_command(self, telegram_user):
+        """Обработка команды /forgetme - отвязка от сотрудника"""
+        try:
+            # Проверяем, привязан ли пользователь к сотруднику
+            if not telegram_user.employee:
+                return (
+                    "ℹ️ <b>Ваш профиль не привязан к сотруднику</b>\n\n"
+                    "Нет необходимости в отвязке, так как профиль уже не связан с сотрудником."
+                )
+            
+            # Сохраняем информацию о сотруднике для сообщения
+            employee_name = telegram_user.employee.name if telegram_user.employee else "Неизвестный"
+            
+            # Отвязываем от сотрудника
+            telegram_user.employee = None
+            
+            # Очищаем номер телефона
+            telegram_user.phone_number = ""
+            
+            # Сохраняем изменения
+            telegram_user.save()
+            
+            # Логируем действие
+            logger.info(f"User {telegram_user.telegram_id} unlinked from employee {employee_name}")
+            
+            return (
+                "✅ <b>Профиль успешно отвязан!</b>\n\n"
+                f"Вы больше не связаны с сотрудником: <b>{employee_name}</b>\n"
+                "Номер телефона удален из профиля.\n\n"
+                "Для повторной привязки обратитесь к администратору или используйте команду /start"
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in handle_forgetme_command: {e}")
+            return (
+                "❌ <b>Произошла ошибка при отвязке профиля</b>\n\n"
+                "Попробуйте позже или обратитесь к администратору."
+            )

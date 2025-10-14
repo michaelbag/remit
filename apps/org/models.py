@@ -65,6 +65,13 @@ class Employee(common_models.Catalog):
             )
         ]
     )
+    email = models.EmailField(
+        max_length=254,
+        blank=True,
+        help_text=_('Email address'),
+        db_index=True,
+        verbose_name=_('Email')
+    )
     archive = models.BooleanField(default=False, help_text=_('Is archived'), db_index=True)
     start_date = models.DateField(default=date.today, null=True, help_text=_('Work till'))
     end_date = models.DateField(null=True, blank=True, help_text=_('Fired date'))
@@ -75,32 +82,39 @@ class Employee(common_models.Catalog):
             self.phone = self.normalize_phone(self.phone)
 
     def normalize_phone(self, phone_number):
-        """Нормализация номера телефона в формат 79161234567"""
+        """Normalize phone number to format 79161234567"""
         if not phone_number:
             return phone_number
         
-        # Убираем все символы кроме цифр
+        # Remove all characters except digits
         clean_phone = re.sub(r'[^\d]', '', phone_number)
         
-        # Если номер начинается с 8, заменяем на 7
+        # If number starts with 8, replace with 7
         if clean_phone.startswith('8') and len(clean_phone) == 11:
             clean_phone = '7' + clean_phone[1:]
         
-        # Если номер начинается с 7 и имеет 11 цифр - возвращаем как есть
+        # If number starts with 7 and has 11 digits - return as is
         if clean_phone.startswith('7') and len(clean_phone) == 11:
             return clean_phone
         
-        # Если номер имеет 10 цифр, добавляем 7 в начало
+        # If number has 10 digits, add 7 at the beginning
         if len(clean_phone) == 10:
             return '7' + clean_phone
         
-        # Если ничего не подошло, возвращаем исходный номер
+        # If nothing matched, return original number
         return phone_number
 
     def save(self, *args, **kwargs):
         if self.phone:
             self.phone = self.normalize_phone(self.phone)
         super().save(*args, **kwargs)
+    
+    @property
+    def formatted_phone(self):
+        """Return phone number in formatted display format"""
+        if self.phone and len(self.phone) == 11 and self.phone.startswith('7'):
+            return f"+{self.phone[0]} ({self.phone[1:4]}) {self.phone[4:7]}-{self.phone[7:9]}-{self.phone[9:11]}"
+        return self.phone or ''
 
     class Meta:
         verbose_name = 'Employee'
