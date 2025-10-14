@@ -2,7 +2,7 @@ import requests
 import logging
 from django.conf import settings
 from django.contrib.auth.models import User
-from .models import TelegramUser, TelegramMessage, TelegramSubscriptionCategory, TelegramUserRole
+from .models import TelegramUser, TelegramMessage, TelegramSubscriptionCategory, TelegramUserRole, TelegramPermission
 from .services import TelegramSubscriptionService, TelegramRBACService
 
 logger = logging.getLogger(__name__)
@@ -243,8 +243,14 @@ class TelegramBot:
         else:
             response_text = "❓ Неизвестная команда. Используйте /help для справки."
         
-        self.send_message(chat_id, response_text)
-        telegram_message.response = response_text
+        # Отправляем сообщение только если response_text не None
+        if response_text is not None:
+            self.send_message(chat_id, response_text)
+            telegram_message.response = response_text
+        else:
+            # Если response_text None, значит сообщение уже отправлено в команде
+            telegram_message.response = "Message sent with inline keyboard"
+        
         telegram_message.message_type = 'command'
         telegram_message.is_processed = True
         telegram_message.save()
@@ -269,9 +275,17 @@ class TelegramBot:
             callback_query = update_data['callback_query']
             chat_id = callback_query['message']['chat']['id']
             data = callback_query['data']
+            from_user = callback_query.get('from', {})
             
-            response_text = f"Callback: {data}"
-            self.send_message(chat_id, response_text)
+            # Получаем пользователя
+            telegram_user = self.get_or_create_telegram_user(from_user)
+            
+            # Обрабатываем callback данные
+            response_text = self.handle_callback_query(telegram_user, data, callback_query)
+            
+            # Отвечаем на callback query (убираем "часики" в Telegram)
+            self.answer_callback_query(callback_query['id'], response_text)
+            
             return response_text
         
         return "Unknown update type"
@@ -333,6 +347,77 @@ class TelegramBot:
         self.send_message(chat_id, response_text)
         return response_text
     
+    def answer_callback_query(self, callback_query_id, text=None, show_alert=False):
+        """Ответ на callback query"""
+        url = f"{self.api_url}/answerCallbackQuery"
+        data = {
+            'callback_query_id': callback_query_id,
+            'show_alert': show_alert
+        }
+        if text:
+            data['text'] = text
+        
+        try:
+            response = requests.post(url, json=data)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error answering callback query: {e}")
+            return {'ok': False, 'error': str(e)}
+    
+    def handle_callback_query(self, telegram_user, data, callback_query):
+        """Обработка callback запросов от inline кнопок"""
+        chat_id = telegram_user.telegram_id
+        
+        if data.startswith('subscribe_'):
+            # Подписка на категорию
+            category_code = data.replace('subscribe_', '')
+            result = self.handle_subscribe_command(telegram_user, category_code)
+            # Отправляем уведомление пользователю
+            self.send_message(chat_id, result)
+            return result
+            
+        elif data.startswith('unsubscribe_'):
+            # Отписка от категории
+            category_code = data.replace('unsubscribe_', '')
+            result = self.handle_unsubscribe_command(telegram_user, category_code)
+            # Отправляем уведомление пользователю
+            self.send_message(chat_id, result)
+            return result
+            
+        elif data.startswith('status_'):
+            # Показать статус подписки
+            category_code = data.replace('status_', '')
+            try:
+                from .models import TelegramSubscriptionCategory
+                category = TelegramSubscriptionCategory.objects.get(code=category_code)
+                subscription = TelegramSubscriptionService.get_user_subscription(telegram_user, category_code)
+                
+                if subscription:
+                    status_emoji = {
+                        'active': '✅',
+                        'paused': '⏸️',
+                        'pending': '⏳',
+                        'unsubscribed': '❌'
+                    }.get(subscription.status, '❓')
+                    
+                    result = f"{status_emoji} Подписка на '{category.name}' имеет статус: {subscription.get_status_display()}"
+                else:
+                    result = f"❌ Подписка на '{category.name}' не найдена"
+                
+                # Отправляем уведомление пользователю
+                self.send_message(chat_id, result)
+                return result
+            except Exception as e:
+                result = f"❌ Ошибка при получении статуса подписки: {str(e)}"
+                self.send_message(chat_id, result)
+                return result
+        
+        else:
+            result = f"❓ Неизвестная команда: {data}"
+            self.send_message(chat_id, result)
+            return result
+    
     def handle_subscriptions_command(self, telegram_user):
         """Обработка команды /subscriptions"""
         categories = TelegramSubscriptionService.get_available_categories()
@@ -340,18 +425,61 @@ class TelegramBot:
         if not categories:
             return "📢 Нет доступных категорий подписок"
         
+        # Получаем текущие подписки пользователя
+        user_subscriptions = TelegramSubscriptionService.get_user_subscriptions(telegram_user)
+        user_subscription_codes = {sub.category.code: sub.status for sub in user_subscriptions}
+        
         response_text = "📢 <b>Доступные категории подписок:</b>\n\n"
+        
+        # Создаем inline клавиатуру
+        keyboard = []
         
         for category in categories:
             response_text += f"{category.icon} <b>{category.name}</b>\n"
-            response_text += f"Код: <code>{category.code}</code>\n"
             if category.description:
                 response_text += f"Описание: {category.description}\n"
-            response_text += f"Подписаться: /subscribe {category.code}\n\n"
+            
+            # Определяем статус подписки и создаем кнопку
+            subscription_status = user_subscription_codes.get(category.code, 'not_subscribed')
+            
+            if subscription_status == 'active':
+                response_text += f"Статус: ✅ Подписан\n"
+                button_text = f"❌ Отписаться от {category.name}"
+                callback_data = f"unsubscribe_{category.code}"
+            elif subscription_status == 'paused':
+                response_text += f"Статус: ⏸️ Приостановлена\n"
+                button_text = f"▶️ Возобновить {category.name}"
+                callback_data = f"subscribe_{category.code}"
+            elif subscription_status == 'pending':
+                response_text += f"Статус: ⏳ Ожидает одобрения\n"
+                button_text = f"⏳ {category.name} (ожидает)"
+                callback_data = f"status_{category.code}"
+            else:
+                response_text += f"Статус: ❌ Не подписан\n"
+                button_text = f"✅ Подписаться на {category.name}"
+                callback_data = f"subscribe_{category.code}"
+            
+            # Добавляем кнопку в клавиатуру
+            keyboard.append([{
+                "text": button_text,
+                "callback_data": callback_data
+            }])
+            
+            response_text += "\n"
         
-        response_text += "💡 <i>Используйте /mysubscriptions для просмотра ваших подписок</i>"
+        response_text += "💡 <i>Используйте кнопки ниже для быстрого управления подписками</i>"
         
-        return response_text
+        # Создаем inline клавиатуру
+        reply_markup = {
+            "inline_keyboard": keyboard
+        }
+        
+        # Отправляем сообщение с кнопками
+        chat_id = telegram_user.telegram_id
+        self.send_message(chat_id, response_text, reply_markup=reply_markup)
+        
+        # Возвращаем None, чтобы избежать дублирования сообщения
+        return None
     
     def handle_my_subscriptions_command(self, telegram_user):
         """Обработка команды /mysubscriptions"""
@@ -361,6 +489,9 @@ class TelegramBot:
             return "📭 У вас нет активных подписок. Используйте /subscriptions для просмотра доступных категорий."
         
         response_text = "📋 <b>Ваши подписки:</b>\n\n"
+        
+        # Создаем inline клавиатуру для управления подписками
+        keyboard = []
         
         for subscription in subscriptions:
             status_emoji = {
@@ -375,39 +506,100 @@ class TelegramBot:
             response_text += f"Подписаны: {subscription.subscribed_at.strftime('%d.%m.%Y %H:%M')}\n"
             response_text += f"Уведомлений получено: {subscription.notification_count}\n"
             
+            # Создаем кнопки в зависимости от статуса
             if subscription.status == 'active':
-                response_text += f"Отписаться: /unsubscribe {subscription.category.code}\n"
+                button_text = f"❌ Отписаться от {subscription.category.name}"
+                callback_data = f"unsubscribe_{subscription.category.code}"
             elif subscription.status == 'paused':
-                response_text += f"Возобновить: /subscribe {subscription.category.code}\n"
+                button_text = f"▶️ Возобновить {subscription.category.name}"
+                callback_data = f"subscribe_{subscription.category.code}"
+            else:
+                button_text = f"ℹ️ Статус {subscription.category.name}"
+                callback_data = f"status_{subscription.category.code}"
+            
+            keyboard.append([{
+                "text": button_text,
+                "callback_data": callback_data
+            }])
             
             response_text += "\n"
         
-        return response_text
+        response_text += "💡 <i>Используйте кнопки ниже для управления подписками</i>"
+        
+        # Создаем inline клавиатуру
+        reply_markup = {
+            "inline_keyboard": keyboard
+        }
+        
+        # Отправляем сообщение с кнопками
+        chat_id = telegram_user.telegram_id
+        self.send_message(chat_id, response_text, reply_markup=reply_markup)
+        
+        # Возвращаем None, чтобы избежать дублирования сообщения
+        return None
     
     def handle_subscribe_command(self, telegram_user, category_code):
         """Обработка команды /subscribe"""
+        # Получаем текущую подписку перед изменением
+        current_subscription = TelegramSubscriptionService.get_user_subscription(telegram_user, category_code)
+        
         subscription, created = TelegramSubscriptionService.subscribe_user(telegram_user, category_code)
         
         if subscription is None:
-            return f"❌ Категория с кодом '{category_code}' не найдена"
+            return f"❌ <b>Ошибка подписки</b>\n\nКатегория с кодом '{category_code}' не найдена. Проверьте правильность кода."
         
         if created:
+            # Новая подписка создана
             if subscription.status == 'pending':
-                return f"⏳ Подписка на категорию '{subscription.category.name}' отправлена на одобрение"
+                return (
+                    f"⏳ <b>Запрос на подписку отправлен</b>\n\n"
+                    f"Вы подали заявку на подписку к категории:\n"
+                    f"📢 <b>{subscription.category.name}</b>\n\n"
+                    f"Ваш запрос будет рассмотрен администратором. "
+                    f"Вы получите уведомление о результате."
+                )
             else:
-                return f"✅ Вы успешно подписались на категорию '{subscription.category.name}'"
+                return (
+                    f"✅ <b>Подписка активирована</b>\n\n"
+                    f"Вы успешно подписались на категорию:\n"
+                    f"📢 <b>{subscription.category.name}</b>\n\n"
+                    f"Теперь вы будете получать уведомления по этой категории."
+                )
         else:
-            if subscription.status == 'unsubscribed':
-                subscription.status = 'active'
-                subscription.unsubscribed_at = None
-                subscription.save()
-                return f"✅ Вы снова подписались на категорию '{subscription.category.name}'"
-            elif subscription.status == 'paused':
-                subscription.status = 'active'
-                subscription.save()
-                return f"✅ Подписка на категорию '{subscription.category.name}' возобновлена"
+            # Подписка уже существует, проверяем что изменилось
+            if current_subscription and current_subscription.status == 'unsubscribed':
+                # Пользователь был отписан, теперь подписан
+                if subscription.status == 'pending':
+                    return (
+                        f"⏳ <b>Запрос на подписку отправлен</b>\n\n"
+                        f"Вы подали заявку на подписку к категории:\n"
+                        f"📢 <b>{subscription.category.name}</b>\n\n"
+                        f"Ваш запрос будет рассмотрен администратором. "
+                        f"Вы получите уведомление о результате."
+                    )
+                else:
+                    return (
+                        f"✅ <b>Вы теперь подписаны</b>\n\n"
+                        f"Вы подписались на категорию:\n"
+                        f"📢 <b>{subscription.category.name}</b>\n\n"
+                        f"Теперь вы будете получать уведомления по этой категории."
+                    )
+            elif current_subscription and current_subscription.status == 'paused':
+                # Пользователь возобновляет приостановленную подписку
+                return (
+                    f"▶️ <b>Подписка возобновлена</b>\n\n"
+                    f"Подписка на категорию возобновлена:\n"
+                    f"📢 <b>{subscription.category.name}</b>\n\n"
+                    f"Уведомления снова активны."
+                )
             else:
-                return f"ℹ️ Вы уже подписаны на категорию '{subscription.category.name}'"
+                # Пользователь уже подписан
+                return (
+                    f"ℹ️ <b>Подписка уже активна</b>\n\n"
+                    f"Вы уже подписаны на категорию:\n"
+                    f"📢 <b>{subscription.category.name}</b>\n\n"
+                    f"Статус: {subscription.get_status_display()}"
+                )
     
     def handle_unsubscribe_command(self, telegram_user, category_code):
         """Обработка команды /unsubscribe"""
@@ -416,11 +608,25 @@ class TelegramBot:
         if success:
             try:
                 category = TelegramSubscriptionCategory.objects.get(code=category_code)
-                return f"❌ Вы отписались от категории '{category.name}'"
+                return (
+                    f"❌ <b>Подписка отменена</b>\n\n"
+                    f"Вы отписались от категории:\n"
+                    f"📢 <b>{category.name}</b>\n\n"
+                    f"Вы больше не будете получать уведомления по этой категории.\n"
+                    f"Для повторной подписки используйте команду /subscriptions"
+                )
             except TelegramSubscriptionCategory.DoesNotExist:
-                return f"❌ Вы отписались от категории с кодом '{category_code}'"
+                return (
+                    f"❌ <b>Подписка отменена</b>\n\n"
+                    f"Вы отписались от категории с кодом '{category_code}'.\n\n"
+                    f"Вы больше не будете получать уведомления по этой категории."
+                )
         else:
-            return f"❌ Подписка на категорию '{category_code}' не найдена"
+            return (
+                f"❌ <b>Ошибка отписки</b>\n\n"
+                f"Подписка на категорию '{category_code}' не найдена.\n"
+                f"Возможно, вы уже не подписаны на эту категорию."
+            )
     
     def send_broadcast(self, broadcast):
         """Отправить рассылку"""

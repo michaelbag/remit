@@ -1,53 +1,76 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from common.models import Catalog
 
 
 class TelegramUser(models.Model):
-    """Модель для хранения связи пользователей с Telegram"""
+    """Model for storing user connections with Telegram"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='telegram_profile')
-    telegram_id = models.BigIntegerField(unique=True, verbose_name='Telegram ID')
-    username = models.CharField(max_length=255, blank=True, verbose_name='Telegram Username')
-    first_name = models.CharField(max_length=255, blank=True, verbose_name='Имя')
-    last_name = models.CharField(max_length=255, blank=True, verbose_name='Фамилия')
-    phone_number = models.CharField(max_length=20, blank=True, verbose_name='Номер телефона')
+    telegram_id = models.BigIntegerField(unique=True, verbose_name=_('Telegram ID'))
+    username = models.CharField(max_length=255, blank=True, verbose_name=_('Telegram Username'))
+    first_name = models.CharField(max_length=255, blank=True, verbose_name=_('First Name'))
+    last_name = models.CharField(max_length=255, blank=True, verbose_name=_('Last Name'))
+    phone_number = models.CharField(max_length=20, blank=True, verbose_name=_('Phone Number'))
     employee = models.ForeignKey('org.Employee', on_delete=models.SET_NULL, null=True, blank=True, 
-                                related_name='telegram_users', verbose_name='Сотрудник')
-    is_active = models.BooleanField(default=True, verbose_name='Активен')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+                                related_name='telegram_users', verbose_name=_('Employee'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
 
     class Meta:
-        verbose_name = 'Telegram пользователь'
-        verbose_name_plural = 'Telegram пользователи'
+        verbose_name = _('Telegram User')
+        verbose_name_plural = _('Telegram Users')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} ({self.telegram_id})"
+        # Build display with username, first name and last name
+        parts = []
+        
+        # Add username if available
+        if self.username:
+            parts.append(f"@{self.username}")
+        
+        # Add first name and last name if available
+        name_parts = []
+        if self.first_name:
+            name_parts.append(self.first_name)
+        if self.last_name:
+            name_parts.append(self.last_name)
+        
+        if name_parts:
+            parts.append(" ".join(name_parts))
+        
+        # If no username or name/family name, use user.username
+        if not parts:
+            parts.append(self.user.username)
+        
+        # Add telegram_id in brackets
+        return f"{' | '.join(parts)} ({self.telegram_id})"
     
     def get_all_roles(self):
-        """Получить все роли пользователя из всех активных групп"""
+        """Get all user roles from all active groups"""
         roles = set()
         for membership in self.group_memberships.filter(is_active=True):
             roles.update(membership.assigned_roles)
         return list(roles)
     
     def has_role(self, role):
-        """Проверить, есть ли у пользователя указанная роль"""
+        """Check if user has the specified role"""
         return role in self.get_all_roles()
     
     def has_any_role(self, roles):
-        """Проверить, есть ли у пользователя хотя бы одна из указанных ролей"""
+        """Check if user has at least one of the specified roles"""
         user_roles = self.get_all_roles()
         return any(role in user_roles for role in roles)
     
     def has_all_roles(self, roles):
-        """Проверить, есть ли у пользователя все указанные роли"""
+        """Check if user has all specified roles"""
         user_roles = self.get_all_roles()
         return all(role in user_roles for role in roles)
     
     def get_role_hierarchy_level(self):
-        """Получить уровень иерархии ролей пользователя (чем выше, тем больше прав)"""
+        """Get user role hierarchy level (higher level means more permissions)"""
         role_hierarchy = {
             'viewer': 1,
             'user': 2,
@@ -63,52 +86,94 @@ class TelegramUser(models.Model):
         return max(role_hierarchy.get(role, 0) for role in user_roles)
     
     def can_access_feature(self, feature_code):
-        """Проверить доступ к функции по коду разрешения"""
+        """Check access to feature by permission code"""
         from .services import TelegramRBACService
         rbac_service = TelegramRBACService()
         return rbac_service.check_permission(self, feature_code)
     
     def get_active_groups(self):
-        """Получить активные группы пользователя"""
+        """Get user's active groups"""
         return self.group_memberships.filter(is_active=True).select_related('group')
     
     def get_roles_display(self):
-        """Получить отображаемые названия ролей пользователя"""
+        """Get display names of user roles"""
         roles = self.get_all_roles()
         role_display = []
         for role in roles:
-            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+            # Get display name of role and convert to string
+            role_name = dict(TelegramUserRole.choices).get(role, role)
+            role_display.append(str(role_name))
         return ', '.join(role_display)
+    
+    def get_display_name(self):
+        """Get user display name (first name + last name)"""
+        name_parts = []
+        if self.first_name:
+            name_parts.append(self.first_name)
+        if self.last_name:
+            name_parts.append(self.last_name)
+        return " ".join(name_parts) if name_parts else self.user.username
+    
+    def get_full_display(self):
+        """Get full user display for admin interface"""
+        parts = []
+        
+        # Add username if available
+        if self.username:
+            parts.append(f"@{self.username}")
+        
+        # Add first name and last name if available
+        display_name = self.get_display_name()
+        if display_name != self.user.username:
+            parts.append(display_name)
+        
+        # If no username or name/family name, use user.username
+        if not parts:
+            parts.append(self.user.username)
+        
+        return " | ".join(parts)
+    
+    def get_telegram_info(self):
+        """Get Telegram account information"""
+        info = []
+        if self.username:
+            info.append(f"@{self.username}")
+        if self.first_name:
+            info.append(f"{_('Name')}: {self.first_name}")
+        if self.last_name:
+            info.append(f"{_('Last Name')}: {self.last_name}")
+        if self.phone_number:
+            info.append(f"{_('Phone')}: {self.phone_number}")
+        return ", ".join(info) if info else _("Information not specified")
 
 
-class TelegramMessage(models.Model):
-    """Модель для хранения сообщений Telegram"""
+class TelegramMessage(Catalog):
+    """Model for storing Telegram messages"""
     MESSAGE_TYPES = [
-        ('text', 'Текстовое сообщение'),
-        ('command', 'Команда'),
-        ('callback', 'Callback запрос'),
-        ('error', 'Ошибка'),
+        ('text', _('Text Message')),
+        ('command', _('Command')),
+        ('callback', _('Callback Query')),
+        ('error', _('Error')),
     ]
 
-    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='messages')
-    message_id = models.BigIntegerField(verbose_name='ID сообщения')
-    message_type = models.CharField(max_length=20, choices=MESSAGE_TYPES, verbose_name='Тип сообщения')
-    content = models.TextField(verbose_name='Содержимое')
-    response = models.TextField(blank=True, verbose_name='Ответ бота')
-    is_processed = models.BooleanField(default=False, verbose_name='Обработано')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='messages', verbose_name=_('Telegram User'))
+    message_id = models.BigIntegerField(verbose_name=_('Message ID'))
+    message_type = models.CharField(max_length=20, choices=MESSAGE_TYPES, verbose_name=_('Message Type'))
+    content = models.TextField(verbose_name=_('Content'))
+    response = models.TextField(blank=True, verbose_name=_('Bot Response'))
+    is_processed = models.BooleanField(default=False, verbose_name=_('Processed'))
 
     class Meta:
-        verbose_name = 'Telegram сообщение'
-        verbose_name_plural = 'Telegram сообщения'
-        ordering = ['-created_at']
+        verbose_name = _('Telegram Message')
+        verbose_name_plural = _('Telegram Messages')
+        ordering = ['-created']
 
     def __str__(self):
         return f"Message {self.message_id} from {self.telegram_user.user.username}"
 
 
 class TelegramSubscriptionCategory(models.Model):
-    """Модель для категорий подписок Telegram"""
+    """Model for Telegram subscription categories"""
     code = models.CharField(max_length=50, unique=True, verbose_name=_('Category Code'))
     name = models.CharField(max_length=100, verbose_name=_('Category Name'))
     description = models.TextField(blank=True, verbose_name=_('Description'))
@@ -129,7 +194,7 @@ class TelegramSubscriptionCategory(models.Model):
 
 
 class TelegramUserSubscription(models.Model):
-    """Модель для подписок пользователей на категории"""
+    """Model for user subscriptions to categories"""
     SUBSCRIPTION_STATUS = [
         ('active', _('Active')),
         ('paused', _('Paused')),
@@ -157,15 +222,15 @@ class TelegramUserSubscription(models.Model):
 
 
 class TelegramMessageTemplate(models.Model):
-    """Модель для шаблонов сообщений Telegram"""
+    """Model for Telegram message templates"""
     name = models.CharField(max_length=100, verbose_name=_('Template Name'))
     category = models.ForeignKey(TelegramSubscriptionCategory, on_delete=models.CASCADE, related_name='templates')
     subject_template = models.CharField(max_length=200, verbose_name=_('Subject Template'))
     message_template = models.TextField(verbose_name=_('Message Template'))
     variables = models.JSONField(default=list, blank=True, verbose_name=_('Available Variables'))
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
     
     class Meta:
         verbose_name = _('Telegram Message Template')
@@ -177,7 +242,7 @@ class TelegramMessageTemplate(models.Model):
 
 
 class TelegramBroadcast(models.Model):
-    """Модель для рассылок сообщений"""
+    """Model for message broadcasts"""
     BROADCAST_STATUS = [
         ('draft', _('Draft')),
         ('scheduled', _('Scheduled')),
@@ -208,14 +273,14 @@ class TelegramBroadcast(models.Model):
     sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_('Sent Time'))
     
     # Statistics
-    total_recipients = models.IntegerField(default=0)
-    delivered_count = models.IntegerField(default=0)
-    failed_count = models.IntegerField(default=0)
+    total_recipients = models.IntegerField(default=0, verbose_name=_('Total Recipients'))
+    delivered_count = models.IntegerField(default=0, verbose_name=_('Delivered Count'))
+    failed_count = models.IntegerField(default=0, verbose_name=_('Failed Count'))
     
     # Metadata
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_broadcasts')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_broadcasts', verbose_name=_('Created By'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
     
     class Meta:
         verbose_name = _('Telegram Broadcast')
@@ -227,7 +292,7 @@ class TelegramBroadcast(models.Model):
 
 
 class TelegramBroadcastDelivery(models.Model):
-    """Модель для отслеживания доставки рассылок"""
+    """Model for tracking broadcast delivery"""
     DELIVERY_STATUS = [
         ('pending', _('Pending')),
         ('sent', _('Sent')),
@@ -236,13 +301,13 @@ class TelegramBroadcastDelivery(models.Model):
         ('blocked', _('Blocked')),
     ]
     
-    broadcast = models.ForeignKey(TelegramBroadcast, on_delete=models.CASCADE, related_name='deliveries')
-    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='broadcast_deliveries')
-    status = models.CharField(max_length=20, choices=DELIVERY_STATUS, default='pending')
-    sent_at = models.DateTimeField(null=True, blank=True)
-    delivered_at = models.DateTimeField(null=True, blank=True)
-    error_message = models.TextField(blank=True)
-    telegram_message_id = models.BigIntegerField(null=True, blank=True)
+    broadcast = models.ForeignKey(TelegramBroadcast, on_delete=models.CASCADE, related_name='deliveries', verbose_name=_('Broadcast'))
+    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='broadcast_deliveries', verbose_name=_('Telegram User'))
+    status = models.CharField(max_length=20, choices=DELIVERY_STATUS, default='pending', verbose_name=_('Status'))
+    sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_('Sent At'))
+    delivered_at = models.DateTimeField(null=True, blank=True, verbose_name=_('Delivered At'))
+    error_message = models.TextField(blank=True, verbose_name=_('Error Message'))
+    telegram_message_id = models.BigIntegerField(null=True, blank=True, verbose_name=_('Telegram Message ID'))
     
     class Meta:
         verbose_name = _('Telegram Broadcast Delivery')
@@ -255,7 +320,7 @@ class TelegramBroadcastDelivery(models.Model):
 
 
 class TelegramUserRole(models.TextChoices):
-    """Фиксированные роли для пользователей Telegram бота"""
+    """Fixed roles for Telegram bot users"""
     VIEWER = 'viewer', _('Viewer')
     USER = 'user', _('User')
     OPERATOR = 'operator', _('Operator')
@@ -264,7 +329,7 @@ class TelegramUserRole(models.TextChoices):
 
 
 class TelegramUserGroup(models.Model):
-    """Модель для групп пользователей Telegram"""
+    """Model for Telegram user groups"""
     name = models.CharField(max_length=100, verbose_name=_('Group Name'))
     description = models.TextField(blank=True, verbose_name=_('Description'))
     roles = models.JSONField(default=list, verbose_name=_('Allowed Roles'))
@@ -281,17 +346,19 @@ class TelegramUserGroup(models.Model):
         return f"{self.name} ({', '.join(self.roles)})"
     
     def get_roles_display(self):
-        """Получить отображаемые названия ролей"""
+        """Get display names of roles"""
         role_display = []
         for role in self.roles:
-            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+            # Get display name of role and convert to string
+            role_name = dict(TelegramUserRole.choices).get(role, role)
+            role_display.append(str(role_name))
         return ', '.join(role_display)
 
 
 class TelegramUserGroupMembership(models.Model):
-    """Модель для членства пользователей в группах"""
-    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='group_memberships')
-    group = models.ForeignKey(TelegramUserGroup, on_delete=models.CASCADE, related_name='members')
+    """Model for user group membership"""
+    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='group_memberships', verbose_name=_('Telegram User'))
+    group = models.ForeignKey(TelegramUserGroup, on_delete=models.CASCADE, related_name='members', verbose_name=_('Group'))
     assigned_roles = models.JSONField(default=list, verbose_name=_('Assigned Roles'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
     assigned_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Assigned At'))
@@ -308,15 +375,17 @@ class TelegramUserGroupMembership(models.Model):
         return f"{self.telegram_user.user.username} in {self.group.name}"
     
     def get_roles_display(self):
-        """Получить отображаемые названия назначенных ролей"""
+        """Get display names of assigned roles"""
         role_display = []
         for role in self.assigned_roles:
-            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+            # Get display name of role and convert to string
+            role_name = dict(TelegramUserRole.choices).get(role, role)
+            role_display.append(str(role_name))
         return ', '.join(role_display)
 
 
 class TelegramPermission(models.Model):
-    """Модель для разрешений Telegram бота"""
+    """Model for Telegram bot permissions"""
     PERMISSION_TYPES = [
         ('command', _('Command')),
         ('feature', _('Feature')),
@@ -327,7 +396,7 @@ class TelegramPermission(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name=_('Permission Name'))
     code = models.CharField(max_length=50, unique=True, verbose_name=_('Permission Code'))
     description = models.TextField(blank=True, verbose_name=_('Description'))
-    permission_type = models.CharField(max_length=20, choices=PERMISSION_TYPES, default='command')
+    permission_type = models.CharField(max_length=20, choices=PERMISSION_TYPES, default='command', verbose_name=_('Permission Type'))
     required_roles = models.JSONField(default=list, verbose_name=_('Required Roles'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
@@ -341,15 +410,17 @@ class TelegramPermission(models.Model):
         return f"{self.name} ({self.code})"
     
     def get_required_roles_display(self):
-        """Получить отображаемые названия требуемых ролей"""
+        """Get display names of required roles"""
         role_display = []
         for role in self.required_roles:
-            role_display.append(dict(TelegramUserRole.choices).get(role, role))
+            # Get display name of role and convert to string
+            role_name = dict(TelegramUserRole.choices).get(role, role)
+            role_display.append(str(role_name))
         return ', '.join(role_display)
 
 
 class TelegramAuditLog(models.Model):
-    """Модель для аудита действий пользователей"""
+    """Model for user action audit"""
     ACTION_TYPES = [
         ('command', _('Command Execution')),
         ('permission_check', _('Permission Check')),
@@ -358,7 +429,7 @@ class TelegramAuditLog(models.Model):
         ('data_access', _('Data Access')),
     ]
     
-    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='audit_logs')
+    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='audit_logs', verbose_name=_('Telegram User'))
     action_type = models.CharField(max_length=20, choices=ACTION_TYPES, verbose_name=_('Action Type'))
     action = models.CharField(max_length=100, verbose_name=_('Action'))
     details = models.JSONField(default=dict, blank=True, verbose_name=_('Details'))

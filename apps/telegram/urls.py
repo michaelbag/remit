@@ -10,6 +10,9 @@ urlpatterns = [
     path('set-webhook/', views.set_webhook, name='set_webhook'),
     path('webhook-info/', views.get_webhook_info, name='webhook_info'),
     
+    # Admin endpoints
+    path('admin/send-broadcast/<int:broadcast_id>/', views.admin_send_broadcast, name='admin_send_broadcast'),
+    
     # API endpoints for subscriptions
     path('api/subscription-categories/', api_views.get_subscription_categories, name='api_subscription_categories'),
     path('api/subscription-categories/create/', api_views.create_subscription_category, name='api_create_subscription_category'),

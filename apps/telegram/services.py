@@ -31,6 +31,17 @@ class TelegramSubscriptionService:
         ).select_related('category')
     
     @staticmethod
+    def get_user_subscription(telegram_user, category_code):
+        """Получить конкретную подписку пользователя"""
+        try:
+            return TelegramUserSubscription.objects.get(
+                telegram_user=telegram_user,
+                category__code=category_code
+            )
+        except TelegramUserSubscription.DoesNotExist:
+            return None
+    
+    @staticmethod
     def subscribe_user(telegram_user, category_code):
         """Подписать пользователя на категорию"""
         try:
@@ -139,6 +150,11 @@ class TelegramBroadcastService:
         
         if target_users:
             broadcast.target_users.set(target_users)
+        
+        # Подсчитываем получателей
+        recipients = self._get_recipients(broadcast)
+        broadcast.total_recipients = len(recipients)
+        broadcast.save()
         
         return broadcast
     
