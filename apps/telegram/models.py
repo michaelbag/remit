@@ -257,6 +257,8 @@ class TelegramBroadcast(models.Model):
     ]
     
     title = models.CharField(max_length=200, verbose_name=_('Broadcast Title'))
+    name = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=_('Name'))
+    code = models.CharField(max_length=9, blank=True, db_index=True, verbose_name=_('Code'))
     message = models.TextField(verbose_name=_('Message Content'))
     broadcast_type = models.CharField(max_length=20, choices=BROADCAST_TYPE, default='category')
     status = models.CharField(max_length=20, choices=BROADCAST_STATUS, default='draft')
@@ -284,8 +286,30 @@ class TelegramBroadcast(models.Model):
         verbose_name_plural = _('Telegram Broadcasts')
         ordering = ['-created_at']
     
+    def save(self, *args, **kwargs):
+        # Auto-generate code if not provided
+        if not self.code:
+            # Get the next sequential number
+            last_broadcast = TelegramBroadcast.objects.order_by('-created_at').first()
+            if last_broadcast and last_broadcast.code:
+                try:
+                    next_number = int(last_broadcast.code) + 1
+                except (ValueError, TypeError):
+                    next_number = 1
+            else:
+                next_number = 1
+            
+            # Generate 9-digit code with leading zeros
+            self.code = f'{next_number:09d}'
+        
+        # Auto-generate name if not provided
+        if not self.name:
+            self.name = self.code
+        
+        super().save(*args, **kwargs)
+    
     def __str__(self):
-        return f"{self.title} ({self.get_status_display()})"
+        return f"{self.name or self.title} ({self.get_status_display()})"
 
 
 class TelegramBroadcastDelivery(models.Model):

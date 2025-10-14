@@ -142,13 +142,28 @@ class TelegramMessageTemplateAdmin(CatalogAdmin):
 
 
 @admin.register(TelegramBroadcast)
-class TelegramBroadcastAdmin(admin.ModelAdmin):
-    list_display = ['title', 'broadcast_type', 'status', 'total_recipients', 'delivered_count', 'failed_count', 'created_at', 'send_broadcast_button']
-    list_filter = ['status', 'broadcast_type', 'created_at']
-    search_fields = ['title', 'message']
-    readonly_fields = ['created_at', 'updated_at', 'sent_at', 'total_recipients', 'delivered_count', 'failed_count']
+class TelegramBroadcastAdmin(CatalogAdmin):
+    use_basic_fieldsets = False  # Disable automatic basic_fieldsets
+    hidden_system_fieldsets = True  # Hide system fieldsets from CatalogAdmin
+    list_display = ['name', 'code', 'title', 'broadcast_type', 'status', 'scheduled_at_display', 'total_recipients', 'delivered_count', 'failed_count', 'created_at', 'send_broadcast_button']
+    list_filter = ['status', 'broadcast_type', 'created_at', 'scheduled_at']
+    search_fields = ['name', 'code', 'title', 'message']
+    readonly_fields = ['sent_at', 'total_recipients', 'delivered_count', 'failed_count']
     filter_horizontal = ['target_categories', 'target_users']
     
+    def get_list_display(self, request):
+        """Override to avoid CatalogAdmin's automatic field additions"""
+        return self.list_display
+    
+    @admin.display(description=_('Scheduled Time'), ordering='scheduled_at')
+    def scheduled_at_display(self, obj):
+        """Display scheduled time in a readable format"""
+        if obj.scheduled_at:
+            from django.utils import timezone
+            local_time = timezone.localtime(obj.scheduled_at)
+            return local_time.strftime('%d.%m.%Y %H:%M')
+        return '-'
+
     @admin.display(description=_('Actions'))
     def send_broadcast_button(self, obj):
         if obj.status in ['draft', 'scheduled']:
@@ -161,7 +176,7 @@ class TelegramBroadcastAdmin(admin.ModelAdmin):
     
     fieldsets = [
         (_('Basic Information'), {
-            'fields': ['title', 'message', 'broadcast_type', 'status']
+            'fields': [('name', 'code'), 'title', 'message', 'broadcast_type', 'status']
         }),
         (_('Target Audience'), {
             'fields': ['target_categories', 'target_users']
