@@ -2,7 +2,8 @@ import requests
 import logging
 from django.conf import settings
 from django.contrib.auth.models import User
-from .models import TelegramUser, TelegramMessage
+from .models import TelegramUser, TelegramMessage, TelegramSubscriptionCategory
+from .services import TelegramSubscriptionService
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +183,9 @@ class TelegramBot:
                 "Доступные команды:\n"
                 "/help - Справка\n"
                 "/status - Статус системы\n"
-                "/equipment - Список оборудования"
+                "/equipment - Список оборудования\n"
+                "/subscriptions - Управление подписками\n"
+                "/mysubscriptions - Мои подписки"
             )
         elif command == '/help':
             response_text = (
@@ -190,7 +193,11 @@ class TelegramBot:
                 "/start - Начать работу\n"
                 "/help - Показать эту справку\n"
                 "/status - Статус системы\n"
-                "/equipment - Список оборудования"
+                "/equipment - Список оборудования\n"
+                "/subscriptions - Доступные подписки\n"
+                "/mysubscriptions - Мои подписки\n"
+                "/subscribe <код> - Подписаться на категорию\n"
+                "/unsubscribe <код> - Отписаться от категории"
             )
         elif command == '/status':
             response_text = "✅ Система работает нормально"
@@ -214,6 +221,16 @@ class TelegramBot:
                     response_text = "📱 У вас нет закрепленного оборудования"
             else:
                 response_text = "❌ Сначала необходимо привязать ваш профиль к сотруднику"
+        elif command == '/subscriptions':
+            response_text = self.handle_subscriptions_command(telegram_user)
+        elif command == '/mysubscriptions':
+            response_text = self.handle_my_subscriptions_command(telegram_user)
+        elif command.startswith('/subscribe '):
+            category_code = command.split(' ', 1)[1]
+            response_text = self.handle_subscribe_command(telegram_user, category_code)
+        elif command.startswith('/unsubscribe '):
+            category_code = command.split(' ', 1)[1]
+            response_text = self.handle_unsubscribe_command(telegram_user, category_code)
         else:
             response_text = "❓ Неизвестная команда. Используйте /help для справки."
         
@@ -306,3 +323,114 @@ class TelegramBot:
         
         self.send_message(chat_id, response_text)
         return response_text
+    
+    def handle_subscriptions_command(self, telegram_user):
+        """Обработка команды /subscriptions"""
+        categories = TelegramSubscriptionService.get_available_categories()
+        
+        if not categories:
+            return "📢 Нет доступных категорий подписок"
+        
+        response_text = "📢 <b>Доступные категории подписок:</b>\n\n"
+        
+        for category in categories:
+            response_text += f"{category.icon} <b>{category.name}</b>\n"
+            response_text += f"Код: <code>{category.code}</code>\n"
+            if category.description:
+                response_text += f"Описание: {category.description}\n"
+            response_text += f"Подписаться: /subscribe {category.code}\n\n"
+        
+        response_text += "💡 <i>Используйте /mysubscriptions для просмотра ваших подписок</i>"
+        
+        return response_text
+    
+    def handle_my_subscriptions_command(self, telegram_user):
+        """Обработка команды /mysubscriptions"""
+        subscriptions = TelegramSubscriptionService.get_user_subscriptions(telegram_user)
+        
+        if not subscriptions:
+            return "📭 У вас нет активных подписок. Используйте /subscriptions для просмотра доступных категорий."
+        
+        response_text = "📋 <b>Ваши подписки:</b>\n\n"
+        
+        for subscription in subscriptions:
+            status_emoji = {
+                'active': '✅',
+                'paused': '⏸️',
+                'pending': '⏳',
+                'unsubscribed': '❌'
+            }.get(subscription.status, '❓')
+            
+            response_text += f"{status_emoji} {subscription.category.icon} <b>{subscription.category.name}</b>\n"
+            response_text += f"Статус: {subscription.get_status_display()}\n"
+            response_text += f"Подписаны: {subscription.subscribed_at.strftime('%d.%m.%Y %H:%M')}\n"
+            response_text += f"Уведомлений получено: {subscription.notification_count}\n"
+            
+            if subscription.status == 'active':
+                response_text += f"Отписаться: /unsubscribe {subscription.category.code}\n"
+            elif subscription.status == 'paused':
+                response_text += f"Возобновить: /subscribe {subscription.category.code}\n"
+            
+            response_text += "\n"
+        
+        return response_text
+    
+    def handle_subscribe_command(self, telegram_user, category_code):
+        """Обработка команды /subscribe"""
+        subscription, created = TelegramSubscriptionService.subscribe_user(telegram_user, category_code)
+        
+        if subscription is None:
+            return f"❌ Категория с кодом '{category_code}' не найдена"
+        
+        if created:
+            if subscription.status == 'pending':
+                return f"⏳ Подписка на категорию '{subscription.category.name}' отправлена на одобрение"
+            else:
+                return f"✅ Вы успешно подписались на категорию '{subscription.category.name}'"
+        else:
+            if subscription.status == 'unsubscribed':
+                subscription.status = 'active'
+                subscription.unsubscribed_at = None
+                subscription.save()
+                return f"✅ Вы снова подписались на категорию '{subscription.category.name}'"
+            elif subscription.status == 'paused':
+                subscription.status = 'active'
+                subscription.save()
+                return f"✅ Подписка на категорию '{subscription.category.name}' возобновлена"
+            else:
+                return f"ℹ️ Вы уже подписаны на категорию '{subscription.category.name}'"
+    
+    def handle_unsubscribe_command(self, telegram_user, category_code):
+        """Обработка команды /unsubscribe"""
+        success = TelegramSubscriptionService.unsubscribe_user(telegram_user, category_code)
+        
+        if success:
+            try:
+                category = TelegramSubscriptionCategory.objects.get(code=category_code)
+                return f"❌ Вы отписались от категории '{category.name}'"
+            except TelegramSubscriptionCategory.DoesNotExist:
+                return f"❌ Вы отписались от категории с кодом '{category_code}'"
+        else:
+            return f"❌ Подписка на категорию '{category_code}' не найдена"
+    
+    def send_broadcast(self, broadcast):
+        """Отправить рассылку"""
+        from .services import TelegramBroadcastService
+        broadcast_service = TelegramBroadcastService()
+        return broadcast_service.send_broadcast(broadcast.id)
+    
+    def send_individual_message(self, telegram_user, message, parse_mode='HTML'):
+        """Отправить индивидуальное сообщение"""
+        return self.send_message(telegram_user.telegram_id, message, parse_mode)
+    
+    def get_user_subscriptions(self, telegram_user):
+        """Получить подписки пользователя"""
+        return TelegramSubscriptionService.get_user_subscriptions(telegram_user)
+    
+    def subscribe_user(self, telegram_user, category_code):
+        """Подписать пользователя на категорию"""
+        return TelegramSubscriptionService.subscribe_user(telegram_user, category_code)
+    
+    def unsubscribe_user(self, telegram_user, category_code):
+        """Отписать пользователя от категории"""
+        return TelegramSubscriptionService.unsubscribe_user(telegram_user, category_code)

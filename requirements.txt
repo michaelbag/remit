@@ -10,6 +10,7 @@ djangorestframework==3.16.1
 netaddr==1.3.0
 pillow==11.3.0
 qrcode==8.0
+requests==2.31.0
 six==1.17.0
 sqlparse==0.5.3
 typing_extensions==4.15.0
