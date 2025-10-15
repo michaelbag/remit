@@ -165,6 +165,12 @@ class InterfaceAdmin(CatalogAdmin):
     def virtual_display(self, obj):
         return '(V)' if obj.virtual else '---'
 
+    class Media:
+        css = {
+            'all': ('equipment/interface_list.css',)
+        }
+        js = ('equipment/interface_list.js',)
+
 
     def get_search_results(self, request, queryset, search_term):
         queryset, may_have_duplicates = super().get_search_results(

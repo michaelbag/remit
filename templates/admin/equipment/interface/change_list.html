@@ -3,22 +3,4 @@
 
 {% block extrahead %}
 {{ block.super }}
-<style>
-.archived-row {
-    color: #999 !important;
-    opacity: 0.7;
-}
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Добавляем класс к архивным строкам
-    const rows = document.querySelectorAll('#result_list tbody tr');
-    rows.forEach(function(row) {
-        const archiveIcon = row.querySelector('.field-archive_icon');
-        if (archiveIcon && archiveIcon.textContent.includes('🗃️')) {
-            row.classList.add('archived-row');
-        }
-    });
-});
-</script>
 {% endblock %}
