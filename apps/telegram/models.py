@@ -19,6 +19,10 @@ class TelegramUser(Catalog):
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
 
     def save(self, *args, **kwargs):
+        # Check if this is a new user (not yet saved to database)
+        # For GUIDModel, we need to check if created_at is None
+        is_new_user = self.created_at is None
+        
         # Auto-generate name from last_name, first_name and telegram_id if not provided
         if not self.name:
             name_parts = []
@@ -43,7 +47,18 @@ class TelegramUser(Catalog):
             # Truncate to max length (32 characters)
             self.name = name[:32]
         
+        # Save the user first
         super().save(*args, **kwargs)
+        
+        # If this is a new user, setup automatic subscriptions
+        if is_new_user:
+            try:
+                self.setup_auto_subscriptions()
+            except Exception as e:
+                # Log the error but don't fail the user creation
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to setup auto-subscriptions for user {self.telegram_id}: {e}")
 
     class Meta:
         verbose_name = _('Telegram User')
