@@ -1,13 +1,8 @@
-{% extends "admin/change_form.html" %}
-{% load static %}
+/**
+ * ExtSystem form functionality
+ * Handles GUID copying to clipboard with notifications
+ */
 
-{% block extrahead %}
-{{ block.super }}
-{% endblock %}
-
-{% block admin_change_form_document_ready %}
-{{ block.super }}
-<script>
 function copyGuidToClipboard(guid) {
     if (navigator.clipboard && window.isSecureContext) {
         // Use modern clipboard API
@@ -71,5 +66,3 @@ function showCopyNotification(message) {
         }
     }, 3000);
 }
-</script>
-{% endblock %}

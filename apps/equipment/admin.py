@@ -128,6 +128,12 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
     def archive_icon(self, obj):
         return '🗃️' if obj.archive else ''
 
+    class Media:
+        css = {
+            'all': ('equipment/equipment_list.css',)
+        }
+        js = ('equipment/equipment_list.js',)
+
 
 @admin.register(eq_models.InterfaceType)
 class InterfaceTypeAdmin(CatalogAdmin):

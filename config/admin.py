@@ -10,7 +10,6 @@ class ExtSystemAdmin(admin.ModelAdmin):
     search_fields = ('title', 'guid')
     readonly_fields = ('guid', 'created_datetime', 'copy_guid_button')
     ordering = ('-created_datetime',)
-    change_form_template = 'admin/config/extsystem/change_form.html'
     
     fieldsets = (
         ('Basic Information', {
@@ -36,3 +35,6 @@ class ExtSystemAdmin(admin.ModelAdmin):
         return "-"
     copy_guid_button.short_description = "Copy GUID"
     copy_guid_button.allow_tags = True
+
+    class Media:
+        js = ('config/extsystem_form.js',)

@@ -1,20 +1,10 @@
-{% load i18n admin_extras %}
+{% load i18n admin_extras static %}
 {# Override admin app_list to make model lists collapsible by application #}
 
-<style>
-  /* Simple tweak so details/summary look good in the admin sidebar */
-  .app-group { margin: 0 0 .25rem 0; }
-  .app-group > summary {
-    cursor: pointer;
-    list-style: none;
-    padding: .25rem .5rem;
-    font-weight: 600;
-  }
-  .app-group[open] > summary { background: rgba(0,0,0,0.04); }
-  .model-list { list-style: none; margin: 0; padding: 0 .5rem .25rem 2rem; }
-  .model-list li { margin: 0; padding: 0; }
-  .model-list a { display: block; padding: .2rem 0; text-decoration: none; }
-</style>
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'common/admin_app_list.css' %}">
+{% endblock %}
 
 {% if app_list %}
   {% for app in app_list %}
