@@ -50,7 +50,7 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
         'qr_type',
         'operations_count',
         'created_at',
-        'modified',
+        'updated_at',
         'archive',
         'fixed',
         'url'
@@ -90,8 +90,8 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
     # TODO: Problem. If readonly_fields not exists in class parent init get error.
     readonly_fields = [
         'guid',
-        'modified',
-        'created',
+        'updated_at',
+        'created_at',
         'created_at',
         'guid_public_code',
         'short_public_code',

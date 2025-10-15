@@ -23,7 +23,7 @@ class OrganizationAdmin(CatalogAdmin):
             _('System'),
             {
                 'classes': ['collapse'],
-                'fields': ['modified', 'created', 'delete_mark', 'guid']
+                'fields': ['updated_at', 'created_at', 'delete_mark', 'guid']
             }
         )
     ]

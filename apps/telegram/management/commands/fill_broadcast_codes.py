@@ -16,7 +16,7 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
         
         # Get all broadcasts ordered by creation time
-        broadcasts = TelegramBroadcast.objects.all().order_by('created')
+        broadcasts = TelegramBroadcast.objects.all().order_by('created_at')
         
         # Filter only those without codes
         broadcasts_without_codes = broadcasts.filter(code__isnull=True) | broadcasts.filter(code='')

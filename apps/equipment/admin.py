@@ -244,7 +244,7 @@ class ServiceAdmin(CatalogAdmin):
          }),
         (_('System fields'),
          {
-             'fields': ['created', 'modified', 'delete_mark']
+             'fields': ['created_at', 'updated_at', 'delete_mark']
          }),
     ]
 

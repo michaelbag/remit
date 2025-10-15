@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from common.models import Catalog
 
 
-class TelegramUser(models.Model):
+class TelegramUser(Catalog):
     """Model for storing user connections with Telegram"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='telegram_profile')
     telegram_id = models.BigIntegerField(unique=True, verbose_name=_('Telegram ID'))
@@ -15,8 +15,6 @@ class TelegramUser(models.Model):
     employee = models.ForeignKey('org.Employee', on_delete=models.SET_NULL, null=True, blank=True, 
                                 related_name='telegram_users', verbose_name=_('Employee'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
 
     class Meta:
         verbose_name = _('Telegram User')
@@ -166,7 +164,7 @@ class TelegramMessage(Catalog):
     class Meta:
         verbose_name = _('Telegram Message')
         verbose_name_plural = _('Telegram Messages')
-        ordering = ['-created']
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Message {self.message_id} from {self.telegram_user.user.username}"

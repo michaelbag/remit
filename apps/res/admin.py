@@ -43,8 +43,8 @@ class ResourceAdmin(CatalogAdmin):
         'guid',
         'code',
         'service_equipment',
-        'modified',
-        'created'
+        'updated_at',
+        'created_at'
     ]
     fieldsets = [
         (

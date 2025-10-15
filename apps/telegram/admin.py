@@ -52,7 +52,7 @@ class TelegramUserAdmin(admin.ModelAdmin):
 @admin.register(TelegramMessage)
 class TelegramMessageAdmin(CatalogAdmin):
     list_display = ['get_telegram_user_display', 'message_type', 'content_short', 'is_processed']
-    list_filter = ['message_type', 'is_processed', 'created']
+    list_filter = ['message_type', 'is_processed', 'created_at']
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'content', 'response']
     
     @admin.display(description=_('User'), ordering='telegram_user__user__username')
@@ -128,7 +128,7 @@ class TelegramUserSubscriptionAdmin(admin.ModelAdmin):
 @admin.register(TelegramMessageTemplate)
 class TelegramMessageTemplateAdmin(CatalogAdmin):
     list_display = ['category', 'is_active']
-    list_filter = ['is_active', 'category', 'created']
+    list_filter = ['is_active', 'category', 'created_at']
     search_fields = ['name', 'subject_template', 'message_template']
     
     fieldsets = [

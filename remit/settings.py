@@ -14,6 +14,9 @@ from pathlib import Path
 import os
 from . import local_settings
 
+# Project version
+PROJECT_VERSION = "0.0.2.25"
+
 PROJECT_DIR = os.path.dirname(__file__)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
