@@ -28,7 +28,66 @@ class TelegramSubscriptionService:
         return TelegramUserSubscription.objects.filter(
             telegram_user=telegram_user,
             status__in=['active', 'paused']
-        ).select_related('category')
+        )
+    
+    @staticmethod
+    def get_auto_subscribe_categories():
+        """Получить категории для автоматической подписки новых пользователей"""
+        return TelegramSubscriptionCategory.objects.filter(
+            is_active=True,
+            is_auto_subscribe=True
+        )
+    
+    @staticmethod
+    def auto_subscribe_new_user(telegram_user):
+        """Автоматически подписать нового пользователя на категории"""
+        auto_categories = TelegramSubscriptionService.get_auto_subscribe_categories()
+        subscriptions_created = []
+        
+        for category in auto_categories:
+            # Проверяем, что пользователь еще не подписан на эту категорию
+            existing_subscription = TelegramUserSubscription.objects.filter(
+                telegram_user=telegram_user,
+                category=category
+            ).first()
+            
+            if not existing_subscription:
+                subscription = TelegramUserSubscription.objects.create(
+                    telegram_user=telegram_user,
+                    category=category,
+                    status='active'
+                )
+                subscriptions_created.append(subscription)
+        
+        return subscriptions_created
+    
+    @staticmethod
+    def get_auto_subscription_notification_message(telegram_user):
+        """Получить сообщение с информацией об автоматических подписках"""
+        auto_categories = TelegramSubscriptionService.get_auto_subscribe_categories()
+        
+        if not auto_categories:
+            return None
+        
+        message_parts = [
+            "🎉 Добро пожаловать!",
+            "",
+            "Вы автоматически подписаны на следующие категории уведомлений:",
+            ""
+        ]
+        
+        for category in auto_categories:
+            message_parts.append(f"{category.icon} {category.name}")
+            if category.description:
+                message_parts.append(f"   {category.description}")
+            message_parts.append("")
+        
+        message_parts.extend([
+            "Вы можете управлять своими подписками в любое время.",
+            "Используйте команду /subscriptions для просмотра и изменения подписок."
+        ])
+        
+        return "\n".join(message_parts)
     
     @staticmethod
     def get_user_subscription(telegram_user, category_code):

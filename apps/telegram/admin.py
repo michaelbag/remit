@@ -74,8 +74,8 @@ class TelegramMessageAdmin(CatalogAdmin):
 
 @admin.register(TelegramSubscriptionCategory)
 class TelegramSubscriptionCategoryAdmin(admin.ModelAdmin):
-    list_display = ['icon', 'name', 'code', 'is_active', 'is_public', 'requires_approval', 'subscriber_count', 'created_at']
-    list_filter = ['is_active', 'is_public', 'requires_approval', 'created_at']
+    list_display = ['icon', 'name', 'code', 'is_active', 'is_public', 'is_auto_subscribe', 'requires_approval', 'subscriber_count', 'created_at']
+    list_filter = ['is_active', 'is_public', 'is_auto_subscribe', 'requires_approval', 'created_at']
     search_fields = ['name', 'code', 'description']
     readonly_fields = ['created_at', 'updated_at']
     
@@ -88,7 +88,7 @@ class TelegramSubscriptionCategoryAdmin(admin.ModelAdmin):
             'fields': ['name', 'code', 'description', 'icon']
         }),
         (_('Settings'), {
-            'fields': ['is_active', 'is_public', 'requires_approval']
+            'fields': ['is_active', 'is_public', 'is_auto_subscribe', 'requires_approval']
         }),
         (_('Timestamps'), {
             'fields': ['created_at', 'updated_at'],

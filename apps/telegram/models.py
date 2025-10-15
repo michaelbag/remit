@@ -216,6 +216,23 @@ class TelegramUser(Catalog):
             role_name = dict(TelegramUserRole.choices).get(role, role)
             role_display.append(str(role_name))
         return ', '.join(role_display)
+    
+    @property
+    def is_new_user(self):
+        """Check if user is new (created within last 24 hours)"""
+        from django.utils import timezone
+        from datetime import timedelta
+        return self.created_at > timezone.now() - timedelta(hours=24)
+    
+    def setup_auto_subscriptions(self):
+        """Setup automatic subscriptions for new user"""
+        from .services import TelegramSubscriptionService
+        return TelegramSubscriptionService.auto_subscribe_new_user(self)
+    
+    def get_auto_subscription_notification(self):
+        """Get auto subscription notification message"""
+        from .services import TelegramSubscriptionService
+        return TelegramSubscriptionService.get_auto_subscription_notification_message(self)
 
 
 class TelegramMessage(Catalog):
@@ -305,6 +322,7 @@ class TelegramSubscriptionCategory(models.Model):
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
     is_public = models.BooleanField(default=True, verbose_name=_('Public Subscription'))
     requires_approval = models.BooleanField(default=False, verbose_name=_('Requires Approval'))
+    is_auto_subscribe = models.BooleanField(default=False, verbose_name=_('Auto Subscribe for New Users'))
     icon = models.CharField(max_length=10, default='📢', verbose_name=_('Icon'))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -333,6 +351,11 @@ class TelegramSubscriptionCategory(models.Model):
     def template_count(self):
         """Get count of active templates"""
         return self.templates.filter(is_active=True).count()
+    
+    @property
+    def is_auto_subscription(self):
+        """Check if category is auto-subscription for new users"""
+        return self.is_auto_subscribe
     
     def __str__(self):
         return self.display_name
