@@ -32,7 +32,9 @@ def webhook(request):
         return JsonResponse({'status': 'ok'})
         
     except Exception as e:
+        import traceback
         logger.error(f"Webhook error: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
@@ -70,7 +72,7 @@ def admin_send_broadcast(request, broadcast_id):
     try:
         # Получаем рассылку
         try:
-            broadcast = TelegramBroadcast.objects.get(id=broadcast_id)
+            broadcast = TelegramBroadcast.objects.get(guid=broadcast_id)
         except TelegramBroadcast.DoesNotExist:
             messages.error(request, 'Рассылка не найдена')
             return redirect('admin:telegram_telegrambroadcast_changelist')

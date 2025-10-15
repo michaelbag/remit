@@ -17,8 +17,9 @@ class Command(BaseCommand):
         created_groups = rbac_service.create_default_groups()
         
         for group in created_groups:
+            roles = [str(role.get_role_display()) for role in group.group_roles.all()]
             self.stdout.write(
-                self.style.SUCCESS(f'Created group: {group.name} with roles: {", ".join(group.roles)}')
+                self.style.SUCCESS(f'Created group: {group.name} with roles: {", ".join(roles)}')
             )
         
         # Создаем разрешения по умолчанию

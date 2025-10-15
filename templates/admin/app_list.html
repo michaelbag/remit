@@ -1,7 +1,8 @@
 {% load i18n admin_extras static %}
 {# Override admin app_list to make model lists collapsible by application #}
 
-<link rel="stylesheet" type="text/css" href="{% static 'common/admin_app_list.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin_app_list.css' %}">
+<script src="{% static 'admin_app_list.js' %}"></script>
 
 {% if app_list %}
   {% for app in app_list %}

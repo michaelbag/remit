@@ -130,9 +130,9 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
 
     class Media:
         css = {
-            'all': ('equipment/equipment_list.css',)
+            'all': ('equipment_list.css',)
         }
-        js = ('equipment/equipment_list.js',)
+        js = ('equipment_list.js',)
 
 
 @admin.register(eq_models.InterfaceType)
@@ -173,9 +173,9 @@ class InterfaceAdmin(CatalogAdmin):
 
     class Media:
         css = {
-            'all': ('equipment/interface_list.css',)
+            'all': ('interface_list.css',)
         }
-        js = ('equipment/interface_list.js',)
+        js = ('interface_list.js',)
 
 
     def get_search_results(self, request, queryset, search_term):

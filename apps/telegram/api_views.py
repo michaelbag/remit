@@ -263,7 +263,7 @@ def get_broadcasts(request):
         broadcasts_data = []
         for broadcast in page_obj:
             broadcasts_data.append({
-                'id': broadcast.id,
+                'id': broadcast.guid,
                 'title': broadcast.title,
                 'message': broadcast.message,
                 'broadcast_type': broadcast.broadcast_type,
@@ -322,7 +322,7 @@ def create_broadcast(request):
         target_users = None
         if data.get('target_user_ids'):
             target_users = TelegramUser.objects.filter(
-                id__in=data.get('target_user_ids')
+                guid__in=data.get('target_user_ids')
             )
         
         # Планирование
@@ -438,7 +438,7 @@ def get_broadcast_deliveries(request, broadcast_id):
     
     try:
         deliveries = TelegramBroadcastDelivery.objects.filter(
-            broadcast_id=broadcast_id
+            broadcast__guid=broadcast_id
         ).select_related('telegram_user__user').order_by('-sent_at')
         
         # Пагинация
@@ -452,7 +452,7 @@ def get_broadcast_deliveries(request, broadcast_id):
             deliveries_data.append({
                 'id': delivery.id,
                 'telegram_user': {
-                    'id': delivery.telegram_user.id,
+                    'id': delivery.telegram_user.guid,
                     'username': delivery.telegram_user.user.username,
                     'telegram_id': delivery.telegram_user.telegram_id,
                 },

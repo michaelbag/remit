@@ -161,7 +161,7 @@ class TelegramBroadcastService:
     def send_broadcast(self, broadcast_id):
         """Отправить рассылку"""
         try:
-            broadcast = TelegramBroadcast.objects.get(id=broadcast_id)
+            broadcast = TelegramBroadcast.objects.get(guid=broadcast_id)
             logger.info(f"Starting broadcast {broadcast_id}: {broadcast.title}")
             broadcast.status = 'sending'
             broadcast.save()
@@ -587,6 +587,8 @@ class TelegramRBACService:
     
     def create_default_groups(self):
         """Создать группы по умолчанию"""
+        from .models import TelegramUserGroupRole
+        
         default_groups = [
             {
                 'name': 'Viewers',
@@ -617,11 +619,21 @@ class TelegramRBACService:
         
         created_groups = []
         for group_data in default_groups:
+            # Создаем группу без ролей
             group, created = TelegramUserGroup.objects.get_or_create(
                 name=group_data['name'],
-                defaults=group_data
+                defaults={
+                    'description': group_data['description']
+                }
             )
+            
             if created:
+                # Создаем роли для группы
+                for role in group_data['roles']:
+                    TelegramUserGroupRole.objects.create(
+                        group=group,
+                        role=role
+                    )
                 created_groups.append(group)
         
         return created_groups

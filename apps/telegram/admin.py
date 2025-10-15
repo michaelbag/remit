@@ -8,15 +8,13 @@ from .models import (
     TelegramUser, TelegramMessage, TelegramSubscriptionCategory,
     TelegramUserSubscription, TelegramBroadcast, TelegramBroadcastDelivery,
     TelegramMessageTemplate, TelegramUserRole, TelegramUserGroup,
-    TelegramUserGroupMembership, TelegramPermission, TelegramAuditLog
+    TelegramUserGroupRole, TelegramUserGroupMembership, TelegramPermission, TelegramAuditLog
 )
 from .services import TelegramBroadcastService
 
 
-
-
 @admin.register(TelegramUser)
-class TelegramUserAdmin(admin.ModelAdmin):
+class TelegramUserAdmin(CatalogAdmin):
     list_display = ['get_full_display', 'telegram_id', 'get_telegram_info', 'employee', 'is_active', 'created_at']
     list_filter = ['is_active', 'created_at', 'employee']
     search_fields = ['user__username', 'telegram_id', 'username', 'first_name', 'last_name', 'phone_number', 'employee__name']
@@ -143,17 +141,11 @@ class TelegramMessageTemplateAdmin(CatalogAdmin):
 
 @admin.register(TelegramBroadcast)
 class TelegramBroadcastAdmin(CatalogAdmin):
-    use_basic_fieldsets = False  # Disable automatic basic_fieldsets
-    hidden_system_fieldsets = True  # Hide system fieldsets from CatalogAdmin
-    list_display = ['name', 'code', 'title', 'broadcast_type', 'status', 'scheduled_at_display', 'total_recipients', 'delivered_count', 'failed_count', 'created_at', 'send_broadcast_button']
-    list_filter = ['status', 'broadcast_type', 'created_at', 'scheduled_at']
+    list_display = ['title', 'broadcast_type', 'status', 'scheduled_at_display', 'total_recipients', 'delivered_count', 'failed_count', 'send_broadcast_button']
+    list_filter = ['status', 'broadcast_type', 'delete_mark', 'created_at', 'scheduled_at']
     search_fields = ['name', 'code', 'title', 'message']
-    readonly_fields = ['sent_at', 'total_recipients', 'delivered_count', 'failed_count']
+    readonly_fields = ['guid', 'sent_at', 'total_recipients', 'delivered_count', 'failed_count', 'created_at', 'updated_at']
     filter_horizontal = ['target_categories', 'target_users']
-    
-    def get_list_display(self, request):
-        """Override to avoid CatalogAdmin's automatic field additions"""
-        return self.list_display
     
     @admin.display(description=_('Scheduled Time'), ordering='scheduled_at')
     def scheduled_at_display(self, obj):
@@ -175,8 +167,11 @@ class TelegramBroadcastAdmin(CatalogAdmin):
         return '-'
     
     fieldsets = [
+        (_('Catalog Fields'), {
+            'fields': ['delete_mark']
+        }),
         (_('Basic Information'), {
-            'fields': [('name', 'code'), 'title', 'message', 'broadcast_type', 'status']
+            'fields': ['title', 'message', 'broadcast_type', 'status']
         }),
         (_('Target Audience'), {
             'fields': ['target_categories', 'target_users']
@@ -189,7 +184,7 @@ class TelegramBroadcastAdmin(CatalogAdmin):
             'classes': ['collapse']
         }),
         (_('Metadata'), {
-            'fields': ['created_by', 'created_at', 'updated_at'],
+            'fields': ['created_by'],
             'classes': ['collapse']
         })
     ]
@@ -226,12 +221,21 @@ class TelegramBroadcastDeliveryAdmin(admin.ModelAdmin):
     ]
 
 
+class TelegramUserGroupRoleInline(admin.TabularInline):
+    model = TelegramUserGroupRole
+    extra = 1
+    fields = ['role', 'is_active']
+    verbose_name = _('Role')
+    verbose_name_plural = _('Roles')
+
+
 @admin.register(TelegramUserGroup)
-class TelegramUserGroupAdmin(admin.ModelAdmin):
-    list_display = ['name', 'get_roles_display', 'is_active', 'member_count', 'created_at']
+class TelegramUserGroupAdmin(CatalogAdmin):
+    list_display = ['get_roles_display', 'is_active', 'member_count', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'description']
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'guid']
+    inlines = [TelegramUserGroupRoleInline]
     
     @admin.display(description=_('Members'))
     def member_count(self, obj):
@@ -239,20 +243,13 @@ class TelegramUserGroupAdmin(admin.ModelAdmin):
     
     fieldsets = [
         (_('Basic Information'), {
-            'fields': ['name', 'description', 'is_active']
+            'fields': ['description', 'is_active']
         }),
-        (_('Roles'), {
-            'fields': ['roles']
-        }),
-        (_('Timestamps'), {
-            'fields': ['created_at', 'updated_at'],
-            'classes': ['collapse']
-        })
     ]
 
 
 @admin.register(TelegramUserGroupMembership)
-class TelegramUserGroupMembershipAdmin(admin.ModelAdmin):
+class TelegramUserGroupMembershipAdmin(CatalogAdmin):
     list_display = ['get_telegram_user_display', 'group', 'get_roles_display', 'is_active', 'assigned_at', 'assigned_by']
     list_filter = ['is_active', 'group', 'assigned_at']
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'group__name']
@@ -264,6 +261,9 @@ class TelegramUserGroupMembershipAdmin(admin.ModelAdmin):
         return obj.telegram_user.get_full_display()
     
     fieldsets = [
+        (_('Catalog Fields'), {
+            'fields': ['name', 'code', 'delete_mark']
+        }),
         (_('Membership'), {
             'fields': ['telegram_user', 'group', 'is_active']
         }),

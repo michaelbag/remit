@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class TelegramBot:
-    """Основной класс для работы с Telegram Bot API"""
+    """Main class for working with Telegram Bot API"""
     
     def __init__(self):
         self.token = settings.TELEGRAM_BOT_TOKEN
@@ -18,7 +18,7 @@ class TelegramBot:
         self.rbac_service = TelegramRBACService()
     
     def send_message(self, chat_id, text, parse_mode='HTML', reply_markup=None):
-        """Отправка сообщения пользователю"""
+        """Send message to user"""
         url = f"{self.api_url}/sendMessage"
         data = {
             'chat_id': chat_id,
@@ -37,7 +37,7 @@ class TelegramBot:
             return None
     
     def set_webhook(self):
-        """Установка webhook"""
+        """Set webhook"""
         url = f"{self.api_url}/setWebhook"
         data = {
             'url': self.webhook_url
@@ -52,7 +52,7 @@ class TelegramBot:
             return {'ok': False, 'error': str(e)}
     
     def get_webhook_info(self):
-        """Получение информации о webhook"""
+        """Get webhook information"""
         url = f"{self.api_url}/getWebhookInfo"
         
         try:
@@ -64,7 +64,7 @@ class TelegramBot:
             return {'ok': False, 'error': str(e)}
     
     def remove_webhook(self):
-        """Удаление webhook"""
+        """Remove webhook"""
         url = f"{self.api_url}/deleteWebhook"
         
         try:
@@ -75,52 +75,104 @@ class TelegramBot:
             logger.error(f"Error removing webhook: {e}")
             return {'ok': False, 'error': str(e)}
     
+    def get_chat_member_info(self, chat_id):
+        """Get user information by chat_id"""
+        url = f"{self.api_url}/getChat"
+        data = {'chat_id': chat_id}
+        
+        try:
+            response = requests.post(url, json=data)
+            response.raise_for_status()
+            result = response.json()
+            
+            if result.get('ok'):
+                chat_info = result.get('result', {})
+                # Return information in format compatible with get_or_create_telegram_user
+                return {
+                    'id': chat_info.get('id'),
+                    'username': chat_info.get('username', ''),
+                    'first_name': chat_info.get('first_name', ''),
+                    'last_name': chat_info.get('last_name', ''),
+                    'type': chat_info.get('type', 'private')
+                }
+            else:
+                logger.error(f"Error getting chat info: {result}")
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error getting chat member info: {e}")
+            return None
+    
     def get_or_create_telegram_user(self, telegram_data):
-        """Получение или создание пользователя Telegram"""
+        """Get or create Telegram user"""
+        if not telegram_data or not telegram_data.get('id'):
+            logger.error(f"Invalid telegram data: {telegram_data}")
+            return None
+            
         telegram_id = telegram_data.get('id')
         username = telegram_data.get('username', '')
         first_name = telegram_data.get('first_name', '')
         last_name = telegram_data.get('last_name', '')
         
-        # Ищем существующего пользователя
+        # Look for existing user
         try:
             telegram_user = TelegramUser.objects.get(telegram_id=telegram_id)
-            # Обновляем данные
+            # Update data
             telegram_user.username = username
             telegram_user.first_name = first_name
             telegram_user.last_name = last_name
             telegram_user.save()
             return telegram_user
         except TelegramUser.DoesNotExist:
-            # Создаем нового пользователя
-            # Сначала создаем Django пользователя
-            django_user = User.objects.create_user(
-                username=f"telegram_{telegram_id}",
-                first_name=first_name,
-                last_name=last_name
+            # Create new user
+            # First create Django user
+            django_username = f"telegram_{telegram_id}"
+            django_user, created = User.objects.get_or_create(
+                username=django_username,
+                defaults={
+                    'first_name': first_name,
+                    'last_name': last_name
+                }
             )
             
-            # Создаем Telegram пользователя
-            telegram_user = TelegramUser.objects.create(
-                user=django_user,
+            # Update user info if it already existed
+            if not created:
+                django_user.first_name = first_name
+                django_user.last_name = last_name
+                django_user.save()
+            
+            # Create Telegram user
+            telegram_user, created = TelegramUser.objects.get_or_create(
                 telegram_id=telegram_id,
-                username=username,
-                first_name=first_name,
-                last_name=last_name
+                defaults={
+                    'user': django_user,
+                    'username': username,
+                    'first_name': first_name,
+                    'last_name': last_name
+                }
             )
+            
+            # Update user info if it already existed
+            if not created:
+                telegram_user.user = django_user
+                telegram_user.username = username
+                telegram_user.first_name = first_name
+                telegram_user.last_name = last_name
+                telegram_user.save()
+            
             return telegram_user
     
     def find_employee_by_phone(self, phone_number):
-        """Поиск сотрудника по номеру телефона"""
+        """Find employee by phone number"""
         from apps.org.models import Employee
         
-        # Нормализуем номер телефона (используем метод из модели Employee)
+        # Normalize phone number (use method from Employee model)
         temp_employee = Employee()
         normalized_phone = temp_employee.normalize_phone(phone_number)
         
         logger.info(f"Searching for employee with phone: {phone_number} -> normalized: {normalized_phone}")
         
-        # Ищем сотрудника по нормализованному номеру
+        # Search for employee by normalized number
         try:
             employee = Employee.objects.get(phone=normalized_phone, archive=False)
             logger.info(f"Found employee: {employee.name} (PK: {employee.pk})")
@@ -130,7 +182,7 @@ class TelegramBot:
             return None
     
     def link_telegram_user_to_employee(self, telegram_user, phone_number):
-        """Привязка Telegram пользователя к сотруднику по номеру телефона"""
+        """Link Telegram user to employee by phone number"""
         employee = self.find_employee_by_phone(phone_number)
         if employee:
             telegram_user.employee = employee
@@ -140,16 +192,19 @@ class TelegramBot:
         return False
     
     def handle_message(self, message_data):
-        """Обработка текстового сообщения"""
+        """Process text message"""
         chat_id = message_data.get('chat', {}).get('id')
         text = message_data.get('text', '')
         message_id = message_data.get('message_id')
         from_user = message_data.get('from', {})
         
-        # Получаем или создаем пользователя
+        # Get or create user
         telegram_user = self.get_or_create_telegram_user(from_user)
+        if not telegram_user:
+            logger.error(f"Failed to create/get telegram user for: {from_user}")
+            return "Error: Unable to process user data"
         
-        # Сохраняем сообщение
+        # Save message
         telegram_message = TelegramMessage.objects.create(
             telegram_user=telegram_user,
             message_id=message_id,
@@ -157,16 +212,16 @@ class TelegramBot:
             content=text
         )
         
-        # Обрабатываем команды
+        # Process commands
         if text.startswith('/'):
             return self.handle_command(telegram_user, text, telegram_message)
         else:
-            # Проверяем, привязан ли пользователь к сотруднику
+            # Check if user is linked to employee
             if not telegram_user.employee:
-                # Запрашиваем контактные данные
+                # Request contact information
                 return self.request_contact_info(telegram_user, telegram_message)
             else:
-                # Обычное сообщение от привязанного пользователя
+                # Regular message from linked user
                 response_text = f"Привет, {telegram_user.employee.name}! Я бот системы управления оборудованием."
                 self.send_message(chat_id, response_text)
                 telegram_message.response = response_text
@@ -175,7 +230,7 @@ class TelegramBot:
                 return response_text
     
     def handle_command(self, telegram_user, command, telegram_message):
-        """Обработка команд"""
+        """Process commands"""
         chat_id = telegram_user.telegram_id
         
         if command == '/start':
@@ -210,7 +265,7 @@ class TelegramBot:
             response_text = "✅ Система работает нормально"
         elif command == '/equipment':
             if telegram_user.employee:
-                # Получаем оборудование сотрудника
+                # Get employee equipment
                 from apps.equipment.models import Equipment
                 equipment_list = Equipment.objects.filter(
                     employee=telegram_user.employee,
@@ -247,12 +302,12 @@ class TelegramBot:
         else:
             response_text = "❓ Неизвестная команда. Используйте /help для справки."
         
-        # Отправляем сообщение только если response_text не None
+        # Send message only if response_text is not None
         if response_text is not None:
             self.send_message(chat_id, response_text)
             telegram_message.response = response_text
         else:
-            # Если response_text None, значит сообщение уже отправлено в команде
+            # If response_text is None, message was already sent in command
             telegram_message.response = "Message sent with inline keyboard"
         
         telegram_message.message_type = 'command'
@@ -262,32 +317,38 @@ class TelegramBot:
         return response_text
     
     def handle_update(self, update_data):
-        """Обработка обновления от Telegram"""
+        """Process update from Telegram"""
         if 'message' in update_data:
             message_data = update_data['message']
             
-            # Проверяем, есть ли контактные данные
+            # Check if contact information exists
             if 'contact' in message_data:
                 from_user = message_data.get('from', {})
                 telegram_user = self.get_or_create_telegram_user(from_user)
+                if not telegram_user:
+                    logger.error(f"Failed to create/get telegram user for contact: {from_user}")
+                    return "Error: Unable to process user data"
                 return self.handle_contact(message_data['contact'], telegram_user)
             else:
                 return self.handle_message(message_data)
                 
         elif 'callback_query' in update_data:
-            # Обработка callback запросов
+            # Process callback queries
             callback_query = update_data['callback_query']
             chat_id = callback_query['message']['chat']['id']
             data = callback_query['data']
             from_user = callback_query.get('from', {})
             
-            # Получаем пользователя
+            # Get user
             telegram_user = self.get_or_create_telegram_user(from_user)
+            if not telegram_user:
+                logger.error(f"Failed to create/get telegram user for callback: {from_user}")
+                return "Error: Unable to process user data"
             
-            # Обрабатываем callback данные
+            # Process callback data
             response_text = self.handle_callback_query(telegram_user, data, callback_query)
             
-            # Отвечаем на callback query (убираем "часики" в Telegram)
+            # Answer callback query (remove "loading" indicator in Telegram)
             self.answer_callback_query(callback_query['id'], response_text)
             
             return response_text
@@ -295,7 +356,7 @@ class TelegramBot:
         return "Unknown update type"
     
     def request_contact_info(self, telegram_user, telegram_message):
-        """Запрос контактных данных у пользователя"""
+        """Request contact information from user"""
         chat_id = telegram_user.telegram_id
         
         response_text = (
@@ -304,7 +365,7 @@ class TelegramBot:
             "Пожалуйста, поделитесь своим номером телефона, нажав кнопку ниже:"
         )
         
-        # Создаем клавиатуру с кнопкой для отправки контакта
+        # Create keyboard with button for sending contact
         keyboard = {
             "keyboard": [[{
                 "text": "📱 Поделиться номером телефона",
@@ -322,14 +383,14 @@ class TelegramBot:
         return response_text
     
     def handle_contact(self, contact_data, telegram_user):
-        """Обработка контактных данных"""
+        """Process contact information"""
         chat_id = telegram_user.telegram_id
         phone_number = contact_data.get('phone_number', '')
         
         logger.info(f"Received contact from user {telegram_user.telegram_id}: {phone_number}")
         
         if phone_number:
-            # Пытаемся найти сотрудника по номеру телефона
+            # Try to find employee by phone number
             if self.link_telegram_user_to_employee(telegram_user, phone_number):
                 response_text = (
                     f"✅ Отлично! Вы успешно привязаны к профилю сотрудника: {telegram_user.employee.name}\n\n"
@@ -352,7 +413,7 @@ class TelegramBot:
         return response_text
     
     def answer_callback_query(self, callback_query_id, text=None, show_alert=False):
-        """Ответ на callback query"""
+        """Answer callback query"""
         url = f"{self.api_url}/answerCallbackQuery"
         data = {
             'callback_query_id': callback_query_id,
@@ -370,27 +431,27 @@ class TelegramBot:
             return {'ok': False, 'error': str(e)}
     
     def handle_callback_query(self, telegram_user, data, callback_query):
-        """Обработка callback запросов от inline кнопок"""
+        """Process callback queries from inline buttons"""
         chat_id = telegram_user.telegram_id
         
         if data.startswith('subscribe_'):
-            # Подписка на категорию
+            # Subscribe to category
             category_code = data.replace('subscribe_', '')
             result = self.handle_subscribe_command(telegram_user, category_code)
-            # Отправляем уведомление пользователю
+            # Send notification to user
             self.send_message(chat_id, result)
             return result
             
         elif data.startswith('unsubscribe_'):
-            # Отписка от категории
+            # Unsubscribe from category
             category_code = data.replace('unsubscribe_', '')
             result = self.handle_unsubscribe_command(telegram_user, category_code)
-            # Отправляем уведомление пользователю
+            # Send notification to user
             self.send_message(chat_id, result)
             return result
             
         elif data.startswith('status_'):
-            # Показать статус подписки
+            # Show subscription status
             category_code = data.replace('status_', '')
             try:
                 from .models import TelegramSubscriptionCategory
@@ -409,7 +470,7 @@ class TelegramBot:
                 else:
                     result = f"❌ Подписка на '{category.name}' не найдена"
                 
-                # Отправляем уведомление пользователю
+                # Send notification to user
                 self.send_message(chat_id, result)
                 return result
             except Exception as e:
@@ -423,19 +484,19 @@ class TelegramBot:
             return result
     
     def handle_subscriptions_command(self, telegram_user):
-        """Обработка команды /subscriptions"""
+        """Process /subscriptions command"""
         categories = TelegramSubscriptionService.get_available_categories()
         
         if not categories:
             return "📢 Нет доступных категорий подписок"
         
-        # Получаем текущие подписки пользователя
+        # Get current user subscriptions
         user_subscriptions = TelegramSubscriptionService.get_user_subscriptions(telegram_user)
         user_subscription_codes = {sub.category.code: sub.status for sub in user_subscriptions}
         
         response_text = "📢 <b>Доступные категории подписок:</b>\n\n"
         
-        # Создаем inline клавиатуру
+        # Create inline keyboard
         keyboard = []
         
         for category in categories:
@@ -443,7 +504,7 @@ class TelegramBot:
             if category.description:
                 response_text += f"Описание: {category.description}\n"
             
-            # Определяем статус подписки и создаем кнопку
+            # Determine subscription status and create button
             subscription_status = user_subscription_codes.get(category.code, 'not_subscribed')
             
             if subscription_status == 'active':
@@ -463,7 +524,7 @@ class TelegramBot:
                 button_text = f"✅ Подписаться на {category.name}"
                 callback_data = f"subscribe_{category.code}"
             
-            # Добавляем кнопку в клавиатуру
+            # Add button to keyboard
             keyboard.append([{
                 "text": button_text,
                 "callback_data": callback_data
@@ -473,20 +534,20 @@ class TelegramBot:
         
         response_text += "💡 <i>Используйте кнопки ниже для быстрого управления подписками</i>"
         
-        # Создаем inline клавиатуру
+        # Create inline keyboard
         reply_markup = {
             "inline_keyboard": keyboard
         }
         
-        # Отправляем сообщение с кнопками
+        # Send message with buttons
         chat_id = telegram_user.telegram_id
         self.send_message(chat_id, response_text, reply_markup=reply_markup)
         
-        # Возвращаем None, чтобы избежать дублирования сообщения
+        # Return None to avoid message duplication
         return None
     
     def handle_my_subscriptions_command(self, telegram_user):
-        """Обработка команды /mysubscriptions"""
+        """Process /mysubscriptions command"""
         subscriptions = TelegramSubscriptionService.get_user_subscriptions(telegram_user)
         
         if not subscriptions:
@@ -494,7 +555,7 @@ class TelegramBot:
         
         response_text = "📋 <b>Ваши подписки:</b>\n\n"
         
-        # Создаем inline клавиатуру для управления подписками
+        # Create inline keyboard for subscription management
         keyboard = []
         
         for subscription in subscriptions:
@@ -510,7 +571,7 @@ class TelegramBot:
             response_text += f"Подписаны: {subscription.subscribed_at.strftime('%d.%m.%Y %H:%M')}\n"
             response_text += f"Уведомлений получено: {subscription.notification_count}\n"
             
-            # Создаем кнопки в зависимости от статуса
+            # Create buttons depending on status
             if subscription.status == 'active':
                 button_text = f"❌ Отписаться от {subscription.category.name}"
                 callback_data = f"unsubscribe_{subscription.category.code}"
@@ -530,21 +591,21 @@ class TelegramBot:
         
         response_text += "💡 <i>Используйте кнопки ниже для управления подписками</i>"
         
-        # Создаем inline клавиатуру
+        # Create inline keyboard
         reply_markup = {
             "inline_keyboard": keyboard
         }
         
-        # Отправляем сообщение с кнопками
+        # Send message with buttons
         chat_id = telegram_user.telegram_id
         self.send_message(chat_id, response_text, reply_markup=reply_markup)
         
-        # Возвращаем None, чтобы избежать дублирования сообщения
+        # Return None to avoid message duplication
         return None
     
     def handle_subscribe_command(self, telegram_user, category_code):
-        """Обработка команды /subscribe"""
-        # Получаем текущую подписку перед изменением
+        """Process /subscribe command"""
+        # Get current subscription before change
         current_subscription = TelegramSubscriptionService.get_user_subscription(telegram_user, category_code)
         
         subscription, created = TelegramSubscriptionService.subscribe_user(telegram_user, category_code)
@@ -553,7 +614,7 @@ class TelegramBot:
             return f"❌ <b>Ошибка подписки</b>\n\nКатегория с кодом '{category_code}' не найдена. Проверьте правильность кода."
         
         if created:
-            # Новая подписка создана
+            # New subscription created
             if subscription.status == 'pending':
                 return (
                     f"⏳ <b>Запрос на подписку отправлен</b>\n\n"
@@ -570,9 +631,9 @@ class TelegramBot:
                     f"Теперь вы будете получать уведомления по этой категории."
                 )
         else:
-            # Подписка уже существует, проверяем что изменилось
+            # Subscription already exists, check what changed
             if current_subscription and current_subscription.status == 'unsubscribed':
-                # Пользователь был отписан, теперь подписан
+                # User was unsubscribed, now subscribed
                 if subscription.status == 'pending':
                     return (
                         f"⏳ <b>Запрос на подписку отправлен</b>\n\n"
@@ -589,7 +650,7 @@ class TelegramBot:
                         f"Теперь вы будете получать уведомления по этой категории."
                     )
             elif current_subscription and current_subscription.status == 'paused':
-                # Пользователь возобновляет приостановленную подписку
+                # User resumes paused subscription
                 return (
                     f"▶️ <b>Подписка возобновлена</b>\n\n"
                     f"Подписка на категорию возобновлена:\n"
@@ -597,7 +658,7 @@ class TelegramBot:
                     f"Уведомления снова активны."
                 )
             else:
-                # Пользователь уже подписан
+                # User already subscribed
                 return (
                     f"ℹ️ <b>Подписка уже активна</b>\n\n"
                     f"Вы уже подписаны на категорию:\n"
@@ -606,7 +667,7 @@ class TelegramBot:
                 )
     
     def handle_unsubscribe_command(self, telegram_user, category_code):
-        """Обработка команды /unsubscribe"""
+        """Process /unsubscribe command"""
         success = TelegramSubscriptionService.unsubscribe_user(telegram_user, category_code)
         
         if success:
@@ -633,33 +694,33 @@ class TelegramBot:
             )
     
     def send_broadcast(self, broadcast):
-        """Отправить рассылку"""
+        """Send broadcast"""
         from .services import TelegramBroadcastService
         broadcast_service = TelegramBroadcastService()
         return broadcast_service.send_broadcast(broadcast.id)
     
     def send_individual_message(self, telegram_user, message, parse_mode='HTML'):
-        """Отправить индивидуальное сообщение"""
+        """Send individual message"""
         return self.send_message(telegram_user.telegram_id, message, parse_mode)
     
     def get_user_subscriptions(self, telegram_user):
-        """Получить подписки пользователя"""
+        """Get user subscriptions"""
         return TelegramSubscriptionService.get_user_subscriptions(telegram_user)
     
     def subscribe_user(self, telegram_user, category_code):
-        """Подписать пользователя на категорию"""
+        """Subscribe user to category"""
         return TelegramSubscriptionService.subscribe_user(telegram_user, category_code)
     
     def unsubscribe_user(self, telegram_user, category_code):
-        """Отписать пользователя от категории"""
+        """Unsubscribe user from category"""
         return TelegramSubscriptionService.unsubscribe_user(telegram_user, category_code)
     
     def check_permission(self, telegram_user, permission_code):
-        """Проверить разрешение пользователя"""
+        """Check user permission"""
         return self.rbac_service.check_permission(telegram_user, permission_code)
     
     def log_command_execution(self, telegram_user, command, success=True, error_message=''):
-        """Логировать выполнение команды"""
+        """Log command execution"""
         self.rbac_service.log_audit_action(
             telegram_user=telegram_user,
             action_type='command',
@@ -670,8 +731,8 @@ class TelegramBot:
         )
     
     def handle_command_with_permission(self, telegram_user, command, permission_code, command_handler):
-        """Выполнить команду с проверкой разрешений"""
-        # Проверяем разрешение
+        """Execute command with permission check"""
+        # Check permission
         if not self.check_permission(telegram_user, permission_code):
             response_text = (
                 f"❌ У вас нет прав для выполнения команды {command}.\n"
@@ -682,7 +743,7 @@ class TelegramBot:
                                      error_message="Permission denied")
             return response_text
         
-        # Выполняем команду
+        # Execute command
         try:
             response_text = command_handler(telegram_user)
             self.log_command_execution(telegram_user, command, success=True)
@@ -697,7 +758,7 @@ class TelegramBot:
             return response_text
     
     def get_user_roles_info(self, telegram_user):
-        """Получить информацию о ролях пользователя"""
+        """Get user roles information"""
         roles = telegram_user.get_all_roles()
         groups = telegram_user.get_active_groups()
         
@@ -706,13 +767,13 @@ class TelegramBot:
         
         response_text = "👤 <b>Ваши роли и группы:</b>\n\n"
         
-        # Показываем роли
+        # Show roles
         response_text += "🔑 <b>Роли:</b>\n"
         for role in roles:
             role_display = dict(TelegramUserRole.choices).get(role, role)
             response_text += f"• {role_display}\n"
         
-        # Показываем группы
+        # Show groups
         if groups:
             response_text += "\n👥 <b>Группы:</b>\n"
             for membership in groups:
@@ -724,7 +785,7 @@ class TelegramBot:
         return response_text
     
     def get_user_permissions_info(self, telegram_user):
-        """Получить информацию о разрешениях пользователя"""
+        """Get user permissions information"""
         permissions = self.rbac_service.get_user_effective_permissions(telegram_user)
         
         if not permissions:
@@ -732,7 +793,7 @@ class TelegramBot:
         
         response_text = "🔐 <b>Ваши разрешения:</b>\n\n"
         
-        # Группируем разрешения по типам
+        # Group permissions by type
         permission_types = {}
         for perm in permissions:
             if perm.permission_type not in permission_types:
@@ -749,28 +810,28 @@ class TelegramBot:
         return response_text
     
     def handle_forgetme_command(self, telegram_user):
-        """Обработка команды /forgetme - отвязка от сотрудника"""
+        """Process /forgetme command - unlink from employee"""
         try:
-            # Проверяем, привязан ли пользователь к сотруднику
+            # Check if user is linked to employee
             if not telegram_user.employee:
                 return (
                     "ℹ️ <b>Ваш профиль не привязан к сотруднику</b>\n\n"
                     "Нет необходимости в отвязке, так как профиль уже не связан с сотрудником."
                 )
             
-            # Сохраняем информацию о сотруднике для сообщения
+            # Save employee information for message
             employee_name = telegram_user.employee.name if telegram_user.employee else "Неизвестный"
             
-            # Отвязываем от сотрудника
+            # Unlink from employee
             telegram_user.employee = None
             
-            # Очищаем номер телефона
+            # Clear phone number
             telegram_user.phone_number = ""
             
-            # Сохраняем изменения
+            # Save changes
             telegram_user.save()
             
-            # Логируем действие
+            # Log action
             logger.info(f"User {telegram_user.telegram_id} unlinked from employee {employee_name}")
             
             return (

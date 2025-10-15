@@ -1,0 +1,31 @@
+/* Equipment main styles */
+.bg-blue {
+    background-color: #007bff !important;
+}
+
+.site-header {
+    margin-bottom: 2rem;
+}
+
+.content-section {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.bx-tada-hover:hover {
+    animation: tada 1s;
+}
+
+@keyframes tada {
+    0% { transform: scale(1); }
+    10%, 20% { transform: scale(0.9) rotate(-3deg); }
+    30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+    40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0); }
+}

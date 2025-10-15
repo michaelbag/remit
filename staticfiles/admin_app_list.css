@@ -13,6 +13,22 @@
     list-style: none;
     padding: .25rem .5rem;
     font-weight: 600;
+    color: #417690;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 3px;
+    display: block;
+}
+
+.app-group > summary:hover {
+    color: #205067;
+    text-decoration: underline;
+    background-color: rgba(65, 118, 144, 0.1);
+}
+
+.app-group > summary:focus {
+    outline: 2px solid #417690;
+    outline-offset: 2px;
 }
 
 .app-group[open] > summary { 
