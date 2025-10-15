@@ -18,6 +18,33 @@ class TelegramUser(Catalog):
                                 related_name='telegram_users', verbose_name=_('Employee'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
 
+    def save(self, *args, **kwargs):
+        # Auto-generate name from last_name, first_name and telegram_id if not provided
+        if not self.name:
+            name_parts = []
+            
+            # Add last_name if available
+            if self.last_name:
+                name_parts.append(self.last_name)
+            
+            # Add first_name if available
+            if self.first_name:
+                name_parts.append(self.first_name)
+            
+            # Create name from parts
+            if name_parts:
+                name = " ".join(name_parts)
+                # Add telegram_id in brackets
+                name = f"{name} ({self.telegram_id})"
+            else:
+                # If no name parts, use telegram_id
+                name = f"User ({self.telegram_id})"
+            
+            # Truncate to max length (32 characters)
+            self.name = name[:32]
+        
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = _('Telegram User')
         verbose_name_plural = _('Telegram Users')
