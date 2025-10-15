@@ -700,6 +700,7 @@ class TelegramUserGroup(Catalog):
     """Model for Telegram user groups"""
     description = models.TextField(blank=True, verbose_name=_('Description'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    is_default_for_new_users = models.BooleanField(default=False, verbose_name=_('Default for New Users'))
     
     class Meta:
         verbose_name = _('Telegram User Group')
@@ -735,6 +736,11 @@ class TelegramUserGroup(Catalog):
     def active_roles(self):
         """Get active roles queryset"""
         return self.group_roles.filter(is_active=True)
+    
+    @property
+    def is_default_group(self):
+        """Check if group is default for new users"""
+        return self.is_default_for_new_users
     
     def get_roles_display(self):
         """Get display names of roles - deprecated, use roles_display property"""

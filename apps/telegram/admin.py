@@ -231,8 +231,8 @@ class TelegramUserGroupRoleInline(admin.TabularInline):
 
 @admin.register(TelegramUserGroup)
 class TelegramUserGroupAdmin(CatalogAdmin):
-    list_display = ['get_roles_display', 'is_active', 'member_count', 'created_at']
-    list_filter = ['is_active', 'created_at']
+    list_display = ['get_roles_display', 'is_active', 'is_default_for_new_users', 'member_count', 'created_at']
+    list_filter = ['is_active', 'is_default_for_new_users', 'created_at']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at', 'guid']
     inlines = [TelegramUserGroupRoleInline]
@@ -243,7 +243,7 @@ class TelegramUserGroupAdmin(CatalogAdmin):
     
     fieldsets = [
         (_('Basic Information'), {
-            'fields': ['description', 'is_active']
+            'fields': ['description', 'is_active', 'is_default_for_new_users']
         }),
     ]
 
