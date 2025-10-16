@@ -17,30 +17,17 @@ class QRTypeAdmin(admin.ModelAdmin):
         'url_root',
         'archive'
     ]
+    search_fields = ['name', 'code', 'url_root']
     readonly_fields = [
         'guid'
     ]
-
-
-class QRCodeAdminForm(forms.ModelForm):
-    class Meta:
-        model = apps.qr.models.QRCode
-        fields = [
-            'guid',
-            'code',
-            'name',
-            'title',
-            'qr_type',
-            'archive',
-            'delete_mark',
-            'fixed'
-        ]
 
 
 @admin.register(apps.qr.models.QRCode)
 class QRCodeAdmin(common.admin.CatalogAdmin):
     form = apps.qr.forms.QRCodeForm
     filter_horizontal = ('operations',)
+    change_form_template = "admin/qr/qrcode/change_form.html"
     
     list_display = [
         'guid_public_code',
@@ -99,7 +86,6 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
         'qr_image',
         'operations_list'
     ]
-    change_form_template = "admin/qr/qrcode/change_form.html"
     
     def save_model(self, request, obj, form, change):
         """Handle QR code regeneration when regenerate_qr checkbox is checked or qr_type changes"""

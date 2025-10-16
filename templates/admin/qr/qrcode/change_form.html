@@ -1,0 +1,45 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+{% endblock %}
+
+{% block after_field_sets %}
+    {{ block.super }}
+    
+    {% if original and original.qr_image %}
+    <fieldset class="module aligned">
+        <h2>QR Code Image</h2>
+        <div class="form-row">
+            <div class="field-box">
+                <div class="help">
+                    <img src="{{ original.qr_image.url }}" 
+                         alt="QR Code for {{ original.short_public_code }}" 
+                         class="default">
+                </div>
+                <div class="help">
+                    <strong>URL:</strong> {{ original.url }}
+                </div>
+                <div class="help">
+                    <strong>Filename:</strong> {{ original.qr_image.name }}
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    {% elif original and original.url %}
+    <fieldset class="module aligned">
+        <h2>QR Code Image</h2>
+        <div class="form-row">
+            <div class="field-box">
+                <div class="help">
+                    QR code image will be generated automatically when you save this record.
+                </div>
+                <div class="help">
+                    <strong>URL:</strong> {{ original.url }}
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    {% endif %}
+{% endblock %}

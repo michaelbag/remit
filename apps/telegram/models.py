@@ -92,10 +92,10 @@ class TelegramUser(Catalog):
     
     def get_all_roles(self):
         """Get all user roles from all active groups"""
-        roles = set()
-        for membership in self.group_memberships.filter(is_active=True):
-            roles.update(membership.assigned_roles)
-        return list(roles)
+        # If no role assignments exist, update them first
+        if not self.user_roles.exists():
+            self.update_all_roles()
+        return [role_assignment.role for role_assignment in self.user_roles.filter(is_active=True)]
     
     def has_role(self, role):
         """Check if user has the specified role"""
@@ -224,12 +224,10 @@ class TelegramUser(Catalog):
     @property
     def roles_display(self):
         """Get display names of user roles"""
-        roles = self.get_all_roles()
+        role_assignments = self.user_roles.filter(is_active=True)
         role_display = []
-        for role in roles:
-            # Get display name of role and convert to string
-            role_name = dict(TelegramUserRole.choices).get(role, role)
-            role_display.append(str(role_name))
+        for role_assignment in role_assignments:
+            role_display.append(str(role_assignment.role_display))
         return ', '.join(role_display)
     
     @property
@@ -248,6 +246,37 @@ class TelegramUser(Catalog):
         """Get auto subscription notification message"""
         from .services import TelegramSubscriptionService
         return TelegramSubscriptionService.get_auto_subscription_notification_message(self)
+    
+    def update_all_roles(self):
+        """Update list of all roles for TelegramUser based on TelegramUserGroupRole through TelegramUserGroupMembership"""
+        roles = set()
+        
+        # Get all active group memberships for this user
+        active_memberships = self.group_memberships.filter(is_active=True).select_related('group')
+        
+        for membership in active_memberships:
+            # Get all active roles for this group
+            group_roles = membership.group.group_roles.filter(is_active=True)
+            
+            # Add group roles to the set
+            for group_role in group_roles:
+                roles.add(group_role.role)
+        
+        # Clear existing role assignments
+        self.user_roles.all().delete()
+        
+        # Create new role assignments using bulk_create for better performance
+        role_assignments = [
+            TelegramUserRoleAssignment(
+                telegram_user=self,
+                role=role,
+                is_active=True
+            )
+            for role in roles
+        ]
+        TelegramUserRoleAssignment.objects.bulk_create(role_assignments)
+        
+        return list(roles)
 
 
 class TelegramMessage(Catalog):
@@ -703,6 +732,37 @@ class TelegramUserRole(models.TextChoices):
     SUPER_ADMIN = 'super_admin', _('Super Admin')
 
 
+class TelegramUserRoleAssignment(models.Model):
+    """Model for roles assigned to Telegram users"""
+    telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='user_roles', verbose_name=_('Telegram User'))
+    role = models.CharField(max_length=20, choices=TelegramUserRole.choices, verbose_name=_('Role'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    
+    class Meta:
+        verbose_name = _('Telegram User Role Assignment')
+        verbose_name_plural = _('Telegram User Role Assignments')
+        unique_together = ('telegram_user', 'role')
+        ordering = ['telegram_user__user__username', 'role']
+    
+    def __str__(self):
+        return f"{self.telegram_user.user.username} - {self.get_role_display()}"
+    
+    @property
+    def role_display(self):
+        """Get display name of role"""
+        return dict(TelegramUserRole.choices).get(self.role, self.role)
+    
+    @property
+    def user_display(self):
+        """Get user display name"""
+        return self.telegram_user.display_name
+    
+    def get_role_display(self):
+        """Get display name of role - deprecated, use role_display property"""
+        return self.role_display
+
+
 class TelegramUserGroupRole(models.Model):
     """Model for roles assigned to Telegram user groups"""
     group = models.ForeignKey('TelegramUserGroup', on_delete=models.CASCADE, related_name='group_roles', verbose_name=_('Group'))
@@ -732,6 +792,7 @@ class TelegramUserGroupRole(models.Model):
     def get_role_display(self):
         """Get display name of role - deprecated, use role_display property"""
         return self.role_display
+    
 
 
 class TelegramUserGroup(Catalog):
@@ -787,13 +848,23 @@ class TelegramUserGroup(Catalog):
     def get_roles_list(self):
         """Get list of role codes - deprecated, use roles_list property"""
         return self.roles_list
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        # Update roles for all active members of this group
+        self.update_all_members_roles()
+    
+    def update_all_members_roles(self):
+        """Update roles for all active members of this group"""
+        for membership in self.members.filter(is_active=True):
+            membership.telegram_user.update_all_roles()
 
 
 class TelegramUserGroupMembership(Catalog):
     """Model for user group membership"""
     telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='group_memberships', verbose_name=_('Telegram User'))
     group = models.ForeignKey(TelegramUserGroup, on_delete=models.CASCADE, related_name='members', verbose_name=_('Group'))
-    assigned_roles = models.JSONField(default=list, verbose_name=_('Assigned Roles'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
     assigned_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Assigned At'))
     assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
@@ -811,6 +882,9 @@ class TelegramUserGroupMembership(Catalog):
             self.name = f"{self.telegram_user.user.username} in {self.group.name}"[:32]
         
         super().save(*args, **kwargs)
+        
+        # Update user's roles after saving membership
+        self.telegram_user.update_all_roles()
     
     def __str__(self):
         return f"{self.telegram_user.user.username} in {self.group.name}"
@@ -826,28 +900,9 @@ class TelegramUserGroupMembership(Catalog):
         return self.group.name
     
     @property
-    def roles_display(self):
-        """Get display names of assigned roles"""
-        role_display = []
-        for role in self.assigned_roles:
-            # Get display name of role and convert to string
-            role_name = dict(TelegramUserRole.choices).get(role, role)
-            role_display.append(str(role_name))
-        return ', '.join(role_display)
-    
-    @property
-    def role_count(self):
-        """Get count of assigned roles"""
-        return len(self.assigned_roles)
-    
-    @property
     def membership_duration(self):
         """Get membership duration in days"""
         return (now() - self.assigned_at).days
-    
-    def get_roles_display(self):
-        """Get display names of assigned roles - deprecated, use roles_display property"""
-        return self.roles_display
 
 
 class TelegramPermission(models.Model):

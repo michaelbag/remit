@@ -8,9 +8,52 @@ from .models import (
     TelegramUser, TelegramMessage, TelegramSubscriptionCategory,
     TelegramUserSubscription, TelegramBroadcast, TelegramBroadcastDelivery,
     TelegramMessageTemplate, TelegramUserRole, TelegramUserGroup,
-    TelegramUserGroupRole, TelegramUserGroupMembership, TelegramPermission, TelegramAuditLog
+    TelegramUserGroupRole, TelegramUserGroupMembership, TelegramUserRoleAssignment,
+    TelegramPermission, TelegramAuditLog
 )
 from .services import TelegramBroadcastService
+
+
+class TelegramUserGroupRoleInline(admin.TabularInline):
+    model = TelegramUserGroupRole
+    extra = 1
+    fields = ['role', 'is_active']
+    verbose_name = _('Role')
+    verbose_name_plural = _('Roles')
+
+
+class TelegramUserGroupMembershipInline(admin.TabularInline):
+    model = TelegramUserGroupMembership
+    extra = 1
+    fields = ['telegram_user', 'is_active']
+    verbose_name = _('Member')
+    verbose_name_plural = _('Members')
+    autocomplete_fields = ['telegram_user']
+    
+    def get_queryset(self, request):
+        """Optimize queryset for better performance"""
+        return super().get_queryset(request).select_related('telegram_user__user')
+
+
+class TelegramUserRoleAssignmentInline(admin.TabularInline):
+    model = TelegramUserRoleAssignment
+    extra = 0
+    fields = ['role', 'is_active', 'created_at']
+    readonly_fields = ['role', 'is_active', 'created_at']
+    verbose_name = _('Role Assignment')
+    verbose_name_plural = _('Role Assignments')
+    
+    def has_add_permission(self, request, obj=None):
+        """Disable manual adding - roles are managed automatically"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Disable editing - roles are managed automatically"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Disable manual deletion - roles are managed automatically"""
+        return False
 
 
 @admin.register(TelegramUser)
@@ -19,6 +62,8 @@ class TelegramUserAdmin(CatalogAdmin):
     list_filter = ['is_active', 'created_at', 'employee']
     search_fields = ['user__username', 'telegram_id', 'username', 'first_name', 'last_name', 'phone_number', 'employee__name']
     readonly_fields = ['created_at', 'updated_at']
+    autocomplete_fields = ['user']
+    inlines = [TelegramUserRoleAssignmentInline]
     
     @admin.display(description=_('User'), ordering='user__username')
     def get_full_display(self, obj):
@@ -221,21 +266,13 @@ class TelegramBroadcastDeliveryAdmin(admin.ModelAdmin):
     ]
 
 
-class TelegramUserGroupRoleInline(admin.TabularInline):
-    model = TelegramUserGroupRole
-    extra = 1
-    fields = ['role', 'is_active']
-    verbose_name = _('Role')
-    verbose_name_plural = _('Roles')
-
-
 @admin.register(TelegramUserGroup)
 class TelegramUserGroupAdmin(CatalogAdmin):
     list_display = ['get_roles_display', 'is_active', 'is_default_for_new_users', 'member_count', 'created_at']
     list_filter = ['is_active', 'is_default_for_new_users', 'created_at']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at', 'guid']
-    inlines = [TelegramUserGroupRoleInline]
+    inlines = [TelegramUserGroupRoleInline, TelegramUserGroupMembershipInline]
     
     @admin.display(description=_('Members'))
     def member_count(self, obj):
@@ -246,11 +283,58 @@ class TelegramUserGroupAdmin(CatalogAdmin):
             'fields': ['description', 'is_active', 'is_default_for_new_users']
         }),
     ]
+    
+    def save_model(self, request, obj, form, change):
+        """Save the group and update member roles"""
+        super().save_model(request, obj, form, change)
+        # Roles will be updated automatically by the model's save() method
+    
+    def save_related(self, request, form, formsets, change):
+        """Save related objects and update member roles"""
+        super().save_related(request, form, formsets, change)
+        # Update roles for all members after saving inline forms
+        if change:  # Only for existing objects
+            form.instance.update_all_members_roles()
+
+
+@admin.register(TelegramUserRoleAssignment)
+class TelegramUserRoleAssignmentAdmin(admin.ModelAdmin):
+    list_display = ['get_telegram_user_display', 'role', 'is_active', 'created_at']
+    list_filter = ['role', 'is_active', 'created_at']
+    search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name']
+    readonly_fields = ['created_at']
+    
+    @admin.display(description=_('User'), ordering='telegram_user__user__username')
+    def get_telegram_user_display(self, obj):
+        """Display Telegram user"""
+        return obj.telegram_user.get_full_display()
+    
+    fieldsets = [
+        (_('Role Assignment'), {
+            'fields': ['telegram_user', 'role', 'is_active']
+        }),
+        (_('Timestamps'), {
+            'fields': ['created_at'],
+            'classes': ['collapse']
+        })
+    ]
+    
+    def has_add_permission(self, request):
+        """Disable manual adding - roles are managed automatically"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Allow changing is_active status"""
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        """Disable manual deletion - roles are managed automatically"""
+        return False
 
 
 @admin.register(TelegramUserGroupMembership)
 class TelegramUserGroupMembershipAdmin(CatalogAdmin):
-    list_display = ['get_telegram_user_display', 'group', 'get_roles_display', 'is_active', 'assigned_at', 'assigned_by']
+    list_display = ['get_telegram_user_display', 'group', 'is_active', 'assigned_at', 'assigned_by']
     list_filter = ['is_active', 'group', 'assigned_at']
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'group__name']
     readonly_fields = ['assigned_at']
@@ -266,9 +350,6 @@ class TelegramUserGroupMembershipAdmin(CatalogAdmin):
         }),
         (_('Membership'), {
             'fields': ['telegram_user', 'group', 'is_active']
-        }),
-        (_('Roles'), {
-            'fields': ['assigned_roles']
         }),
         (_('Metadata'), {
             'fields': ['assigned_at', 'assigned_by'],
