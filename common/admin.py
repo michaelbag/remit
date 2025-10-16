@@ -53,9 +53,6 @@ class CatalogAdmin(admin.ModelAdmin):
         'code'
     ]
     list_display_later = [
-        # 'delete_mark',
-        # 'modified',
-        # 'created',
         'created_formated',
         'modified_formated'
     ]

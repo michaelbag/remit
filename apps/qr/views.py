@@ -2,6 +2,9 @@ from django.shortcuts import render, get_object_or_404
 from apps.qr.models import QRCode
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.http import Http404
+from django.contrib.admin.views.autocomplete import AutocompleteJsonView
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from apps.equipment.models import Equipment
 
 # Create your views here.
 
@@ -48,3 +51,24 @@ def qr_form_view(request, shortcode):
             'short_code': shortcode,
             'error_message': 'Multiple QR codes found with the same short code.'
         })
+
+
+class FilteredEquipmentAutocompleteView(PermissionRequiredMixin, AutocompleteJsonView):
+    """
+    Autocomplete view for Equipment with filtering by archive and delete_mark
+    """
+    permission_required = 'equipment.view_equipment'
+    
+    def get_queryset(self):
+        """
+        Filter equipment to exclude archived and deleted items
+        """
+        qs = Equipment.objects.filter(
+            archive=False,
+            delete_mark=False,
+            is_folder=False
+        )
+        print(f"DEBUG: Filtered equipment count: {qs.count()}")
+        print(f"DEBUG: Total equipment count: {Equipment.objects.count()}")
+        return qs
+
