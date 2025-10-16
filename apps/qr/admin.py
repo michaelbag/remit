@@ -65,15 +65,14 @@ class QRCodeAdmin(common.admin.CatalogAdmin):
             'short_public_code',
             'url'
         )}),
-        (_('Main'), {'fields': ('title', 'operation', 'qr_type', 'fixed')}),
-        (_('Operations'), {'fields': ('operations', 'operations_list')}),
+        (_('Main'), {'fields': ('title', 'operation', 'qr_type', ('fixed', 'archive'))}),
         (_('Service Object Links'), {'fields': (
             'equipment',
             'service',
             'resource', 
         ), 'description': _('Select only one service object (Equipment, Resource, or Service)')}),
+        (_('Operations'), {'fields': ('operations', 'operations_list')}),
         (_('QR Code Actions'), {'fields': ('regenerate_qr',)}),
-        (_('Service'), {'fields': ('created_at', 'archive')})
     )
     # TODO: Problem. If readonly_fields not exists in class parent init get error.
     readonly_fields = [

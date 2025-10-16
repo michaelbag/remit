@@ -14,4 +14,14 @@ urlpatterns = [
         views.FilteredEquipmentAutocompleteView.as_view(),
         name='equipment_autocomplete'
     ),
+    path(
+        'autocomplete/service/',
+        views.FilteredServiceAutocompleteView.as_view(),
+        name='service_autocomplete'
+    ),
+    path(
+        'autocomplete/resource/',
+        views.FilteredResourceAutocompleteView.as_view(),
+        name='resource_autocomplete'
+    ),
 ]
