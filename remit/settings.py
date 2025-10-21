@@ -15,7 +15,7 @@ import os
 from . import local_settings
 
 # Project version
-PROJECT_VERSION = "0.0.2.25"
+PROJECT_VERSION = "0.0.2.26"
 
 PROJECT_DIR = os.path.dirname(__file__)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
