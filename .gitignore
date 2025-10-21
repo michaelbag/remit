@@ -224,4 +224,7 @@ venv2/
 .vscode/settings.json
 .vscode.venv
 
+# Cursor AI instructions (local only)
+.cursor-ai-instructions
+
 images/
