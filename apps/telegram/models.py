@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now
+from django.db.models import Prefetch
 from common.models import Catalog
 
 
@@ -250,17 +251,25 @@ class TelegramUser(Catalog):
     def update_all_roles(self):
         """Update list of all roles for TelegramUser based on TelegramUserGroupRole through TelegramUserGroupMembership"""
         roles = set()
+        excluded_roles = set()
+
+        # Get all TelegramUserGroupRole for this user through active memberships
+        # Single optimized query to get all roles for user's active groups
+        user_group_roles = TelegramUserGroupRole.objects.filter(
+            group__members__telegram_user=self,
+            group__members__is_active=True,
+            is_active=True
+        ).select_related('group')
         
-        # Get all active group memberships for this user
-        active_memberships = self.group_memberships.filter(is_active=True).select_related('group')
-        
-        for membership in active_memberships:
-            # Get all active roles for this group
-            group_roles = membership.group.group_roles.filter(is_active=True)
-            
-            # Add group roles to the set
-            for group_role in group_roles:
+        # Collect unique roles by exclusion status
+        for group_role in user_group_roles:
+            if group_role.is_exclusion:
+                excluded_roles.add(group_role.role)
+            else:
                 roles.add(group_role.role)
+        
+        # Remove excluded roles from included roles (exclusion has higher priority)
+        final_roles = roles - excluded_roles
         
         # Clear existing role assignments
         self.user_roles.all().delete()
@@ -272,11 +281,11 @@ class TelegramUser(Catalog):
                 role=role,
                 is_active=True
             )
-            for role in roles
+            for role in final_roles
         ]
         TelegramUserRoleAssignment.objects.bulk_create(role_assignments)
         
-        return list(roles)
+        return list(final_roles)
 
 
 class TelegramMessage(Catalog):
@@ -730,7 +739,9 @@ class TelegramUserRole(models.TextChoices):
     OPERATOR = 'operator', _('Operator')
     ADMIN = 'admin', _('Admin')
     SUPER_ADMIN = 'super_admin', _('Super Admin')
-
+    NEW_USER = 'new_user', _('New User')
+    INVITED_USER = 'invited_user', _('Invited User')
+    EXTERNAL_USER = 'external_user', _('External User')
 
 class TelegramUserRoleAssignment(models.Model):
     """Model for roles assigned to Telegram users"""
@@ -768,6 +779,8 @@ class TelegramUserGroupRole(models.Model):
     group = models.ForeignKey('TelegramUserGroup', on_delete=models.CASCADE, related_name='group_roles', verbose_name=_('Group'))
     role = models.CharField(max_length=20, choices=TelegramUserRole.choices, verbose_name=_('Role'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    is_exclusion = models.BooleanField(default=False, verbose_name=_('Role Exclusion'), 
+                                     help_text=_('If True, this role will be excluded from users in this group. Exclusion has higher priority than inclusion.'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
     
     class Meta:
@@ -792,7 +805,8 @@ class TelegramUserGroupRole(models.Model):
     def get_role_display(self):
         """Get display name of role - deprecated, use role_display property"""
         return self.role_display
-    
+
+  
 
 
 class TelegramUserGroup(Catalog):
@@ -882,7 +896,7 @@ class TelegramUserGroupMembership(Catalog):
             self.name = f"{self.telegram_user.user.username} in {self.group.name}"[:32]
         
         super().save(*args, **kwargs)
-        
+          
         # Update user's roles after saving membership
         self.telegram_user.update_all_roles()
     

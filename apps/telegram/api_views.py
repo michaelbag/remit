@@ -718,8 +718,7 @@ def get_user_permissions(request, telegram_user_id):
             'groups': [
                 {
                     'id': membership.group.id,
-                    'name': membership.group.name,
-                    'assigned_roles': membership.assigned_roles
+                    'name': membership.group.name
                 }
                 for membership in groups
             ],

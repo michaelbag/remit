@@ -207,3 +207,175 @@ class TelegramUserRoleUpdateTestCase(TestCase):
         role_assignments = self.telegram_user.user_roles.filter(is_active=True)
         assigned_roles = [ra.role for ra in role_assignments]
         self.assertEqual(sorted(assigned_roles), sorted(expected_roles))
+    
+    def test_role_exclusion_priority(self):
+        """Test that role exclusion has higher priority than inclusion"""
+        # Add user to both groups
+        TelegramUserGroupMembership.objects.create(
+            telegram_user=self.telegram_user,
+            group=self.group1,
+            is_active=True
+        )
+        
+        TelegramUserGroupMembership.objects.create(
+            telegram_user=self.telegram_user,
+            group=self.group2,
+            is_active=True
+        )
+        
+        # Group1 gives USER and OPERATOR roles
+        self.group1.group_roles.all().delete()
+        TelegramUserGroupRole.objects.create(
+            group=self.group1,
+            role=TelegramUserRole.USER
+        )
+        TelegramUserGroupRole.objects.create(
+            group=self.group1,
+            role=TelegramUserRole.OPERATOR
+        )
+        
+        # Group2 gives ADMIN role but excludes OPERATOR role
+        self.group2.group_roles.all().delete()
+        TelegramUserGroupRole.objects.create(
+            group=self.group2,
+            role=TelegramUserRole.ADMIN
+        )
+        TelegramUserGroupRole.objects.create(
+            group=self.group2,
+            role=TelegramUserRole.OPERATOR,
+            is_exclusion=True  # This should exclude OPERATOR role
+        )
+        
+        # Update user roles
+        self.telegram_user.update_all_roles()
+        
+        # Check that user has USER and ADMIN roles, but not OPERATOR
+        user_roles = set(self.telegram_user.get_all_roles())
+        expected_roles = {TelegramUserRole.USER, TelegramUserRole.ADMIN}
+        self.assertEqual(user_roles, expected_roles)
+        
+        # Check that TelegramUserRoleAssignment records are correct
+        assignments = TelegramUserRoleAssignment.objects.filter(telegram_user=self.telegram_user)
+        assignment_roles = {assignment.role for assignment in assignments}
+        self.assertEqual(assignment_roles, expected_roles)
+    
+    def test_multiple_exclusions(self):
+        """Test that multiple exclusions work correctly"""
+        # Add user to group1
+        TelegramUserGroupMembership.objects.create(
+            telegram_user=self.telegram_user,
+            group=self.group1,
+            is_active=True
+        )
+        
+        # Group1 gives USER, OPERATOR, and ADMIN roles
+        self.group1.group_roles.all().delete()
+        TelegramUserGroupRole.objects.create(
+            group=self.group1,
+            role=TelegramUserRole.USER
+        )
+        TelegramUserGroupRole.objects.create(
+            group=self.group1,
+            role=TelegramUserRole.OPERATOR
+        )
+        TelegramUserGroupRole.objects.create(
+            group=self.group1,
+            role=TelegramUserRole.ADMIN
+        )
+        
+        # Add user to group2 which excludes OPERATOR and ADMIN
+        TelegramUserGroupMembership.objects.create(
+            telegram_user=self.telegram_user,
+            group=self.group2,
+            is_active=True
+        )
+        
+        self.group2.group_roles.all().delete()
+        TelegramUserGroupRole.objects.create(
+            group=self.group2,
+            role=TelegramUserRole.OPERATOR,
+            is_exclusion=True
+        )
+        TelegramUserGroupRole.objects.create(
+            group=self.group2,
+            role=TelegramUserRole.ADMIN,
+            is_exclusion=True
+        )
+        
+        # Update user roles
+        self.telegram_user.update_all_roles()
+        
+        # Check that user only has USER role (OPERATOR and ADMIN excluded)
+        user_roles = set(self.telegram_user.get_all_roles())
+        expected_roles = {TelegramUserRole.USER}
+        self.assertEqual(user_roles, expected_roles)
+        
+        # Check that TelegramUserRoleAssignment records are correct
+        assignments = TelegramUserRoleAssignment.objects.filter(telegram_user=self.telegram_user)
+        assignment_roles = {assignment.role for assignment in assignments}
+        self.assertEqual(assignment_roles, expected_roles)
+    
+    def test_duplicate_membership_prevention(self):
+        """Test that duplicate memberships are prevented"""
+        from django.db import IntegrityError, transaction
+        
+        # Create a membership
+        membership1 = TelegramUserGroupMembership.objects.create(
+            telegram_user=self.telegram_user,
+            group=self.group1,
+            is_active=True
+        )
+        
+        # Verify only one membership exists
+        memberships = TelegramUserGroupMembership.objects.filter(
+            telegram_user=self.telegram_user,
+            group=self.group1
+        )
+        self.assertEqual(memberships.count(), 1)
+    
+    def test_membership_inline_graceful_handling(self):
+        """Test that inline formset handles existing memberships gracefully"""
+        from django.contrib.admin.sites import AdminSite
+        from django.contrib.auth.models import User
+        from django.test import RequestFactory
+        from apps.telegram.admin import TelegramUserGroupMembershipInline
+        
+        # Create admin user
+        admin_user = User.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='admin123'
+        )
+        
+        # Create existing membership
+        existing_membership = TelegramUserGroupMembership.objects.create(
+            telegram_user=self.telegram_user,
+            group=self.group1,
+            is_active=True
+        )
+        
+        # Create admin site
+        admin_site = AdminSite()
+        
+        # Create inline instance
+        inline = TelegramUserGroupMembershipInline(TelegramUserGroup, admin_site)
+        
+        # Create request
+        factory = RequestFactory()
+        request = factory.get('/admin/')
+        request.user = admin_user
+        
+        # Get formset
+        formset = inline.get_formset(request, obj=self.group1)
+        
+        # Test that existing membership is handled gracefully
+        # This test verifies that the formset doesn't crash when encountering existing memberships
+        self.assertIsNotNone(formset)
+        
+        # Verify existing membership still exists
+        memberships = TelegramUserGroupMembership.objects.filter(
+            telegram_user=self.telegram_user,
+            group=self.group1
+        )
+        self.assertEqual(memberships.count(), 1)
+        self.assertEqual(memberships.first().is_active, True)

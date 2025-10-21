@@ -2,6 +2,7 @@ import requests
 import logging
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils.translation import gettext as _
 from .models import TelegramUser, TelegramMessage, TelegramSubscriptionCategory, TelegramUserRole, TelegramPermission
 from .services import TelegramSubscriptionService, TelegramRBACService
 
@@ -222,7 +223,7 @@ class TelegramBot:
                 return self.request_contact_info(telegram_user, telegram_message)
             else:
                 # Regular message from linked user
-                response_text = f"Привет, {telegram_user.employee.name}! Я бот системы управления оборудованием."
+                response_text = _("Hello, {name}! I am the equipment management system bot.").format(name=telegram_user.employee.name)
                 self.send_message(chat_id, response_text)
                 telegram_message.response = response_text
                 telegram_message.is_processed = True
@@ -235,34 +236,34 @@ class TelegramBot:
         
         if command == '/start':
             response_text = (
-                "🤖 <b>Добро пожаловать в систему управления оборудованием!</b>\n\n"
-                "Доступные команды:\n"
-                "/help - Справка\n"
-                "/status - Статус системы\n"
-                "/equipment - Список оборудования\n"
-                "/subscriptions - Управление подписками\n"
-                "/mysubscriptions - Мои подписки\n"
-                "/roles - Мои роли\n"
-                "/permissions - Мои разрешения\n"
-                "/forgetme - Отвязать профиль от сотрудника"
+                _("🤖 <b>Welcome to the equipment management system!</b>\n\n"
+                "Available commands:\n"
+                "/help - Help\n"
+                "/status - System status\n"
+                "/equipment - Equipment list\n"
+                "/subscriptions - Subscription management\n"
+                "/mysubscriptions - My subscriptions\n"
+                "/roles - My roles\n"
+                "/permissions - My permissions\n"
+                "/forgetme - Unlink profile from employee")
             )
         elif command == '/help':
             response_text = (
-                "📋 <b>Справка по командам:</b>\n\n"
-                "/start - Начать работу\n"
-                "/help - Показать эту справку\n"
-                "/status - Статус системы\n"
-                "/equipment - Список оборудования\n"
-                "/subscriptions - Доступные подписки\n"
-                "/mysubscriptions - Мои подписки\n"
-                "/subscribe <code>код</code> - Подписаться на категорию\n"
-                "/unsubscribe <code>код</code> - Отписаться от категории\n"
-                "/roles - Мои роли и группы\n"
-                "/permissions - Мои разрешения\n"
-                "/forgetme - Отвязать профиль от сотрудника"
+                _("📋 <b>Command help:</b>\n\n"
+                "/start - Start working\n"
+                "/help - Show this help\n"
+                "/status - System status\n"
+                "/equipment - Equipment list\n"
+                "/subscriptions - Available subscriptions\n"
+                "/mysubscriptions - My subscriptions\n"
+                "/subscribe <code>code</code> - Subscribe to category\n"
+                "/unsubscribe <code>code</code> - Unsubscribe from category\n"
+                "/roles - My roles and groups\n"
+                "/permissions - My permissions\n"
+                "/forgetme - Unlink profile from employee")
             )
         elif command == '/status':
-            response_text = "✅ Система работает нормально"
+            response_text = _("✅ System is working normally")
         elif command == '/equipment':
             if telegram_user.employee:
                 # Get employee equipment
@@ -273,16 +274,16 @@ class TelegramBot:
                 ).order_by('equip_code')
                 
                 if equipment_list:
-                    response_text = f"🖥️ <b>Ваше оборудование:</b>\n\n"
+                    response_text = _("🖥️ <b>Your equipment:</b>\n\n")
                     for equipment in equipment_list:
-                        response_text += f"• {equipment.equip_code} - {equipment.type.name if equipment.type else 'Не указан'}\n"
+                        response_text += f"• {equipment.equip_code} - {equipment.type.name if equipment.type else _('Not specified')}\n"
                         if equipment.serial_number:
-                            response_text += f"  Серийный номер: {equipment.serial_number}\n"
+                            response_text += f"  {_('Serial number')}: {equipment.serial_number}\n"
                         response_text += "\n"
                 else:
-                    response_text = "📱 У вас нет закрепленного оборудования"
+                    response_text = _("📱 You have no assigned equipment")
             else:
-                response_text = "❌ Сначала необходимо привязать ваш профиль к сотруднику"
+                response_text = _("❌ You need to link your profile to an employee first")
         elif command == '/subscriptions':
             response_text = self.handle_subscriptions_command(telegram_user)
         elif command == '/mysubscriptions':
@@ -300,7 +301,7 @@ class TelegramBot:
         elif command == '/forgetme':
             response_text = self.handle_forgetme_command(telegram_user)
         else:
-            response_text = "❓ Неизвестная команда. Используйте /help для справки."
+            response_text = _("❓ Unknown command. Use /help for help.")
         
         # Send message only if response_text is not None
         if response_text is not None:
@@ -360,15 +361,15 @@ class TelegramBot:
         chat_id = telegram_user.telegram_id
         
         response_text = (
-            "👋 Добро пожаловать в систему управления оборудованием!\n\n"
-            "Для доступа к функциям системы необходимо подтвердить вашу личность.\n"
-            "Пожалуйста, поделитесь своим номером телефона, нажав кнопку ниже:"
+            _("👋 Welcome to the equipment management system!\n\n"
+            "To access system functions, you need to verify your identity.\n"
+            "Please share your phone number by clicking the button below:")
         )
         
         # Create keyboard with button for sending contact
         keyboard = {
             "keyboard": [[{
-                "text": "📱 Поделиться номером телефона",
+                "text": _("📱 Share phone number"),
                 "request_contact": True
             }]],
             "resize_keyboard": True,
@@ -393,20 +394,20 @@ class TelegramBot:
             # Try to find employee by phone number
             if self.link_telegram_user_to_employee(telegram_user, phone_number):
                 response_text = (
-                    f"✅ Отлично! Вы успешно привязаны к профилю сотрудника: {telegram_user.employee.name}\n\n"
-                    "Теперь вы можете использовать все функции бота:\n"
-                    "/help - Справка по командам\n"
-                    "/equipment - Ваше оборудование"
+                    _("✅ Great! You have been successfully linked to employee profile: {name}\n\n"
+                    "Now you can use all bot functions:\n"
+                    "/help - Command help\n"
+                    "/equipment - Your equipment").format(name=telegram_user.employee.name)
                 )
                 logger.info(f"Successfully linked user {telegram_user.telegram_id} to employee {telegram_user.employee.name}")
             else:
                 response_text = (
-                    "❌ Сотрудник с таким номером телефона не найден в системе.\n\n"
-                    "Обратитесь к администратору для добавления вашего номера телефона в профиль сотрудника."
+                    _("❌ Employee with this phone number was not found in the system.\n\n"
+                    "Contact the administrator to add your phone number to the employee profile.")
                 )
                 logger.warning(f"Employee not found for phone number: {phone_number}")
         else:
-            response_text = "❌ Не удалось получить номер телефона. Попробуйте еще раз."
+            response_text = _("❌ Failed to get phone number. Please try again.")
             logger.error("No phone number in contact data")
         
         self.send_message(chat_id, response_text)
@@ -466,20 +467,24 @@ class TelegramBot:
                         'unsubscribed': '❌'
                     }.get(subscription.status, '❓')
                     
-                    result = f"{status_emoji} Подписка на '{category.name}' имеет статус: {subscription.get_status_display()}"
+                    result = _("{status_emoji} Subscription to '{category_name}' has status: {status}").format(
+                        status_emoji=status_emoji, 
+                        category_name=category.name, 
+                        status=subscription.get_status_display()
+                    )
                 else:
-                    result = f"❌ Подписка на '{category.name}' не найдена"
+                    result = _("❌ Subscription to '{category_name}' not found").format(category_name=category.name)
                 
                 # Send notification to user
                 self.send_message(chat_id, result)
                 return result
             except Exception as e:
-                result = f"❌ Ошибка при получении статуса подписки: {str(e)}"
+                result = _("❌ Error getting subscription status: {error}").format(error=str(e))
                 self.send_message(chat_id, result)
                 return result
         
         else:
-            result = f"❓ Неизвестная команда: {data}"
+            result = _("❓ Unknown command: {data}").format(data=data)
             self.send_message(chat_id, result)
             return result
     
@@ -488,13 +493,13 @@ class TelegramBot:
         categories = TelegramSubscriptionService.get_available_categories()
         
         if not categories:
-            return "📢 Нет доступных категорий подписок"
+            return _("📢 No available subscription categories")
         
         # Get current user subscriptions
         user_subscriptions = TelegramSubscriptionService.get_user_subscriptions(telegram_user)
         user_subscription_codes = {sub.category.code: sub.status for sub in user_subscriptions}
         
-        response_text = "📢 <b>Доступные категории подписок:</b>\n\n"
+        response_text = _("📢 <b>Available subscription categories:</b>\n\n")
         
         # Create inline keyboard
         keyboard = []
@@ -502,26 +507,26 @@ class TelegramBot:
         for category in categories:
             response_text += f"{category.icon} <b>{category.name}</b>\n"
             if category.description:
-                response_text += f"Описание: {category.description}\n"
+                response_text += _("Description: {description}\n").format(description=category.description)
             
             # Determine subscription status and create button
             subscription_status = user_subscription_codes.get(category.code, 'not_subscribed')
             
             if subscription_status == 'active':
-                response_text += f"Статус: ✅ Подписан\n"
-                button_text = f"❌ Отписаться от {category.name}"
+                response_text += _("Status: ✅ Subscribed\n")
+                button_text = _("❌ Unsubscribe from {category_name}").format(category_name=category.name)
                 callback_data = f"unsubscribe_{category.code}"
             elif subscription_status == 'paused':
-                response_text += f"Статус: ⏸️ Приостановлена\n"
-                button_text = f"▶️ Возобновить {category.name}"
+                response_text += _("Status: ⏸️ Paused\n")
+                button_text = _("▶️ Resume {category_name}").format(category_name=category.name)
                 callback_data = f"subscribe_{category.code}"
             elif subscription_status == 'pending':
-                response_text += f"Статус: ⏳ Ожидает одобрения\n"
-                button_text = f"⏳ {category.name} (ожидает)"
+                response_text += _("Status: ⏳ Pending approval\n")
+                button_text = _("⏳ {category_name} (pending)").format(category_name=category.name)
                 callback_data = f"status_{category.code}"
             else:
-                response_text += f"Статус: ❌ Не подписан\n"
-                button_text = f"✅ Подписаться на {category.name}"
+                response_text += _("Status: ❌ Not subscribed\n")
+                button_text = _("✅ Subscribe to {category_name}").format(category_name=category.name)
                 callback_data = f"subscribe_{category.code}"
             
             # Add button to keyboard
@@ -532,7 +537,7 @@ class TelegramBot:
             
             response_text += "\n"
         
-        response_text += "💡 <i>Используйте кнопки ниже для быстрого управления подписками</i>"
+        response_text += _("💡 <i>Use the buttons below for quick subscription management</i>")
         
         # Create inline keyboard
         reply_markup = {
@@ -778,9 +783,6 @@ class TelegramBot:
             response_text += "\n👥 <b>Группы:</b>\n"
             for membership in groups:
                 response_text += f"• {membership.group.name}\n"
-                if membership.assigned_roles:
-                    assigned_roles = [dict(TelegramUserRole.choices).get(r, r) for r in membership.assigned_roles]
-                    response_text += f"  Роли: {', '.join(assigned_roles)}\n"
         
         return response_text
     

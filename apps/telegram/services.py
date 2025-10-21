@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db import transaction
 from django.contrib.auth.models import User
+from django.utils.translation import gettext as _
 from .models import (
     TelegramUser, TelegramSubscriptionCategory, TelegramUserSubscription,
     TelegramBroadcast, TelegramBroadcastDelivery, TelegramMessageTemplate,
@@ -545,13 +546,11 @@ class TelegramRBACService:
                 telegram_user=telegram_user,
                 group=group,
                 defaults={
-                    'assigned_roles': roles,
                     'assigned_by': assigned_by
                 }
             )
             
             if not created:
-                membership.assigned_roles = roles
                 membership.assigned_by = assigned_by
                 membership.is_active = True
                 membership.save()
@@ -564,7 +563,6 @@ class TelegramRBACService:
                 details={
                     'group_id': group.id,
                     'group_name': group.name,
-                    'assigned_roles': roles,
                     'assigned_by': assigned_by.username if assigned_by else None
                 },
                 success=True
@@ -621,9 +619,10 @@ class TelegramRBACService:
     
     def get_users_with_role(self, role):
         """Получить всех пользователей с указанной ролью"""
+        # Получаем пользователей через TelegramUserRoleAssignment
         return TelegramUser.objects.filter(
-            group_memberships__assigned_roles__contains=[role],
-            group_memberships__is_active=True,
+            user_roles__role=role,
+            user_roles__is_active=True,
             is_active=True
         ).distinct()
     
@@ -636,8 +635,8 @@ class TelegramRBACService:
             )
             
             return TelegramUser.objects.filter(
-                group_memberships__assigned_roles__overlap=permission.required_roles,
-                group_memberships__is_active=True,
+                user_roles__role__in=permission.required_roles,
+                user_roles__is_active=True,
                 is_active=True
             ).distinct()
             

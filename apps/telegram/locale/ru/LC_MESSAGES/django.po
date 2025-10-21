@@ -1,0 +1,194 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-16 12:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: apps/telegram/bot.py:226
+msgid "Hello, {name}! I am the equipment management system bot."
+msgstr "Привет, {name}! Я бот системы управления оборудованием."
+
+#: apps/telegram/bot.py:239
+msgid "🤖 <b>Welcome to the equipment management system!</b>\n\n"
+"Available commands:\n"
+"/help - Help\n"
+"/status - System status\n"
+"/equipment - Equipment list\n"
+"/subscriptions - Subscription management\n"
+"/mysubscriptions - My subscriptions\n"
+"/roles - My roles\n"
+"/permissions - My permissions\n"
+"/forgetme - Unlink profile from employee"
+msgstr "🤖 <b>Добро пожаловать в систему управления оборудованием!</b>\n\n"
+"Доступные команды:\n"
+"/help - Справка\n"
+"/status - Статус системы\n"
+"/equipment - Список оборудования\n"
+"/subscriptions - Управление подписками\n"
+"/mysubscriptions - Мои подписки\n"
+"/roles - Мои роли\n"
+"/permissions - Мои разрешения\n"
+"/forgetme - Отвязать профиль от сотрудника"
+
+#: apps/telegram/bot.py:252
+msgid "📋 <b>Command help:</b>\n\n"
+"/start - Start working\n"
+"/help - Show this help\n"
+"/status - System status\n"
+"/equipment - Equipment list\n"
+"/subscriptions - Available subscriptions\n"
+"/mysubscriptions - My subscriptions\n"
+"/subscribe <code>code</code> - Subscribe to category\n"
+"/unsubscribe <code>code</code> - Unsubscribe from category\n"
+"/roles - My roles and groups\n"
+"/permissions - My permissions\n"
+"/forgetme - Unlink profile from employee"
+msgstr "📋 <b>Справка по командам:</b>\n\n"
+"/start - Начать работу\n"
+"/help - Показать эту справку\n"
+"/status - Статус системы\n"
+"/equipment - Список оборудования\n"
+"/subscriptions - Доступные подписки\n"
+"/mysubscriptions - Мои подписки\n"
+"/subscribe <code>код</code> - Подписаться на категорию\n"
+"/unsubscribe <code>код</code> - Отписаться от категории\n"
+"/roles - Мои роли и группы\n"
+"/permissions - Мои разрешения\n"
+"/forgetme - Отвязать профиль от сотрудника"
+
+#: apps/telegram/bot.py:266
+msgid "✅ System is working normally"
+msgstr "✅ Система работает нормально"
+
+#: apps/telegram/bot.py:277
+msgid "🖥️ <b>Your equipment:</b>\n\n"
+msgstr "🖥️ <b>Ваше оборудование:</b>\n\n"
+
+#: apps/telegram/bot.py:279
+msgid "Not specified"
+msgstr "Не указан"
+
+#: apps/telegram/bot.py:281
+msgid "Serial number"
+msgstr "Серийный номер"
+
+#: apps/telegram/bot.py:284
+msgid "📱 You have no assigned equipment"
+msgstr "📱 У вас нет закрепленного оборудования"
+
+#: apps/telegram/bot.py:286
+msgid "❌ You need to link your profile to an employee first"
+msgstr "❌ Сначала необходимо привязать ваш профиль к сотруднику"
+
+#: apps/telegram/bot.py:304
+msgid "❓ Unknown command. Use /help for help."
+msgstr "❓ Неизвестная команда. Используйте /help для справки."
+
+#: apps/telegram/bot.py:364
+msgid "👋 Welcome to the equipment management system!\n\n"
+"To access system functions, you need to verify your identity.\n"
+"Please share your phone number by clicking the button below:"
+msgstr "👋 Добро пожаловать в систему управления оборудованием!\n\n"
+"Для доступа к функциям системы необходимо подтвердить вашу личность.\n"
+"Пожалуйста, поделитесь своим номером телефона, нажав кнопку ниже:"
+
+#: apps/telegram/bot.py:372
+msgid "📱 Share phone number"
+msgstr "📱 Поделиться номером телефона"
+
+#: apps/telegram/bot.py:397
+msgid "✅ Great! You have been successfully linked to employee profile: {name}\n\n"
+"Now you can use all bot functions:\n"
+"/help - Command help\n"
+"/equipment - Your equipment"
+msgstr "✅ Отлично! Вы успешно привязаны к профилю сотрудника: {name}\n\n"
+"Теперь вы можете использовать все функции бота:\n"
+"/help - Справка по командам\n"
+"/equipment - Ваше оборудование"
+
+#: apps/telegram/bot.py:405
+msgid "❌ Employee with this phone number was not found in the system.\n\n"
+"Contact the administrator to add your phone number to the employee profile."
+msgstr "❌ Сотрудник с таким номером телефона не найден в системе.\n\n"
+"Обратитесь к администратору для добавления вашего номера телефона в профиль сотрудника."
+
+#: apps/telegram/bot.py:410
+msgid "❌ Failed to get phone number. Please try again."
+msgstr "❌ Не удалось получить номер телефона. Попробуйте еще раз."
+
+#: apps/telegram/bot.py:470
+msgid "{status_emoji} Subscription to '{category_name}' has status: {status}"
+msgstr "{status_emoji} Подписка на '{category_name}' имеет статус: {status}"
+
+#: apps/telegram/bot.py:476
+msgid "❌ Subscription to '{category_name}' not found"
+msgstr "❌ Подписка на '{category_name}' не найдена"
+
+#: apps/telegram/bot.py:482
+msgid "❌ Error getting subscription status: {error}"
+msgstr "❌ Ошибка при получении статуса подписки: {error}"
+
+#: apps/telegram/bot.py:487
+msgid "❓ Unknown command: {data}"
+msgstr "❓ Неизвестная команда: {data}"
+
+#: apps/telegram/bot.py:496
+msgid "📢 No available subscription categories"
+msgstr "📢 Нет доступных категорий подписок"
+
+#: apps/telegram/bot.py:502
+msgid "📢 <b>Available subscription categories:</b>\n\n"
+msgstr "📢 <b>Доступные категории подписок:</b>\n\n"
+
+#: apps/telegram/bot.py:510
+msgid "Description: {description}\n"
+msgstr "Описание: {description}\n"
+
+#: apps/telegram/bot.py:516
+msgid "Status: ✅ Subscribed\n"
+msgstr "Статус: ✅ Подписан\n"
+
+#: apps/telegram/bot.py:517
+msgid "❌ Unsubscribe from {category_name}"
+msgstr "❌ Отписаться от {category_name}"
+
+#: apps/telegram/bot.py:520
+msgid "Status: ⏸️ Paused\n"
+msgstr "Статус: ⏸️ Приостановлена\n"
+
+#: apps/telegram/bot.py:521
+msgid "▶️ Resume {category_name}"
+msgstr "▶️ Возобновить {category_name}"
+
+#: apps/telegram/bot.py:524
+msgid "Status: ⏳ Pending approval\n"
+msgstr "Статус: ⏳ Ожидает одобрения\n"
+
+#: apps/telegram/bot.py:525
+msgid "⏳ {category_name} (pending)"
+msgstr "⏳ {category_name} (ожидает)"
+
+#: apps/telegram/bot.py:528
+msgid "Status: ❌ Not subscribed\n"
+msgstr "Статус: ❌ Не подписан\n"
+
+#: apps/telegram/bot.py:529
+msgid "✅ Subscribe to {category_name}"
+msgstr "✅ Подписаться на {category_name}"
+
+#: apps/telegram/bot.py:540
+msgid "💡 <i>Use the buttons below for quick subscription management</i>"
+msgstr "💡 <i>Используйте кнопки ниже для быстрого управления подписками</i>"

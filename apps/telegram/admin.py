@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django import forms
 from common.admin import CatalogAdmin
 from .models import (
     TelegramUser, TelegramMessage, TelegramSubscriptionCategory,
@@ -17,7 +18,7 @@ from .services import TelegramBroadcastService
 class TelegramUserGroupRoleInline(admin.TabularInline):
     model = TelegramUserGroupRole
     extra = 1
-    fields = ['role', 'is_active']
+    fields = ['role', 'is_active', 'is_exclusion']
     verbose_name = _('Role')
     verbose_name_plural = _('Roles')
 
@@ -33,6 +34,82 @@ class TelegramUserGroupMembershipInline(admin.TabularInline):
     def get_queryset(self, request):
         """Optimize queryset for better performance"""
         return super().get_queryset(request).select_related('telegram_user__user')
+    
+    def get_formset(self, request, obj=None, **kwargs):
+        """Custom formset to handle unique constraint"""
+        formset = super().get_formset(request, obj, **kwargs)
+        
+        class CustomFormset(formset):
+            def clean(self):
+                """Handle duplicate memberships gracefully"""
+                if any(self.errors):
+                    return
+                
+                memberships = []
+                for form in self.forms:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        telegram_user = form.cleaned_data.get('telegram_user')
+                        if telegram_user:
+                            # Check for duplicates within the formset
+                            membership_key = (telegram_user, self.instance)
+                            if membership_key in memberships:
+                                # Mark form as invalid to skip it
+                                form.add_error('telegram_user', _('User %(user)s is already added in this form.') % {
+                                    'user': telegram_user.user.username
+                                })
+                                continue
+                            memberships.append(membership_key)
+                            
+                            # Check for existing memberships in database
+                            if self.instance and self.instance.pk:
+                                existing = TelegramUserGroupMembership.objects.filter(
+                                    telegram_user=telegram_user,
+                                    group=self.instance
+                                ).exclude(pk=form.instance.pk if form.instance.pk else None)
+                                
+                                if existing.exists():
+                                    # Update the existing membership instead of creating new one
+                                    existing_membership = existing.first()
+                                    existing_membership.is_active = form.cleaned_data.get('is_active', True)
+                                    existing_membership.assigned_by = form.cleaned_data.get('assigned_by')
+                                    existing_membership.save()
+                                    
+                                    # Set the form instance to the existing membership for proper handling
+                                    form.instance = existing_membership
+                                    form.instance.pk = existing_membership.pk
+            
+            def save(self, commit=True):
+                """Override save to handle existing memberships properly"""
+                if not commit:
+                    return super().save(commit=False)
+                
+                # Track all instances for proper admin messages
+                new_objects = []
+                changed_objects = []
+                
+                for form in self.forms:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        # Check if this form was updated with existing membership
+                        if hasattr(form, 'instance') and form.instance.pk:
+                            # This is an existing membership that was updated
+                            if commit:
+                                form.instance.save()
+                            changed_objects.append(form.instance)
+                        elif not form.errors:
+                            # This is a new membership
+                            instance = form.save(commit=False)
+                            if commit:
+                                instance.save()
+                            new_objects.append(instance)
+                
+                # Set required attributes for Django admin
+                self.new_objects = new_objects
+                self.changed_objects = changed_objects
+                self.deleted_objects = []
+                
+                return new_objects + changed_objects
+        
+        return CustomFormset
 
 
 class TelegramUserRoleAssignmentInline(admin.TabularInline):
@@ -337,7 +414,7 @@ class TelegramUserGroupMembershipAdmin(CatalogAdmin):
     list_display = ['get_telegram_user_display', 'group', 'is_active', 'assigned_at', 'assigned_by']
     list_filter = ['is_active', 'group', 'assigned_at']
     search_fields = ['telegram_user__user__username', 'telegram_user__username', 'telegram_user__first_name', 'telegram_user__last_name', 'group__name']
-    readonly_fields = ['assigned_at']
+    readonly_fields = ['assigned_at', 'created_at', 'updated_at', 'guid']
     
     @admin.display(description=_('User'), ordering='telegram_user__user__username')
     def get_telegram_user_display(self, obj):
@@ -345,9 +422,6 @@ class TelegramUserGroupMembershipAdmin(CatalogAdmin):
         return obj.telegram_user.get_full_display()
     
     fieldsets = [
-        (_('Catalog Fields'), {
-            'fields': ['name', 'code', 'delete_mark']
-        }),
         (_('Membership'), {
             'fields': ['telegram_user', 'group', 'is_active']
         }),
