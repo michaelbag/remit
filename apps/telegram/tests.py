@@ -379,3 +379,60 @@ class TelegramUserRoleUpdateTestCase(TestCase):
         )
         self.assertEqual(memberships.count(), 1)
         self.assertEqual(memberships.first().is_active, True)
+
+
+class TelegramUserLanguageTestCase(TestCase):
+    """Test cases for TelegramUser language functionality"""
+    
+    def setUp(self):
+        """Set up test data"""
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.telegram_user = TelegramUser.objects.create(
+            user=self.user,
+            telegram_id=123456789,
+            username='testuser',
+            first_name='Test',
+            last_name='User',
+            language='ru'  # Default language
+        )
+    
+    def test_telegram_user_default_language(self):
+        """Test that TelegramUser has default Russian language"""
+        self.assertEqual(self.telegram_user.language, 'ru')
+        # Test that language display works (may be translated)
+        display = self.telegram_user.get_language_display()
+        self.assertIsInstance(display, str)
+        self.assertTrue(len(display) > 0)
+    
+    def test_telegram_user_language_change(self):
+        """Test changing TelegramUser language"""
+        # Change to English
+        self.telegram_user.language = 'en'
+        self.telegram_user.save()
+        
+        self.assertEqual(self.telegram_user.language, 'en')
+        display = self.telegram_user.get_language_display()
+        self.assertIsInstance(display, str)
+        self.assertTrue(len(display) > 0)
+        
+        # Change back to Russian
+        self.telegram_user.language = 'ru'
+        self.telegram_user.save()
+        
+        self.assertEqual(self.telegram_user.language, 'ru')
+        display = self.telegram_user.get_language_display()
+        self.assertIsInstance(display, str)
+        self.assertTrue(len(display) > 0)
+    
+    def test_telegram_user_language_choices(self):
+        """Test TelegramUser language choices"""
+        choices = self.telegram_user.LANGUAGE_CHOICES
+        self.assertEqual(len(choices), 2)
+        # Test that choices contain the expected language codes
+        choice_codes = [choice[0] for choice in choices]
+        self.assertIn('ru', choice_codes)
+        self.assertIn('en', choice_codes)

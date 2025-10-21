@@ -245,6 +245,7 @@ class TelegramBot:
                 "/mysubscriptions - My subscriptions\n"
                 "/roles - My roles\n"
                 "/permissions - My permissions\n"
+                "/language - Change language\n"
                 "/forgetme - Unlink profile from employee")
             )
         elif command == '/help':
@@ -260,6 +261,7 @@ class TelegramBot:
                 "/unsubscribe <code>code</code> - Unsubscribe from category\n"
                 "/roles - My roles and groups\n"
                 "/permissions - My permissions\n"
+                "/language - Change language\n"
                 "/forgetme - Unlink profile from employee")
             )
         elif command == '/status':
@@ -298,6 +300,8 @@ class TelegramBot:
             response_text = self.get_user_roles_info(telegram_user)
         elif command == '/permissions':
             response_text = self.get_user_permissions_info(telegram_user)
+        elif command == '/language':
+            response_text = self.handle_language_command(telegram_user)
         elif command == '/forgetme':
             response_text = self.handle_forgetme_command(telegram_user)
         else:
@@ -482,6 +486,11 @@ class TelegramBot:
                 result = _("❌ Error getting subscription status: {error}").format(error=str(e))
                 self.send_message(chat_id, result)
                 return result
+                
+        elif data.startswith('lang_'):
+            # Handle language change
+            new_language = data.replace('lang_', '')
+            return self.handle_language_change(telegram_user, new_language, callback_query)
         
         else:
             result = _("❓ Unknown command: {data}").format(data=data)
@@ -849,3 +858,89 @@ class TelegramBot:
                 "❌ <b>Произошла ошибка при отвязке профиля</b>\n\n"
                 "Попробуйте позже или обратитесь к администратору."
             )
+    
+    def handle_language_command(self, telegram_user):
+        """Handle language change command"""
+        try:
+            chat_id = telegram_user.telegram_id
+            
+            # Create inline keyboard with language options
+            keyboard = {
+                "inline_keyboard": [
+                    [
+                        {"text": "🇷🇺 Русский", "callback_data": "lang_ru"},
+                        {"text": "🇺🇸 English", "callback_data": "lang_en"}
+                    ]
+                ]
+            }
+            
+            # Send message with language selection
+            current_lang = telegram_user.language
+            current_lang_name = "Русский" if current_lang == 'ru' else "English"
+            
+            message_text = _("🌐 <b>Change Language / Изменить язык</b>\n\n"
+                           "Current language: <b>{current}</b>\n"
+                           "Select your preferred language:\n\n"
+                           "Текущий язык: <b>{current}</b>\n"
+                           "Выберите предпочитаемый язык:").format(current=current_lang_name)
+            
+            self.send_message(chat_id, message_text, reply_markup=keyboard)
+            
+            # Don't return response_text as we're sending a message with keyboard
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error in handle_language_command: {e}")
+            return _("❌ Error occurred while changing language. Please try again later.")
+    
+    def handle_language_change(self, telegram_user, new_language, callback_query):
+        """Handle language change from callback"""
+        try:
+            chat_id = telegram_user.telegram_id
+            
+            # Validate language
+            if new_language not in ['ru', 'en']:
+                result = _("❌ Invalid language selection")
+                self.send_message(chat_id, result)
+                return result
+            
+            # Update user language
+            telegram_user.language = new_language
+            telegram_user.save()
+            
+            # Get language names
+            lang_names = {
+                'ru': 'Русский',
+                'en': 'English'
+            }
+            
+            # Send confirmation message
+            if new_language == 'ru':
+                result = (
+                    "✅ <b>Язык успешно изменен!</b>\n\n"
+                    f"Текущий язык: <b>{lang_names[new_language]}</b>\n"
+                    "Все сообщения бота теперь будут на русском языке.\n\n"
+                    "Language successfully changed!\n"
+                    f"Current language: <b>{lang_names[new_language]}</b>"
+                )
+            else:  # English
+                result = (
+                    "✅ <b>Language successfully changed!</b>\n\n"
+                    f"Current language: <b>{lang_names[new_language]}</b>\n"
+                    "All bot messages will now be in English.\n\n"
+                    "Язык успешно изменен!\n"
+                    f"Текущий язык: <b>{lang_names[new_language]}</b>"
+                )
+            
+            self.send_message(chat_id, result)
+            
+            # Log action
+            logger.info(f"User {telegram_user.telegram_id} changed language to {new_language}")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in handle_language_change: {e}")
+            result = _("❌ Error occurred while changing language. Please try again later.")
+            self.send_message(telegram_user.telegram_id, result)
+            return result

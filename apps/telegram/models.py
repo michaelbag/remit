@@ -18,6 +18,19 @@ class TelegramUser(Catalog):
     employee = models.ForeignKey('org.Employee', on_delete=models.SET_NULL, null=True, blank=True, 
                                 related_name='telegram_users', verbose_name=_('Employee'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    
+    # Language choices
+    LANGUAGE_CHOICES = [
+        ('ru', _('Russian')),
+        ('en', _('English')),
+    ]
+    language = models.CharField(
+        max_length=2, 
+        choices=LANGUAGE_CHOICES, 
+        default='ru', 
+        verbose_name=_('Language'),
+        help_text=_('User preferred language for Telegram bot')
+    )
 
     def save(self, *args, **kwargs):
         # Check if this is a new user (not yet saved to database)

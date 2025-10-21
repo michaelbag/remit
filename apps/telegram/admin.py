@@ -135,8 +135,8 @@ class TelegramUserRoleAssignmentInline(admin.TabularInline):
 
 @admin.register(TelegramUser)
 class TelegramUserAdmin(CatalogAdmin):
-    list_display = ['get_full_display', 'telegram_id', 'get_telegram_info', 'employee', 'is_active', 'created_at']
-    list_filter = ['is_active', 'created_at', 'employee']
+    list_display = ['get_full_display', 'telegram_id', 'get_telegram_info', 'employee', 'language', 'is_active', 'created_at']
+    list_filter = ['is_active', 'language', 'created_at', 'employee']
     search_fields = ['user__username', 'telegram_id', 'username', 'first_name', 'last_name', 'phone_number', 'employee__name']
     readonly_fields = ['created_at', 'updated_at']
     autocomplete_fields = ['user']
