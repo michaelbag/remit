@@ -48,6 +48,9 @@ A comprehensive Django-based resource management system for tracking equipment, 
 
 ## 🚀 Installation
 
+### ⚠️ ВАЖНО: Виртуальная среда
+**ОБЯЗАТЕЛЬНО используйте виртуальную среду для работы с проектом!**
+
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/michaelbag/remit.git
@@ -59,6 +62,8 @@ cd remit
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
+
+**Проверка активации:** В командной строке должен появиться префикс `(.venv)`
 
 ### 3. Install Dependencies
 ```bash
@@ -73,6 +78,7 @@ python manage.py createsuperuser
 
 ### 5. Run Development Server
 ```bash
+# Убедитесь, что виртуальная среда активирована (.venv)
 python manage.py runserver 0.0.0.0:8000
 ```
 
