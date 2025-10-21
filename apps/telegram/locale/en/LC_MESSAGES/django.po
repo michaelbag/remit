@@ -415,7 +415,55 @@ msgstr ""
 
 #: bot.py:903
 msgid "❌ Invalid language selection"
-msgstr ""
+msgstr "❌ Invalid language selection"
+
+#: bot.py:780
+msgid "You have no assigned roles. Contact the administrator."
+msgstr "You have no assigned roles. Contact the administrator."
+
+#: bot.py:782
+msgid "👤 <b>Your roles and groups:</b>\n\n"
+msgstr "👤 <b>Your roles and groups:</b>\n\n"
+
+#: bot.py:785
+msgid "🔑 <b>Roles:</b>\n"
+msgstr "🔑 <b>Roles:</b>\n"
+
+#: bot.py:792
+msgid "\n👥 <b>Groups:</b>\n"
+msgstr "\n👥 <b>Groups:</b>\n"
+
+#: bot.py:803
+msgid "You have no active permissions."
+msgstr "You have no active permissions."
+
+#: bot.py:805
+msgid "🔐 <b>Your permissions:</b>\n\n"
+msgstr "🔐 <b>Your permissions:</b>\n\n"
+
+#: bot.py:829
+msgid "ℹ️ <b>Your profile is not linked to an employee</b>\n\nNo need to unlink, as the profile is already not connected to an employee."
+msgstr "ℹ️ <b>Your profile is not linked to an employee</b>\n\nNo need to unlink, as the profile is already not connected to an employee."
+
+#: bot.py:834
+msgid "Unknown"
+msgstr "Unknown"
+
+#: bot.py:849
+msgid "✅ <b>Profile successfully unlinked!</b>\n\nYou are no longer connected to employee: <b>{employee_name}</b>\nPhone number removed from profile.\n\nFor re-linking, contact the administrator or use the /start command"
+msgstr "✅ <b>Profile successfully unlinked!</b>\n\nYou are no longer connected to employee: <b>{employee_name}</b>\nPhone number removed from profile.\n\nFor re-linking, contact the administrator or use the /start command"
+
+#: bot.py:858
+msgid "❌ <b>An error occurred while unlinking the profile</b>\n\nPlease try again later or contact the administrator."
+msgstr "❌ <b>An error occurred while unlinking the profile</b>\n\nPlease try again later or contact the administrator."
+
+#: bot.py:752
+msgid "❌ You don't have permission to execute command {command}.\nContact the administrator to get the necessary permissions."
+msgstr "❌ You don't have permission to execute command {command}.\nContact the administrator to get the necessary permissions."
+
+#: bot.py:768
+msgid "❌ An error occurred while executing the command: {error}"
+msgstr "❌ An error occurred while executing the command: {error}"
 
 #: models.py:13
 msgid "Telegram ID"

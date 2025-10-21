@@ -749,8 +749,8 @@ class TelegramBot:
         # Check permission
         if not self.check_permission(telegram_user, permission_code):
             response_text = (
-                f"❌ У вас нет прав для выполнения команды {command}.\n"
-                f"Обратитесь к администратору для получения необходимых разрешений."
+                _("❌ You don't have permission to execute command {command}.\n"
+                "Contact the administrator to get the necessary permissions.").format(command=command)
             )
             self.send_message(telegram_user.telegram_id, response_text)
             self.log_command_execution(telegram_user, command, success=False, 
@@ -765,7 +765,7 @@ class TelegramBot:
         except Exception as e:
             error_msg = f"Error executing command {command}: {str(e)}"
             logger.error(error_msg)
-            response_text = f"❌ Произошла ошибка при выполнении команды: {str(e)}"
+            response_text = _("❌ An error occurred while executing the command: {error}").format(error=str(e))
             self.send_message(telegram_user.telegram_id, response_text)
             self.log_command_execution(telegram_user, command, success=False, 
                                      error_message=error_msg)
@@ -777,19 +777,19 @@ class TelegramBot:
         groups = telegram_user.get_active_groups()
         
         if not roles:
-            return "У вас нет назначенных ролей. Обратитесь к администратору."
+            return _("You have no assigned roles. Contact the administrator.")
         
-        response_text = "👤 <b>Ваши роли и группы:</b>\n\n"
+        response_text = _("👤 <b>Your roles and groups:</b>\n\n")
         
         # Show roles
-        response_text += "🔑 <b>Роли:</b>\n"
+        response_text += _("🔑 <b>Roles:</b>\n")
         for role in roles:
             role_display = dict(TelegramUserRole.choices).get(role, role)
             response_text += f"• {role_display}\n"
         
         # Show groups
         if groups:
-            response_text += "\n👥 <b>Группы:</b>\n"
+            response_text += _("\n👥 <b>Groups:</b>\n")
             for membership in groups:
                 response_text += f"• {membership.group.name}\n"
         
@@ -800,9 +800,9 @@ class TelegramBot:
         permissions = self.rbac_service.get_user_effective_permissions(telegram_user)
         
         if not permissions:
-            return "У вас нет активных разрешений."
+            return _("You have no active permissions.")
         
-        response_text = "🔐 <b>Ваши разрешения:</b>\n\n"
+        response_text = _("🔐 <b>Your permissions:</b>\n\n")
         
         # Group permissions by type
         permission_types = {}
@@ -826,12 +826,12 @@ class TelegramBot:
             # Check if user is linked to employee
             if not telegram_user.employee:
                 return (
-                    "ℹ️ <b>Ваш профиль не привязан к сотруднику</b>\n\n"
-                    "Нет необходимости в отвязке, так как профиль уже не связан с сотрудником."
+                    _("ℹ️ <b>Your profile is not linked to an employee</b>\n\n"
+                    "No need to unlink, as the profile is already not connected to an employee.")
                 )
             
             # Save employee information for message
-            employee_name = telegram_user.employee.name if telegram_user.employee else "Неизвестный"
+            employee_name = telegram_user.employee.name if telegram_user.employee else _("Unknown")
             
             # Unlink from employee
             telegram_user.employee = None
@@ -846,17 +846,17 @@ class TelegramBot:
             logger.info(f"User {telegram_user.telegram_id} unlinked from employee {employee_name}")
             
             return (
-                "✅ <b>Профиль успешно отвязан!</b>\n\n"
-                f"Вы больше не связаны с сотрудником: <b>{employee_name}</b>\n"
-                "Номер телефона удален из профиля.\n\n"
-                "Для повторной привязки обратитесь к администратору или используйте команду /start"
+                _("✅ <b>Profile successfully unlinked!</b>\n\n"
+                f"You are no longer connected to employee: <b>{employee_name}</b>\n"
+                "Phone number removed from profile.\n\n"
+                "For re-linking, contact the administrator or use the /start command")
             )
             
         except Exception as e:
             logger.error(f"Error in handle_forgetme_command: {e}")
             return (
-                "❌ <b>Произошла ошибка при отвязке профиля</b>\n\n"
-                "Попробуйте позже или обратитесь к администратору."
+                _("❌ <b>An error occurred while unlinking the profile</b>\n\n"
+                "Please try again later or contact the administrator.")
             )
     
     def handle_language_command(self, telegram_user):
