@@ -6,8 +6,8 @@ from .models import Operation
 
 @admin.register(Operation)
 class OperationAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'archive', 'qr_codes_count', 'created', 'modified')
-    list_filter = ('archive', 'created', 'modified')
+    list_display = ('code', 'name', 'archive', 'qr_codes_count', 'created_at', 'updated_at')
+    list_filter = ('archive', 'created_at', 'updated_at')
     search_fields = ('code', 'name', 'description', 'comment')
     ordering = ('name', 'code')
     
@@ -28,7 +28,7 @@ class OperationAdmin(admin.ModelAdmin):
         }),
     )
     
-    readonly_fields = ('created', 'modified', 'qr_codes_list')
+    readonly_fields = ('created_at', 'updated_at', 'qr_codes_list')
     
     def qr_codes_count(self, obj):
         """Display count of associated QR codes"""

@@ -14,6 +14,9 @@ from pathlib import Path
 import os
 from . import local_settings
 
+# Project version
+PROJECT_VERSION = "0.0.2.26"
+
 PROJECT_DIR = os.path.dirname(__file__)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,6 +60,7 @@ INSTALLED_APPS = [
     "apps.qr",
     "apps.acc",
     "apps.service",
+    "apps.telegram",
     # 'api',
 ]
 
@@ -140,20 +144,21 @@ SHORT_DATETIME_FORMAT = 'd.m.Y H:i'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-# STATIC_URL = 'static/'
-STATIC_URL = local_settings.STATIC_URL
-# STATIC_ROOT = BASE_DIR / 'static'
-STATIC_ROOT = local_settings.STATIC_ROOT if hasattr(local_settings, 'STATIC_ROOT') and local_settings.STATIC_ROOT else None
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# STATIC_URL = 'media/'
-MEDIA_URL = local_settings.MEDIA_URL
-# STATIC_ROOT = BASE_DIR / 'media'
-MEDIA_ROOT = local_settings.MEDIA_ROOT
+# Media files (Images, Files)
+# https://docs.djangoproject.com/en/5.0/topics/files/
+
+MEDIA_URL = 'images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
 # STATICFILES_DIRS should not contain the same path as STATIC_ROOT
+# In development (DEBUG=True): use STATICFILES_DIRS
+# In production (DEBUG=False): use STATIC_ROOT
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-] if not (hasattr(local_settings, 'STATIC_ROOT') and local_settings.STATIC_ROOT) else []
+] if DEBUG else []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -182,5 +187,9 @@ USE_DJANGO_JQUERY = True
 # System code prefix
 # Test Django - TD
 SYSTEM_PREFIX = local_settings.SYSTEM_PREFIX
+
+# Telegram Bot settings
+TELEGRAM_BOT_TOKEN = local_settings.TELEGRAM_BOT_TOKEN
+TELEGRAM_WEBHOOK_URL = local_settings.TELEGRAM_WEBHOOK_URL
 
 # MATERIAL_ADMIN_SITE = "material.admin.sites.AdminSite"

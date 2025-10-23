@@ -5,7 +5,8 @@ from django.utils.translation import gettext_lazy as _
 
 
 class EmployeeForm(forms.ModelForm):
-    def clean_test(self):
+    def clean_department(self):
+        """Validate that department belongs to selected organization"""
         organization = self.cleaned_data.get('organization', None)
         department = self.cleaned_data.get('department')
         if organization and department and department.organization != organization:

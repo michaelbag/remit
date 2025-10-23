@@ -21,14 +21,14 @@ class CommonCounterAdmin(admin.ModelAdmin):
         'counter',
         'prefix',
         'guid',
-        'created',
-        'modified'
+        'created_at',
+        'updated_at'
     ]
     readonly_fields = [
         'guid',
         'table_name',
-        'modified',
-        'created'
+        'updated_at',
+        'created_at'
     ]
 
 
@@ -39,8 +39,8 @@ class CatalogAdmin(admin.ModelAdmin):
     hidden_system_fieldsets = False
     readonly_fields = [
         'guid',
-        'modified',
-        'created',
+        'updated_at',
+        'created_at',
     ]
     # List of fields to append to the end of columns
     list_display_before = [
@@ -53,9 +53,6 @@ class CatalogAdmin(admin.ModelAdmin):
         'code'
     ]
     list_display_later = [
-        # 'delete_mark',
-        # 'modified',
-        # 'created',
         'created_formated',
         'modified_formated'
     ]
@@ -86,7 +83,7 @@ class CatalogAdmin(admin.ModelAdmin):
     system_fieldsets = [
         (_('System'), {
             'classes': ['collapse'],
-            'fields': [('created', 'modified'), 'guid', 'delete_mark']
+            'fields': [('created_at', 'updated_at'), 'guid', 'delete_mark']
         })
     ]
 
@@ -123,13 +120,13 @@ class CatalogAdmin(admin.ModelAdmin):
     def delete_mark_icon(self, obj):
         return "❌" if obj.delete_mark else ""
 
-    @admin.display(description=_('Created'), ordering='created')
+    @admin.display(description=_('Created'), ordering='created_at')
     def created_formated(self, obj):
-        return timezone.localtime(obj.created).strftime('%d.%m.%Y %H:%M:%S')
+        return timezone.localtime(obj.created_at).strftime('%d.%m.%Y %H:%M:%S')
 
-    @admin.display(description=_('Modified'), ordering='modified')
+    @admin.display(description=_('Modified'), ordering='updated_at')
     def modified_formated(self, obj):
-        return timezone.localtime(obj.modified).strftime('%d.%m.%Y %H:%M:%S')
+        return timezone.localtime(obj.updated_at).strftime('%d.%m.%Y %H:%M:%S')
 
 
 class RecursiveCatalogAdmin(CatalogAdmin):
@@ -144,8 +141,8 @@ class RecursiveCatalogAdmin(CatalogAdmin):
     ]
     readonly_fields = [
         'guid',
-        'modified',
-        'created',
+        'updated_at',
+        'created_at',
         'is_folder_info'
     ]
     folder_fieldsets = [

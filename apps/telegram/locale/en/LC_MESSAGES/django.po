@@ -1,0 +1,932 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-21 13:11+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin.py:22 models.py:762 models.py:793
+msgid "Role"
+msgstr ""
+
+#: admin.py:23
+msgid "Roles"
+msgstr ""
+
+#: admin.py:30
+msgid "Member"
+msgstr ""
+
+#: admin.py:31 admin.py:354
+msgid "Members"
+msgstr ""
+
+#: admin.py:57
+#, python-format
+msgid "User %(user)s is already added in this form."
+msgstr ""
+
+#: admin.py:120 admin.py:390 models.py:1005
+msgid "Role Assignment"
+msgstr ""
+
+#: admin.py:121
+msgid "Role Assignments"
+msgstr ""
+
+#: admin.py:145 admin.py:178 admin.py:229 admin.py:327 admin.py:384
+#: admin.py:419 admin.py:463 models.py:751
+msgid "User"
+msgstr ""
+
+#: admin.py:150
+msgid "Telegram Info"
+msgstr ""
+
+#: admin.py:156 admin.py:188 admin.py:209 admin.py:255 admin.py:295
+#: admin.py:359 admin.py:443
+msgid "Basic Information"
+msgstr ""
+
+#: admin.py:159
+msgid "Telegram Data"
+msgstr ""
+
+#: admin.py:162
+msgid "Employee Connection"
+msgstr ""
+
+#: admin.py:165 admin.py:215 admin.py:393 admin.py:449
+msgid "Timestamps"
+msgstr ""
+
+#: admin.py:183 models.py:316
+msgid "Content"
+msgstr ""
+
+#: admin.py:191
+msgid "Message"
+msgstr ""
+
+#: admin.py:204
+msgid "Subscribers"
+msgstr ""
+
+#: admin.py:212 admin.py:241
+msgid "Settings"
+msgstr ""
+
+#: admin.py:235
+msgid "Subscription"
+msgstr ""
+
+#: admin.py:238 admin.py:304
+msgid "Statistics"
+msgstr ""
+
+#: admin.py:258
+msgid "Template"
+msgstr ""
+
+#: admin.py:272 models.py:565
+msgid "Scheduled Time"
+msgstr ""
+
+#: admin.py:281
+msgid "Actions"
+msgstr ""
+
+#: admin.py:287
+msgid "Send"
+msgstr ""
+
+#: admin.py:292
+msgid "Catalog Fields"
+msgstr ""
+
+#: admin.py:298
+msgid "Target Audience"
+msgstr ""
+
+#: admin.py:301
+msgid "Scheduling"
+msgstr ""
+
+#: admin.py:308 admin.py:428 admin.py:476
+msgid "Metadata"
+msgstr ""
+
+#: admin.py:332 models.py:310
+msgid "Error"
+msgstr ""
+
+#: admin.py:337
+msgid "Delivery"
+msgstr ""
+
+#: admin.py:340 admin.py:472 models.py:1013
+msgid "Details"
+msgstr ""
+
+#: admin.py:425
+msgid "Membership"
+msgstr ""
+
+#: admin.py:446 models.py:948
+msgid "Required Roles"
+msgstr ""
+
+#: admin.py:469 models.py:1012
+msgid "Action"
+msgstr ""
+
+#: bot.py:226
+#, python-brace-format
+msgid "Hello, {name}! I am the equipment management system bot."
+msgstr "Hello, {name}! I am the equipment management system bot."
+
+#: bot.py:239
+#, fuzzy
+#| msgid ""
+#| "🤖 <b>Welcome to the equipment management system!</b>\n"
+#| "\n"
+#| "Available commands:\n"
+#| "/help - Help\n"
+#| "/status - System status\n"
+#| "/equipment - Equipment list\n"
+#| "/subscriptions - Subscription management\n"
+#| "/mysubscriptions - My subscriptions\n"
+#| "/roles - My roles\n"
+#| "/permissions - My permissions\n"
+#| "/forgetme - Unlink profile from employee"
+msgid ""
+"🤖 <b>Welcome to the equipment management system!</b>\n"
+"\n"
+"Available commands:\n"
+"/help - Help\n"
+"/status - System status\n"
+"/equipment - Equipment list\n"
+"/subscriptions - Subscription management\n"
+"/mysubscriptions - My subscriptions\n"
+"/roles - My roles\n"
+"/permissions - My permissions\n"
+"/language - Change language\n"
+"/forgetme - Unlink profile from employee"
+msgstr ""
+"🤖 <b>Welcome to the equipment management system!</b>\n"
+"\n"
+"Available commands:\n"
+"/help - Help\n"
+"/status - System status\n"
+"/equipment - Equipment list\n"
+"/subscriptions - Subscription management\n"
+"/mysubscriptions - My subscriptions\n"
+"/roles - My roles\n"
+"/permissions - My permissions\n"
+"/forgetme - Unlink profile from employee"
+
+#: bot.py:253
+#, fuzzy
+#| msgid ""
+#| "📋 <b>Command help:</b>\n"
+#| "\n"
+#| "/start - Start working\n"
+#| "/help - Show this help\n"
+#| "/status - System status\n"
+#| "/equipment - Equipment list\n"
+#| "/subscriptions - Available subscriptions\n"
+#| "/mysubscriptions - My subscriptions\n"
+#| "/subscribe <code>code</code> - Subscribe to category\n"
+#| "/unsubscribe <code>code</code> - Unsubscribe from category\n"
+#| "/roles - My roles and groups\n"
+#| "/permissions - My permissions\n"
+#| "/forgetme - Unlink profile from employee"
+msgid ""
+"📋 <b>Command help:</b>\n"
+"\n"
+"/start - Start working\n"
+"/help - Show this help\n"
+"/status - System status\n"
+"/equipment - Equipment list\n"
+"/subscriptions - Available subscriptions\n"
+"/mysubscriptions - My subscriptions\n"
+"/subscribe <code>code</code> - Subscribe to category\n"
+"/unsubscribe <code>code</code> - Unsubscribe from category\n"
+"/roles - My roles and groups\n"
+"/permissions - My permissions\n"
+"/language - Change language\n"
+"/forgetme - Unlink profile from employee"
+msgstr ""
+"📋 <b>Command help:</b>\n"
+"\n"
+"/start - Start working\n"
+"/help - Show this help\n"
+"/status - System status\n"
+"/equipment - Equipment list\n"
+"/subscriptions - Available subscriptions\n"
+"/mysubscriptions - My subscriptions\n"
+"/subscribe <code>code</code> - Subscribe to category\n"
+"/unsubscribe <code>code</code> - Unsubscribe from category\n"
+"/roles - My roles and groups\n"
+"/permissions - My permissions\n"
+"/forgetme - Unlink profile from employee"
+
+#: bot.py:268
+msgid "✅ System is working normally"
+msgstr "✅ System is working normally"
+
+#: bot.py:279
+msgid ""
+"🖥️ <b>Your equipment:</b>\n"
+"\n"
+msgstr ""
+"🖥️ <b>Your equipment:</b>\n"
+"\n"
+
+#: bot.py:281
+msgid "Not specified"
+msgstr "Not specified"
+
+#: bot.py:283
+msgid "Serial number"
+msgstr "Serial number"
+
+#: bot.py:286
+msgid "📱 You have no assigned equipment"
+msgstr "📱 You have no assigned equipment"
+
+#: bot.py:288
+msgid "❌ You need to link your profile to an employee first"
+msgstr "❌ You need to link your profile to an employee first"
+
+#: bot.py:308
+msgid "❓ Unknown command. Use /help for help."
+msgstr "❓ Unknown command. Use /help for help."
+
+#: bot.py:368
+msgid ""
+"👋 Welcome to the equipment management system!\n"
+"\n"
+"To access system functions, you need to verify your identity.\n"
+"Please share your phone number by clicking the button below:"
+msgstr ""
+"👋 Welcome to the equipment management system!\n"
+"\n"
+"To access system functions, you need to verify your identity.\n"
+"Please share your phone number by clicking the button below:"
+
+#: bot.py:376
+msgid "📱 Share phone number"
+msgstr "📱 Share phone number"
+
+#: bot.py:401
+#, python-brace-format
+msgid ""
+"✅ Great! You have been successfully linked to employee profile: {name}\n"
+"\n"
+"Now you can use all bot functions:\n"
+"/help - Command help\n"
+"/equipment - Your equipment"
+msgstr ""
+"✅ Great! You have been successfully linked to employee profile: {name}\n"
+"\n"
+"Now you can use all bot functions:\n"
+"/help - Command help\n"
+"/equipment - Your equipment"
+
+#: bot.py:409
+msgid ""
+"❌ Employee with this phone number was not found in the system.\n"
+"\n"
+"Contact the administrator to add your phone number to the employee profile."
+msgstr ""
+"❌ Employee with this phone number was not found in the system.\n"
+"\n"
+"Contact the administrator to add your phone number to the employee profile."
+
+#: bot.py:414
+msgid "❌ Failed to get phone number. Please try again."
+msgstr "❌ Failed to get phone number. Please try again."
+
+#: bot.py:474
+#, python-brace-format
+msgid "{status_emoji} Subscription to '{category_name}' has status: {status}"
+msgstr "{status_emoji} Subscription to '{category_name}' has status: {status}"
+
+#: bot.py:480
+#, python-brace-format
+msgid "❌ Subscription to '{category_name}' not found"
+msgstr "❌ Subscription to '{category_name}' not found"
+
+#: bot.py:486
+#, python-brace-format
+msgid "❌ Error getting subscription status: {error}"
+msgstr "❌ Error getting subscription status: {error}"
+
+#: bot.py:496
+#, python-brace-format
+msgid "❓ Unknown command: {data}"
+msgstr "❓ Unknown command: {data}"
+
+#: bot.py:505
+msgid "📢 No available subscription categories"
+msgstr "📢 No available subscription categories"
+
+#: bot.py:511
+msgid ""
+"📢 <b>Available subscription categories:</b>\n"
+"\n"
+msgstr ""
+"📢 <b>Available subscription categories:</b>\n"
+"\n"
+
+#: bot.py:519
+#, python-brace-format
+msgid "Description: {description}\n"
+msgstr "Description: {description}\n"
+
+#: bot.py:525
+msgid "Status: ✅ Subscribed\n"
+msgstr "Status: ✅ Subscribed\n"
+
+#: bot.py:526
+#, python-brace-format
+msgid "❌ Unsubscribe from {category_name}"
+msgstr "❌ Unsubscribe from {category_name}"
+
+#: bot.py:529
+msgid "Status: ⏸️ Paused\n"
+msgstr "Status: ⏸️ Paused\n"
+
+#: bot.py:530
+#, python-brace-format
+msgid "▶️ Resume {category_name}"
+msgstr "▶️ Resume {category_name}"
+
+#: bot.py:533
+msgid "Status: ⏳ Pending approval\n"
+msgstr "Status: ⏳ Pending approval\n"
+
+#: bot.py:534
+#, python-brace-format
+msgid "⏳ {category_name} (pending)"
+msgstr "⏳ {category_name} (pending)"
+
+#: bot.py:537
+msgid "Status: ❌ Not subscribed\n"
+msgstr "Status: ❌ Not subscribed\n"
+
+#: bot.py:538
+#, python-brace-format
+msgid "✅ Subscribe to {category_name}"
+msgstr "✅ Subscribe to {category_name}"
+
+#: bot.py:549
+msgid "💡 <i>Use the buttons below for quick subscription management</i>"
+msgstr "💡 <i>Use the buttons below for quick subscription management</i>"
+
+#: bot.py:881
+#, python-brace-format
+msgid ""
+"🌐 <b>Change Language / Изменить язык</b>\n"
+"\n"
+"Current language: <b>{current}</b>\n"
+"Select your preferred language:\n"
+"\n"
+"Текущий язык: <b>{current}</b>\n"
+"Выберите предпочитаемый язык:"
+msgstr ""
+
+#: bot.py:894 bot.py:944
+msgid "❌ Error occurred while changing language. Please try again later."
+msgstr ""
+
+#: bot.py:903
+msgid "❌ Invalid language selection"
+msgstr "❌ Invalid language selection"
+
+#: bot.py:780
+msgid "You have no assigned roles. Contact the administrator."
+msgstr "You have no assigned roles. Contact the administrator."
+
+#: bot.py:782
+msgid "👤 <b>Your roles and groups:</b>\n\n"
+msgstr "👤 <b>Your roles and groups:</b>\n\n"
+
+#: bot.py:785
+msgid "🔑 <b>Roles:</b>\n"
+msgstr "🔑 <b>Roles:</b>\n"
+
+#: bot.py:792
+msgid "\n👥 <b>Groups:</b>\n"
+msgstr "\n👥 <b>Groups:</b>\n"
+
+#: bot.py:803
+msgid "You have no active permissions."
+msgstr "You have no active permissions."
+
+#: bot.py:805
+msgid "🔐 <b>Your permissions:</b>\n\n"
+msgstr "🔐 <b>Your permissions:</b>\n\n"
+
+#: bot.py:829
+msgid "ℹ️ <b>Your profile is not linked to an employee</b>\n\nNo need to unlink, as the profile is already not connected to an employee."
+msgstr "ℹ️ <b>Your profile is not linked to an employee</b>\n\nNo need to unlink, as the profile is already not connected to an employee."
+
+#: bot.py:834
+msgid "Unknown"
+msgstr "Unknown"
+
+#: bot.py:849
+msgid "✅ <b>Profile successfully unlinked!</b>\n\nYou are no longer connected to employee: <b>{employee_name}</b>\nPhone number removed from profile.\n\nFor re-linking, contact the administrator or use the /start command"
+msgstr "✅ <b>Profile successfully unlinked!</b>\n\nYou are no longer connected to employee: <b>{employee_name}</b>\nPhone number removed from profile.\n\nFor re-linking, contact the administrator or use the /start command"
+
+#: bot.py:858
+msgid "❌ <b>An error occurred while unlinking the profile</b>\n\nPlease try again later or contact the administrator."
+msgstr "❌ <b>An error occurred while unlinking the profile</b>\n\nPlease try again later or contact the administrator."
+
+#: bot.py:752
+msgid "❌ You don't have permission to execute command {command}.\nContact the administrator to get the necessary permissions."
+msgstr "❌ You don't have permission to execute command {command}.\nContact the administrator to get the necessary permissions."
+
+#: bot.py:768
+msgid "❌ An error occurred while executing the command: {error}"
+msgstr "❌ An error occurred while executing the command: {error}"
+
+#: models.py:13
+msgid "Telegram ID"
+msgstr ""
+
+#: models.py:14
+msgid "Telegram Username"
+msgstr ""
+
+#: models.py:15
+msgid "First Name"
+msgstr ""
+
+#: models.py:16 models.py:192
+msgid "Last Name"
+msgstr ""
+
+#: models.py:17
+msgid "Phone Number"
+msgstr ""
+
+#: models.py:19
+msgid "Employee"
+msgstr ""
+
+#: models.py:20 models.py:388 models.py:433 models.py:501 models.py:763
+#: models.py:794 models.py:828 models.py:895 models.py:949
+msgid "Active"
+msgstr ""
+
+#: models.py:24
+msgid "Russian"
+msgstr ""
+
+#: models.py:25
+msgid "English"
+msgstr ""
+
+#: models.py:31
+msgid "Language"
+msgstr ""
+
+#: models.py:32
+msgid "User preferred language for Telegram bot"
+msgstr ""
+
+#: models.py:78 models.py:313 models.py:684 models.py:761 models.py:893
+#: models.py:1010
+msgid "Telegram User"
+msgstr ""
+
+#: models.py:79
+msgid "Telegram Users"
+msgstr ""
+
+#: models.py:190
+msgid "Name"
+msgstr ""
+
+#: models.py:194
+msgid "Phone"
+msgstr ""
+
+#: models.py:195
+#, fuzzy
+#| msgid "Not specified"
+msgid "Information not specified"
+msgstr "Not specified"
+
+#: models.py:307
+msgid "Text Message"
+msgstr ""
+
+#: models.py:308 models.py:938
+msgid "Command"
+msgstr ""
+
+#: models.py:309
+msgid "Callback Query"
+msgstr ""
+
+#: models.py:314
+msgid "Message ID"
+msgstr ""
+
+#: models.py:315
+msgid "Message Type"
+msgstr ""
+
+#: models.py:317
+msgid "Bot Response"
+msgstr ""
+
+#: models.py:318
+msgid "Processed"
+msgstr ""
+
+#: models.py:321
+msgid "Telegram Message"
+msgstr ""
+
+#: models.py:322
+msgid "Telegram Messages"
+msgstr ""
+
+#: models.py:385
+msgid "Category Code"
+msgstr ""
+
+#: models.py:386
+msgid "Category Name"
+msgstr ""
+
+#: models.py:387 models.py:827 models.py:946
+msgid "Description"
+msgstr ""
+
+#: models.py:389
+msgid "Public Subscription"
+msgstr ""
+
+#: models.py:390
+msgid "Requires Approval"
+msgstr ""
+
+#: models.py:391
+msgid "Auto Subscribe for New Users"
+msgstr ""
+
+#: models.py:392
+msgid "Icon"
+msgstr ""
+
+#: models.py:397
+msgid "Telegram Subscription Category"
+msgstr ""
+
+#: models.py:398
+#, fuzzy
+#| msgid "📢 No available subscription categories"
+msgid "Telegram Subscription Categories"
+msgstr "📢 No available subscription categories"
+
+#: models.py:434
+msgid "Paused"
+msgstr ""
+
+#: models.py:435
+msgid "Unsubscribed"
+msgstr ""
+
+#: models.py:436
+#, fuzzy
+#| msgid "Status: ⏳ Pending approval\n"
+msgid "Pending Approval"
+msgstr "Status: ⏳ Pending approval\n"
+
+#: models.py:449
+msgid "Telegram User Subscription"
+msgstr ""
+
+#: models.py:450
+msgid "Telegram User Subscriptions"
+msgstr ""
+
+#: models.py:498
+msgid "Subject Template"
+msgstr ""
+
+#: models.py:499
+msgid "Message Template"
+msgstr ""
+
+#: models.py:500
+msgid "Available Variables"
+msgstr ""
+
+#: models.py:504
+msgid "Telegram Message Template"
+msgstr ""
+
+#: models.py:505
+msgid "Telegram Message Templates"
+msgstr ""
+
+#: models.py:540
+msgid "Draft"
+msgstr ""
+
+#: models.py:541
+msgid "Scheduled"
+msgstr ""
+
+#: models.py:542
+msgid "Sending"
+msgstr ""
+
+#: models.py:543 models.py:677
+msgid "Sent"
+msgstr ""
+
+#: models.py:544 models.py:679
+msgid "Failed"
+msgstr ""
+
+#: models.py:545
+msgid "Cancelled"
+msgstr ""
+
+#: models.py:549
+msgid "Category Broadcast"
+msgstr ""
+
+#: models.py:550
+msgid "Individual Message"
+msgstr ""
+
+#: models.py:551
+msgid "Bulk Message"
+msgstr ""
+
+#: models.py:552
+msgid "Scheduled Message"
+msgstr ""
+
+#: models.py:555
+msgid "Broadcast Title"
+msgstr ""
+
+#: models.py:556
+msgid "Message Content"
+msgstr ""
+
+#: models.py:566
+msgid "Sent Time"
+msgstr ""
+
+#: models.py:569
+msgid "Total Recipients"
+msgstr ""
+
+#: models.py:570
+msgid "Delivered Count"
+msgstr ""
+
+#: models.py:571
+msgid "Failed Count"
+msgstr ""
+
+#: models.py:574
+msgid "Created By"
+msgstr ""
+
+#: models.py:575 models.py:764 models.py:797 models.py:950 models.py:1018
+msgid "Created At"
+msgstr ""
+
+#: models.py:576
+msgid "Updated At"
+msgstr ""
+
+#: models.py:579
+msgid "Telegram Broadcast"
+msgstr ""
+
+#: models.py:580
+msgid "Telegram Broadcasts"
+msgstr ""
+
+#: models.py:676
+msgid "Pending"
+msgstr ""
+
+#: models.py:678
+msgid "Delivered"
+msgstr ""
+
+#: models.py:680
+msgid "Blocked"
+msgstr ""
+
+#: models.py:683
+msgid "Broadcast"
+msgstr ""
+
+#: models.py:685
+msgid "Status"
+msgstr ""
+
+#: models.py:686
+msgid "Sent At"
+msgstr ""
+
+#: models.py:687
+msgid "Delivered At"
+msgstr ""
+
+#: models.py:688 models.py:1015
+msgid "Error Message"
+msgstr ""
+
+#: models.py:689
+msgid "Telegram Message ID"
+msgstr ""
+
+#: models.py:692
+msgid "Telegram Broadcast Delivery"
+msgstr ""
+
+#: models.py:693
+msgid "Telegram Broadcast Deliveries"
+msgstr ""
+
+#: models.py:750
+msgid "Viewer"
+msgstr ""
+
+#: models.py:752
+msgid "Operator"
+msgstr ""
+
+#: models.py:753
+msgid "Admin"
+msgstr ""
+
+#: models.py:754
+msgid "Super Admin"
+msgstr ""
+
+#: models.py:755
+msgid "New User"
+msgstr ""
+
+#: models.py:756
+msgid "Invited User"
+msgstr ""
+
+#: models.py:757
+msgid "External User"
+msgstr ""
+
+#: models.py:767
+msgid "Telegram User Role Assignment"
+msgstr ""
+
+#: models.py:768
+msgid "Telegram User Role Assignments"
+msgstr ""
+
+#: models.py:792 models.py:894
+msgid "Group"
+msgstr ""
+
+#: models.py:795
+msgid "Role Exclusion"
+msgstr ""
+
+#: models.py:796
+msgid ""
+"If True, this role will be excluded from users in this group. Exclusion has "
+"higher priority than inclusion."
+msgstr ""
+
+#: models.py:800
+msgid "Telegram User Group Role"
+msgstr ""
+
+#: models.py:801
+msgid "Telegram User Group Roles"
+msgstr ""
+
+#: models.py:829
+msgid "Default for New Users"
+msgstr ""
+
+#: models.py:832
+msgid "Telegram User Group"
+msgstr ""
+
+#: models.py:833
+msgid "Telegram User Groups"
+msgstr ""
+
+#: models.py:896
+msgid "Assigned At"
+msgstr ""
+
+#: models.py:898
+msgid "Assigned By"
+msgstr ""
+
+#: models.py:901
+msgid "Telegram User Group Membership"
+msgstr ""
+
+#: models.py:902
+msgid "Telegram User Group Memberships"
+msgstr ""
+
+#: models.py:939
+msgid "Feature"
+msgstr ""
+
+#: models.py:940 models.py:1007
+msgid "Data Access"
+msgstr ""
+
+#: models.py:941
+msgid "Administrative"
+msgstr ""
+
+#: models.py:944
+msgid "Permission Name"
+msgstr ""
+
+#: models.py:945
+msgid "Permission Code"
+msgstr ""
+
+#: models.py:947
+msgid "Permission Type"
+msgstr ""
+
+#: models.py:953
+msgid "Telegram Permission"
+msgstr ""
+
+#: models.py:954
+msgid "Telegram Permissions"
+msgstr ""
+
+#: models.py:1003
+msgid "Command Execution"
+msgstr ""
+
+#: models.py:1004
+msgid "Permission Check"
+msgstr ""
+
+#: models.py:1006
+msgid "Group Membership Change"
+msgstr ""
+
+#: models.py:1011
+msgid "Action Type"
+msgstr ""
+
+#: models.py:1014
+msgid "Success"
+msgstr ""
+
+#: models.py:1016
+msgid "IP Address"
+msgstr ""
+
+#: models.py:1017
+msgid "User Agent"
+msgstr ""
+
+#: models.py:1021
+msgid "Telegram Audit Log"
+msgstr ""
+
+#: models.py:1022
+msgid "Telegram Audit Logs"
+msgstr ""

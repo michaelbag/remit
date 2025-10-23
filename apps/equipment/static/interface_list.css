@@ -1,0 +1,9 @@
+/**
+ * Interface list admin styles
+ * Styles for archived rows and other interface-specific elements
+ */
+
+.archived-row {
+    color: #999 !important;
+    opacity: 0.7;
+}

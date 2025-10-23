@@ -128,6 +128,12 @@ class EquipmentAdmin(RecursiveCatalogAdmin):
     def archive_icon(self, obj):
         return '🗃️' if obj.archive else ''
 
+    class Media:
+        css = {
+            'all': ('equipment_list.css',)
+        }
+        js = ('equipment_list.js',)
+
 
 @admin.register(eq_models.InterfaceType)
 class InterfaceTypeAdmin(CatalogAdmin):
@@ -139,7 +145,7 @@ class InterfaceAdmin(CatalogAdmin):
     list_display = [
         'mac',
         'equipment',
-        'virtual',
+        'virtual_display',
         'ipv4_address',
         'connected_to',
         'interface_type',
@@ -160,6 +166,17 @@ class InterfaceAdmin(CatalogAdmin):
     @admin.display(description='🗃️', ordering='archive')
     def archive_icon(self, obj):
         return '🗃️' if obj.archive else ''
+
+    @admin.display(description='Virtual', ordering='virtual')
+    def virtual_display(self, obj):
+        return '(V)' if obj.virtual else '---'
+
+    class Media:
+        css = {
+            'all': ('interface_list.css',)
+        }
+        js = ('interface_list.js',)
+
 
     def get_search_results(self, request, queryset, search_term):
         queryset, may_have_duplicates = super().get_search_results(
@@ -239,7 +256,7 @@ class ServiceAdmin(CatalogAdmin):
          }),
         (_('System fields'),
          {
-             'fields': ['created', 'modified', 'delete_mark']
+             'fields': ['created_at', 'updated_at', 'delete_mark']
          }),
     ]
 

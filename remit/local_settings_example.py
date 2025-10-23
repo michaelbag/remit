@@ -63,19 +63,12 @@ TIME_ZONE = 'Europe/Moscow'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-MEDIA_URL = 'images/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
-
-# STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'static/'),)
-#
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-#     "/var/www/static/",
-# ]
-# settings.py
+# STATIC_URL and STATIC_ROOT moved to settings.py
+# MEDIA_URL and MEDIA_ROOT moved to settings.py
 
 # System prefix for codes created in this system in catalogs
 SYSTEM_PREFIX = 'TD'
+
+# Telegram Bot settings
+TELEGRAM_WEBHOOK_URL = 'https://example.com/tg/webhook'
+TELEGRAM_BOT_TOKEN = 'your-telegram-bot-token-here'
